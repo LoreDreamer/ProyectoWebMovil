@@ -1,0 +1,36 @@
+* {
+  background-color: #ffffff;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.item-image {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.item-text {
+  font-size: 18px;
+  padding-left: 144px;
+  padding-right: 144px;
+  margin-left: auto;
+}
+
+.custom-toolbar {
+  --background: #3a2867;
+  --color: white;
+}
+
+.rounded-box {
+  background-color: white;
+  color: #3a2867;
+  border-radius: 999px;
+  padding-left: 78px;
+  padding-right: 78px;
+  display: inline-block;
+}
