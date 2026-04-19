@@ -5,8 +5,8 @@ import {
   setupIonicReact
 } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
-import index from './pages/index';
-import loginAdm from './pages/loginAdm';
+import { index } from './pages/index';
+import { LoginPage } from './pages/loginAdm';
 import Tab3 from './pages/Tab3';
 
 /* Core CSS required for Ionic components to work properly */
@@ -27,6 +27,7 @@ import '@ionic/react/css/display.css';
 
 /* Theme variables */
 import './theme/variables.css';
+import { RegisterPage } from './pages/registerPage';
 
 setupIonicReact();
 
@@ -35,8 +36,9 @@ const App: React.FC = () => (
     <IonReactRouter>
       <IonRouterOutlet>
         <Route exact path="/index" component={index} />
-        <Route exact path="/loginAdm" component={loginAdm} />
+        <Route exact path="/LoginPage" component={LoginPage} />
         <Route exact path="/tab3" component={Tab3} />
+        <Route exact path="/RegisterPage" component={RegisterPage} />
         <Route exact path="/">
           <Redirect to="/index" />
         </Route>

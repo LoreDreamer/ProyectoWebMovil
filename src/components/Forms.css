@@ -56,3 +56,11 @@
   font-weight: bold;
   height: 45px;
 }
+
+.register-button {
+  display: block;
+  width: fit-content;
+  margin: 16px auto 0;
+  background-color: transparent;
+  font-style: italic;
+}
