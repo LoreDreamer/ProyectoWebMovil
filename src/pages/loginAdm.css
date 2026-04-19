@@ -1,0 +1,11 @@
+.ion-page {
+  background-image: url('../assets/652677708_18021012203642875_5614181220272571728_n.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  box-shadow: inset 0 0 0 1000px rgba(0, 0, 0, 0.705);
+}
+
+.transparent-content {
+  --background: transparent !important;
+}
