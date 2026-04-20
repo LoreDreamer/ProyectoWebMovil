@@ -9,3 +9,5 @@ export const index: React.FC = () => {
     </IonPage>
   );
 };
+
+export default index;

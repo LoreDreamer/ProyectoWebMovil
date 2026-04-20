@@ -24,8 +24,11 @@ const Navbar: React.FC = () => {
             <IonRouterLink routerLink="/index">
               <IonButton fill="clear" color="dark">INICIO</IonButton>
             </IonRouterLink>
-            <IonRouterLink routerLink="/loginAdm">
+            <IonRouterLink routerLink="/LoginPage">
               <IonButton fill="clear" color="dark">INICIAR SESIÓN</IonButton>
+            </IonRouterLink>
+            <IonRouterLink routerLink="/RegisterPage">
+              <IonButton fill="clear" color="dark">REGISTRARSE</IonButton>
             </IonRouterLink>
             <IonRouterLink routerLink="/tab3">
               <IonButton fill="clear" color="dark">INFORMACIÓN</IonButton>

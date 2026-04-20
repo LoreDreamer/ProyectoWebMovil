@@ -7,6 +7,7 @@ import {
 import { IonReactRouter } from '@ionic/react-router';
 import { index } from './pages/index';
 import { LoginPage } from './pages/loginAdm';
+import { RegisterPage } from './pages/registerPage';
 import Tab3 from './pages/Tab3';
 
 /* Core CSS required for Ionic components to work properly */
@@ -27,7 +28,6 @@ import '@ionic/react/css/display.css';
 
 /* Theme variables */
 import './theme/variables.css';
-import { RegisterPage } from './pages/registerPage';
 
 setupIonicReact();
 
