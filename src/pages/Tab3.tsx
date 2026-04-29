@@ -1,5 +1,5 @@
 import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/react';
-import Navbar from '../components/Navbar';
+import {Navbar} from '../components/Navbar';
 import './Tab3.css';
 
 const Tab3: React.FC = () => {
