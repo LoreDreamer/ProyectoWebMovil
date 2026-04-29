@@ -1,5 +1,5 @@
 import { IonContent, IonPage } from '@ionic/react';
-import Navbar from '../components/Navbar';  
+import {Navbar} from '../components/Navbar';  
 import { LoginForm } from '../components/Forms';
 import './loginAdm.css';
 

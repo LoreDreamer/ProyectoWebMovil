@@ -5,7 +5,7 @@ import {
   setupIonicReact
 } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
-import { index } from './pages/index';
+import { Index } from './pages/index';
 import { LoginPage } from './pages/loginAdm';
 import { RegisterPage } from './pages/registerPage';
 import Tab3 from './pages/Tab3';
@@ -35,7 +35,7 @@ const App: React.FC = () => (
   <IonApp>
     <IonReactRouter>
       <IonRouterOutlet>
-        <Route exact path="/index" component={index} />
+        <Route exact path="/index" component={Index} />
         <Route exact path="/LoginPage" component={LoginPage} />
         <Route exact path="/tab3" component={Tab3} />
         <Route exact path="/RegisterPage" component={RegisterPage} />
