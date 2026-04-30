@@ -1,0 +1,19 @@
+.complaints-content {
+  --background: none !important;
+  background: 
+    linear-gradient(rgba(93, 224, 230, 0.7), rgba(0, 74, 173, 0.7)),
+    url('../assets/maxresdefault.jpg') center/cover no-repeat !important;
+
+  /* --- ESTO CENTRA EL CONTENIDO --- */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Apuntamos al div que pusiste dentro de IonContent */
+.complaints-container {
+  display: flex;
+  justify-content: center; /* Centrado horizontal */
+  align-items: center;     /* Centrado vertical */
+  min-height: 100%;        /* Obliga al div a ocupar todo el alto del IonContent */
+  padding: 20px 0;         /* Espacio de seguridad arriba y abajo */
+}
