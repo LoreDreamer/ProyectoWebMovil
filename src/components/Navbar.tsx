@@ -1,10 +1,6 @@
 import React from 'react';
-import {
-  IonHeader,
-  IonToolbar,
-  IonButton,
-  IonRouterLink,
-} from '@ionic/react';
+import { Link } from 'react-router-dom';
+import { IonHeader, IonToolbar } from '@ionic/react';
 
 import logo from '../assets/4-isologo-municipal-fondocalipso-rgb.png';
 import './Navbar.css';
@@ -14,46 +10,35 @@ export const Navbar: React.FC = () => {
     <IonHeader className="navbar-header">
       <IonToolbar className="navbar-toolbar">
         <div className="navbar-container">
-          <IonRouterLink routerLink="/index" className="navbar-logo-link">
+          <Link to="/index" className="navbar-logo-link">
             <img src={logo} alt="Santo Domingo" className="navbar-logo" />
-          </IonRouterLink>
+          </Link>
 
           <nav className="navbar-links">
-            <IonRouterLink routerLink="/index" className="navbar-link">
+            <Link to="/index" className="navbar-link">
               Inicio
-            </IonRouterLink>
+            </Link>
 
-            <IonRouterLink routerLink="/tab3" className="navbar-link">
+            <Link to="/educacion" className="navbar-link">
               Educación
-            </IonRouterLink>
+            </Link>
 
-            <IonRouterLink routerLink="/denuncias" className="navbar-link">
+            <Link to="/denuncias" className="navbar-link">
               Denuncias
-            </IonRouterLink>
+            </Link>
 
-            <IonRouterLink routerLink="/cuestionarios" className="navbar-link">
+            <Link to="/cuestionarios" className="navbar-link">
               Cuestionarios
-            </IonRouterLink>
-
-            <IonRouterLink routerLink="/cuestionarios" className="navbar-link">
-              Protocolos
-            </IonRouterLink>
-
-            <IonRouterLink routerLink="/cuestionarios" className="navbar-link">
-              Alertas
-            </IonRouterLink>
+            </Link>
           </nav>
 
           <div className="navbar-actions">
-            <IonRouterLink routerLink="/LoginPage" className="navbar-login">
-              Iniciar Sesión
-            </IonRouterLink>
-
-            <IonRouterLink routerLink="/RegisterPage">
-              <IonButton className="navbar-register-button">
-                Crear cuenta
-              </IonButton>
-            </IonRouterLink>
+            <Link to="/login" className="navbar-login">
+              Iniciar sesión
+            </Link>
+            <Link to="/register" className="navbar-register-button">
+              Crear cuenta
+            </Link>
           </div>
         </div>
       </IonToolbar>

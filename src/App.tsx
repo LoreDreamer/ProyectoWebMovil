@@ -9,6 +9,7 @@ import { Index } from './pages/index';
 import { LoginPage } from './pages/loginAdm';
 import { RegisterPage } from './pages/registerPage';
 import Tab3 from './pages/Tab3';
+import { PlaceholderPage } from './pages/PlaceholderPage';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
@@ -27,6 +28,7 @@ import '@ionic/react/css/flex-utils.css';
 import '@ionic/react/css/display.css';
 
 /* Theme variables */
+import './global.css';
 import './theme/variables.css';
 
 setupIonicReact();
@@ -36,9 +38,11 @@ const App: React.FC = () => (
     <IonReactRouter>
       <IonRouterOutlet>
         <Route exact path="/index" component={Index} />
-        <Route exact path="/LoginPage" component={LoginPage} />
-        <Route exact path="/tab3" component={Tab3} />
-        <Route exact path="/RegisterPage" component={RegisterPage} />
+        <Route exact path="/login" component={LoginPage} />
+        <Route exact path="/register" component={RegisterPage} />
+        <Route exact path="/educacion" component={Tab3} />
+        <Route exact path="/denuncias" render={() => <PlaceholderPage title="Denuncias" />} />
+        <Route exact path="/cuestionarios" render={() => <PlaceholderPage title="Cuestionarios" />} />
         <Route exact path="/">
           <Redirect to="/index" />
         </Route>
