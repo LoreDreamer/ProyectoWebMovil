@@ -32,7 +32,6 @@ export const LoginForm: React.FC = () => {
         <div className="form-container">
           <form className="auth-form" onSubmit={handleSubmit}>
             <div className="auth-form-header">
-              <span>Ingreso seguro</span>
               <h2>Iniciar sesión</h2>
               <p>Accede al sistema con tu correo y contraseña.</p>
             </div>

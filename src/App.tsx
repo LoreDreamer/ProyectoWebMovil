@@ -10,6 +10,7 @@ import { LoginPage } from './pages/loginAdm';
 import { RegisterPage } from './pages/registerPage';
 import Tab3 from './pages/Tab3';
 import { PlaceholderPage } from './pages/PlaceholderPage';
+import { NewsPage } from './pages/newsPage';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
@@ -43,6 +44,7 @@ const App: React.FC = () => (
         <Route exact path="/educacion" component={Tab3} />
         <Route exact path="/denuncias" render={() => <PlaceholderPage title="Denuncias" />} />
         <Route exact path="/cuestionarios" render={() => <PlaceholderPage title="Cuestionarios" />} />
+        <Route exact path="/alertas" component={NewsPage} />
         <Route exact path="/">
           <Redirect to="/index" />
         </Route>

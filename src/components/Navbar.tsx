@@ -30,6 +30,10 @@ export const Navbar: React.FC = () => {
             <Link to="/cuestionarios" className="navbar-link">
               Cuestionarios
             </Link>
+
+            <Link to="/Alertas" className="navbar-link">
+              Alertas
+            </Link>
           </nav>
 
           <div className="navbar-actions">
