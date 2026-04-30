@@ -244,23 +244,7 @@ Esta definición deberá ajustarse según las rutas efectivamente implementadas 
 
 
 
-## 18. Estado actual del frontend
-
-
-
-## 19. Instrucciones básicas de instalación
-
-
-
-## 20. Estructura del proyecto
-
-
-
-## 21. Entregables de la entrega parcial
-
-
-
-## 22. Referencias
+## 18. Referencias
 
 - Umaña Mardones, C. H. (2023). *Gestión municipal en Chile y entrada en régimen de la Ley 21.180. El desafío de la transformación digital*. Revista Mexicana de Análisis Político y Administración Pública, 12(23), 67-87.
 - Dialnet: https://dialnet.unirioja.es/servlet/articulo?codigo=9540138
