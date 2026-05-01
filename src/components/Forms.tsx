@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useHistory } from 'react-router-dom';
 import { IonButton, IonInput, IonLabel, IonItem, IonRouterLink } from '@ionic/react';
 import bgImage from '../assets/1_private-tour-of-the-city-of-neiva.png';
 import './Forms.css';
@@ -6,11 +7,28 @@ import './Forms.css';
 export const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const history = useHistory();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Correo:', email);
-    console.log('Contraseña:', password);
+    
+    // Aquí puedes agregar validación real y llamada a API
+    if (email && password) {
+      // Guardar estado de autenticación en localStorage
+      localStorage.setItem('isLoggedIn', 'true');
+      localStorage.setItem('userEmail', email);
+      
+      console.log('Correo:', email);
+      console.log('Contraseña:', password);
+      
+      // Redirigir a inicio
+      history.push('/index');
+      
+      // Recargar para que la navbar se actualice
+      window.location.reload();
+    } else {
+      alert('Por favor completa todos los campos');
+    }
   };
 
   return (
@@ -97,13 +115,36 @@ export const RegisterForm: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const history = useHistory();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!name || !email || !password || !confirmPassword) {
+      alert('Por favor completa todos los campos');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      alert('Las contraseñas no coinciden');
+      return;
+    }
+
+    // Guardar estado de autenticación en localStorage
+    localStorage.setItem('isLoggedIn', 'true');
+    localStorage.setItem('userName', name);
+    localStorage.setItem('userEmail', email);
+    
     console.log('Nombre:', name);
     console.log('Correo:', email);
     console.log('Contraseña:', password);
     console.log('Confirmar contraseña:', confirmPassword);
+    
+    // Redirigir a inicio
+    history.push('/index');
+    
+    // Recargar para que la navbar se actualice
+    window.location.reload();
   };
 
   return (

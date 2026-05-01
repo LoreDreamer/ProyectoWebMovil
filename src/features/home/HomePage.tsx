@@ -1,10 +1,8 @@
-import { IonPage, IonContent } from '@ionic/react';
-import { Navbar } from '../components/Navbar';
-import { HeroSection } from '../components/HeroSection';
-import { InfoSection } from '../components/InfoSection';
+import { IonContent, IonPage } from '@ionic/react';
+import { Navbar, HeroSection, InfoSection } from '../../shared/ui';
 import './HomePage.css';
 
-export const Index: React.FC = () => {
+export const HomePage: React.FC = () => {
   return (
     <IonPage>
       <Navbar />
@@ -16,4 +14,4 @@ export const Index: React.FC = () => {
       </IonContent>
     </IonPage>
   );
-}
+};
