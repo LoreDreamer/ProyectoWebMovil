@@ -1,7 +1,7 @@
 import { Redirect, Route } from 'react-router-dom';
 import { IonApp, IonRouterOutlet, setupIonicReact } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
-import { LoginPage, RegisterPage, EducationPage, HomePage, PlaceholderPage, ProtocolsPage, QuestionnairePage } from './pages';
+import { LoginPage, RegisterPage, EducationPage, HomePage, PlaceholderPage, ProtocolsPage, QuestionnairePage, NewsPage } from './pages';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
@@ -36,7 +36,7 @@ const App: React.FC = () => (
         <Route exact path="/denuncias" render={() => <PlaceholderPage title="Denuncias" />} />
         <Route exact path="/cuestionarios" component={QuestionnairePage} />
         <Route exact path="/protocolos" component={ProtocolsPage} />
-        <Route exact path="/alertas" render={() => <PlaceholderPage title="Alertas" />} />
+        <Route exact path="/alertas" component= {NewsPage} />
         <Route exact path="/perfil" render={() => <PlaceholderPage title="Mi Perfil" />} />
         <Route exact path="/configuracion" render={() => <PlaceholderPage title="Configuración" />} />
         <Route exact path="/">

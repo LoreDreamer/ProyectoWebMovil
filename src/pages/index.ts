@@ -5,3 +5,4 @@ export { EducationPage } from './education/EducacionPage';
 export { HomePage } from './home/HomePage';
 export { PlaceholderPage } from './placeholder/PlaceholderPage';
 export { ProtocolsPage } from './protocols/Protocols';
+export { NewsPage } from './news/newsPage';

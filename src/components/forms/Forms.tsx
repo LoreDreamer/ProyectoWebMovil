@@ -7,7 +7,6 @@ import {
   IonItem,
   IonRouterLink,
 } from '@ionic/react';
-
 import bgImage from '../../assets/1_private-tour-of-the-city-of-neiva.png';
 import './Forms.css';
 
