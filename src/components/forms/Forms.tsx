@@ -1,82 +1,59 @@
 import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import { IonButton, IonInput, IonLabel, IonItem, IonRouterLink } from '@ionic/react';
+import {
+  IonButton,
+  IonInput,
+  IonLabel,
+  IonItem,
+  IonRouterLink,
+} from '@ionic/react';
+
 import bgImage from '../../assets/1_private-tour-of-the-city-of-neiva.png';
 import './Forms.css';
 
 export const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
   const history = useHistory();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Aquí puedes agregar validación real y llamada a API
-    if (email && password) {
-      // Guardar estado de autenticación en localStorage
-      localStorage.setItem('isLoggedIn', 'true');
-      localStorage.setItem('userEmail', email);
-      
-      console.log('Correo:', email);
-      console.log('Contraseña:', password);
-      
-      // Redirigir a inicio
-      history.push('/index');
-      
-      // Recargar para que la navbar se actualice
-      window.location.reload();
-    } else {
+
+    if (!email || !password) {
       alert('Por favor completa todos los campos');
+      return;
     }
+
+    localStorage.setItem('isLoggedIn', 'true');
+    localStorage.setItem('userEmail', email);
+
+    console.log('Correo:', email);
+    console.log('Contraseña:', password);
+
+    history.push('/index');
+    window.location.reload();
   };
 
   return (
-    <div className='dividor' style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      height: '100%',
-    }}>
-      <div style={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        backgroundColor: '#ffffff',
-        borderRadius: '15px',
-        boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
-        maxWidth: '900px',
-        width: '90%',
-        overflow: 'hidden'
-      }}>
-        <div style={{
-          flex: '1 1 300px',
-          backgroundImage: `url(${bgImage})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          minHeight: '350px'
-        }} />
+    <div className="dividor">
+      <div className="auth-card">
+        <div
+          className="auth-image"
+          style={{ backgroundImage: `url(${bgImage})` }}
+        />
 
-        <div className="form-container" style={{
-          flex: '1 1 300px',
-          padding: '40px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center'
-        }}>
-          <form className="login-form" onSubmit={handleSubmit}>
+        <div className="form-container">
+          <form className="auth-form" onSubmit={handleSubmit}>
             <div className="auth-form-header">
-              <span>Ingreso seguro</span>
               <h2>Iniciar sesión</h2>
-              <p style={{ marginBottom: '20px', color: '#666' }}>
-                Accede al panel municipal para gestionar incidentes y fortalecer la
-                seguridad digital de tu comunidad.
-              </p>
+              <p>Accede al sistema con tu correo y contraseña.</p>
             </div>
-            
+
             <IonItem>
               <IonLabel position="stacked">Correo electrónico</IonLabel>
               <IonInput
+                className="custom-input"
                 type="email"
                 value={email}
                 onIonChange={(e) => setEmail(e.detail.value || '')}
@@ -87,6 +64,7 @@ export const LoginForm: React.FC = () => {
             <IonItem>
               <IonLabel position="stacked">Contraseña</IonLabel>
               <IonInput
+                className="custom-input"
                 type="password"
                 value={password}
                 onIonChange={(e) => setPassword(e.detail.value || '')}
@@ -94,15 +72,15 @@ export const LoginForm: React.FC = () => {
               />
             </IonItem>
 
-            <IonButton expand="block" type="submit" color="dark" className="submit-button" style={{ marginTop: '20px' }}>
+            <IonButton expand="block" type="submit" className="submit-button">
               Iniciar sesión
             </IonButton>
-            
+
             <IonRouterLink routerLink="/register">
-              <IonButton className='register-button' fill='clear' expand="block">
+              <IonButton fill="clear" expand="block" className="secondary-button">
                 ¿No tienes cuenta? Regístrate
               </IonButton>
-            </IonRouterLink>     
+            </IonRouterLink>
           </form>
         </div>
       </div>
@@ -111,16 +89,29 @@ export const LoginForm: React.FC = () => {
 };
 
 export const RegisterForm: React.FC = () => {
-  const [name, setName] = useState('');
+  const [usuario, setUsuario] = useState('');
+  const [rut, setRut] = useState('');
+  const [region, setRegion] = useState('');
+  const [comuna, setComuna] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+
   const history = useHistory();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!name || !email || !password || !confirmPassword) {
+
+    if (
+      !usuario ||
+      !rut ||
+      !region ||
+      !comuna ||
+      !email ||
+      !password ||
+      !confirmPassword
+    ) {
       alert('Por favor completa todos los campos');
       return;
     }
@@ -130,79 +121,94 @@ export const RegisterForm: React.FC = () => {
       return;
     }
 
-    // Guardar estado de autenticación en localStorage
+    if (!acceptedTerms) {
+      alert('Debes aceptar los términos y condiciones');
+      return;
+    }
+
     localStorage.setItem('isLoggedIn', 'true');
-    localStorage.setItem('userName', name);
+    localStorage.setItem('userName', usuario);
+    localStorage.setItem('userRut', rut);
+    localStorage.setItem('userRegion', region);
+    localStorage.setItem('userComuna', comuna);
     localStorage.setItem('userEmail', email);
-    
-    console.log('Nombre:', name);
+
+    console.log('Usuario:', usuario);
+    console.log('Rut:', rut);
+    console.log('Región:', region);
+    console.log('Comuna:', comuna);
     console.log('Correo:', email);
     console.log('Contraseña:', password);
     console.log('Confirmar contraseña:', confirmPassword);
-    
-    // Redirigir a inicio
+    console.log('Acepta términos:', acceptedTerms);
+
     history.push('/index');
-    
-    // Recargar para que la navbar se actualice
     window.location.reload();
   };
 
   return (
-    <div className='dividor' style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      height: '100%',
-    }}>
-      <div style={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        backgroundColor: '#ffffff',
-        borderRadius: '15px',
-        boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
-        maxWidth: '900px',
-        width: '90%',
-        overflow: 'hidden'
-      }}>
-        <div style={{
-          flex: '1 1 300px',
-          backgroundImage: `url(${bgImage})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          minHeight: '350px'
-        }} />
+    <div className="dividor">
+      <div className="auth-card">
+        <div
+          className="auth-image"
+          style={{ backgroundImage: `url(${bgImage})` }}
+        />
 
-        <div className="form-container" style={{
-          flex: '1 1 300px',
-          padding: '40px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center'
-        }}>
-          <form className="login-form" onSubmit={handleSubmit}>
+        <div className="form-container">
+          <form className="auth-form register-form" onSubmit={handleSubmit}>
             <div className="auth-form-header">
-              <span>Registro seguro</span>
-              <h2>Crear cuenta</h2>
-              <p style={{ marginBottom: '20px', color: '#666' }}>
-                Completa los datos del formulario para acceder a los recursos y reportes
-                del sistema.
-              </p>
+              <h2>Registrarse</h2>
+              <p>Completa tus datos para crear una cuenta.</p>
             </div>
 
             <IonItem>
-              <IonLabel position="stacked">Nombre completo</IonLabel>
+              <IonLabel position="stacked">Usuario</IonLabel>
               <IonInput
+                className="custom-input"
                 type="text"
-                value={name}
-                onIonChange={(e) => setName(e.detail.value || '')}
-                placeholder="Nombre completo"
+                value={usuario}
+                onIonChange={(e) => setUsuario(e.detail.value || '')}
+                placeholder="Ingresa tu usuario"
+              />
+            </IonItem>
+
+            <IonItem>
+              <IonLabel position="stacked">Rut</IonLabel>
+              <IonInput
+                className="custom-input"
+                type="text"
+                value={rut}
+                onIonChange={(e) => setRut(e.detail.value || '')}
+                placeholder="12.345.678-9"
+              />
+            </IonItem>
+
+            <IonItem>
+              <IonLabel position="stacked">Región habitada</IonLabel>
+              <IonInput
+                className="custom-input"
+                type="text"
+                value={region}
+                onIonChange={(e) => setRegion(e.detail.value || '')}
+                placeholder="Ingresa tu región"
+              />
+            </IonItem>
+
+            <IonItem>
+              <IonLabel position="stacked">Comuna habilitada</IonLabel>
+              <IonInput
+                className="custom-input"
+                type="text"
+                value={comuna}
+                onIonChange={(e) => setComuna(e.detail.value || '')}
+                placeholder="Ingresa tu comuna"
               />
             </IonItem>
 
             <IonItem>
               <IonLabel position="stacked">Correo electrónico</IonLabel>
               <IonInput
+                className="custom-input"
                 type="email"
                 value={email}
                 onIonChange={(e) => setEmail(e.detail.value || '')}
@@ -213,16 +219,18 @@ export const RegisterForm: React.FC = () => {
             <IonItem>
               <IonLabel position="stacked">Contraseña</IonLabel>
               <IonInput
+                className="custom-input"
                 type="password"
                 value={password}
                 onIonChange={(e) => setPassword(e.detail.value || '')}
-                placeholder="Crea una contraseña segura"
+                placeholder="Crea una contraseña"
               />
             </IonItem>
 
             <IonItem>
               <IonLabel position="stacked">Confirmar contraseña</IonLabel>
               <IonInput
+                className="custom-input"
                 type="password"
                 value={confirmPassword}
                 onIonChange={(e) => setConfirmPassword(e.detail.value || '')}
@@ -230,12 +238,28 @@ export const RegisterForm: React.FC = () => {
               />
             </IonItem>
 
-            <IonButton expand="block" type="submit" color="dark" className="submit-button" style={{ marginTop: '20px' }}>
-              Crear cuenta
+            <IonButton
+              type="button"
+              fill="clear"
+              className={`terms-button ${
+                acceptedTerms ? 'terms-button-active' : ''
+              }`}
+              onClick={() => setAcceptedTerms(!acceptedTerms)}
+            >
+              {acceptedTerms ? '✓' : '□'} Acepto los términos y condiciones
             </IonButton>
-            
+
+            <IonButton
+              expand="block"
+              type="submit"
+              className="submit-button"
+              disabled={!acceptedTerms}
+            >
+              Registrarse
+            </IonButton>
+
             <IonRouterLink routerLink="/login">
-              <IonButton className='register-button' fill='clear' expand="block">
+              <IonButton fill="clear" expand="block" className="secondary-button">
                 ¿Ya tienes cuenta? Inicia sesión
               </IonButton>
             </IonRouterLink>

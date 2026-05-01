@@ -1,125 +1,146 @@
 .dividor {
-  min-height: calc(100vh - 100px);
+  min-height: calc(100vh - 86px);
+  width: 100%;
+  padding: 10px;
+  box-sizing: border-box;
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 100%;
-  padding: 20px;
-  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
 }
 
 .auth-card {
-  display: flex;
-  flex-wrap: wrap;
-  background-color: #ffffff;
-  border-radius: 20px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-  max-width: 950px;
   width: 100%;
+  max-width: 950px;
+  display: flex;
+  background: #ffffff;
+  border-radius: 18px;
   overflow: hidden;
 }
 
 .auth-image {
-  flex: 1 1 400px;
+  flex: 1;
+  min-height: 520px;
   background-size: cover;
   background-position: center;
-  background-repeat: no-repeat;
-  min-height: 400px;
 }
 
 .form-container {
-  flex: 1 1 400px;
-  padding: 40px 50px;
+  flex: 1;
+  padding: 24px 36px;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
+  align-items: center;
 }
 
-.login-form {
+.auth-form {
   width: 100%;
-  max-width: 400px;
+  max-width: 380px;
   margin: 0 auto;
 }
 
+.register-form {
+  max-width: 400px;
+}
+
 .auth-form-header {
-  margin-bottom: 30px;
+  margin-bottom: 14px;
 }
 
 .auth-form-header span {
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
   color: #3880ff;
+  font-size: 12px;
   font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
 }
 
 .auth-form-header h2 {
-  margin: 10px 0;
+  margin: 6px 0;
   color: #222428;
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 800;
 }
 
 .auth-form-header p {
-  color: #666666;
-  font-size: 14px;
-  line-height: 1.5;
   margin: 0;
+  color: #666666;
+  font-size: 13px;
 }
 
-.login-form ion-item {
-  margin-bottom: 15px;
+.auth-form ion-item {
+  margin-bottom: 7px;
+  --background: transparent;
   --padding-start: 0;
   --inner-padding-end: 0;
-  --background: transparent;
+  --border-width: 0;
+  --inner-border-width: 0;
+  --highlight-height: 0;
 }
 
-.login-form ion-item ion-label {
-  font-weight: 600 !important;
-  color: #444 !important;
-  font-size: 14px !important;
-  margin-bottom: 8px !important;
+.auth-form ion-item::part(native),
+.auth-form ion-item::part(inner) {
+  border: none;
+  box-shadow: none;
+}
+
+.auth-form ion-label {
+  margin-bottom: 4px !important;
+  color: #444444 !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  padding-bottom: 4px;
 }
 
 .custom-input {
+  min-height: 39px;
   --background: #f4f5f8;
-  --padding-start: 16px !important;
-  --padding-end: 16px !important;
-  --padding-top: 14px !important;
-  --padding-bottom: 14px !important;
-  --border-radius: 12px;
-  --placeholder-color: #999;
-  --color: #333;
-  border: 1px solid transparent;
-  transition: all 0.3s ease;
-  font-size: 15px;
+  --color: #333333;
+  --placeholder-color: #999999;
+  --placeholder-opacity: 1;
+  --padding-start: 14px;
+  --padding-end: 14px;
+  --padding-top: 7px;
+  --padding-bottom: 7px;
+  --border-radius: 10px;
+  border-radius: 10px;
+  overflow: hidden;
+  font-size: 14px;
 }
 
-.custom-input.ion-focused {
-  border: 1px solid #3880ff;
-  --background: #ffffff;
-  box-shadow: 0 0 0 3px rgba(56, 128, 255, 0.1);
+.terms-button {
+  width: 100%;
+  height: 38px;
+  margin-top: 6px;
+  --color: #444444;
+  --background: transparent;
+  --box-shadow: none;
+  --border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: none;
+}
+
+.terms-button::part(native) {
+  border: 1px solid #d8dce3;
 }
 
 .submit-button {
-  margin-top: 25px;
-  height: 50px;
-  --border-radius: 12px;
-  --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  font-weight: 600;
-  font-size: 16px;
-  letter-spacing: 0.5px;
-}
-
-.register-button {
-  margin-top: 15px;
-  --color: #666;
-  font-size: 14px;
+  height: 42px;
+  margin-top: 10px;
+  --border-radius: 10px;
+  font-size: 15px;
+  font-weight: 700;
   text-transform: none;
-  font-weight: 500;
 }
 
-.register-button::part(native) {
+.secondary-button {
+  margin-top: 6px;
+  --color: #666666;
+  --box-shadow: none;
+  font-size: 13px;
+  text-transform: none;
+}
+
+.secondary-button::part(native) {
   padding: 0;
 }
 
@@ -127,18 +148,12 @@
   .auth-image {
     display: none;
   }
-  
-  .form-container {
-    padding: 30px 20px;
-  }
-  
-  .dividor {
-    padding: 10px;
-    align-items: flex-start;
-  }
-  
+
   .auth-card {
-    border-radius: 15px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    max-width: 430px;
+  }
+
+  .form-container {
+    padding: 24px 20px;
   }
 }
