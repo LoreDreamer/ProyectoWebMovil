@@ -34,7 +34,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isLoggedIn: propIsLoggedIn }) =>
     return (
       <IonHeader className="navbar-header">
         <IonToolbar className="navbar-toolbar">
-          <div className="navbar-container navbar-container-authenticated">
+          <div className="navbar-container">
             <Link to="/index" className="navbar-logo-link">
               <img src={logo} alt="Santo Domingo" className="navbar-logo" />
             </Link>
