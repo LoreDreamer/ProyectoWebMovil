@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { IonButton, IonInput, IonLabel, IonItem, IonRouterLink } from '@ionic/react';
-import bgImage from '../assets/1_private-tour-of-the-city-of-neiva.png';
+import bgImage from '../../assets/1_private-tour-of-the-city-of-neiva.png';
 import './Forms.css';
 
 export const LoginForm: React.FC = () => {

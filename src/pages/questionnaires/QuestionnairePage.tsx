@@ -1,8 +1,8 @@
 import { IonContent, IonPage } from '@ionic/react';
-import { Navbar } from '../../shared/ui';
-import './CuestionariosPage.css';
+import { Navbar } from '../../components';
+import './QuestionnairePage.css';
 
-export const CuestionariosPage: React.FC = () => {
+export const QuestionnairePage: React.FC = () => {
   return (
     <IonPage>
       <Navbar />

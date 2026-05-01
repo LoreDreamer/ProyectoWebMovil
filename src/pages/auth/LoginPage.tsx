@@ -1,13 +1,13 @@
 import { IonContent, IonPage } from '@ionic/react';
-import { Navbar, RegisterForm } from '../../shared/ui';
+import { Navbar, LoginForm } from '../../components';
 import './AuthPage.css';
 
-export const RegisterPage: React.FC = () => {
+export const LoginPage: React.FC = () => {
   return (
     <IonPage>
       <Navbar />
       <IonContent className="transparent-content">
-        <RegisterForm />
+        <LoginForm />
       </IonContent>
     </IonPage>
   );

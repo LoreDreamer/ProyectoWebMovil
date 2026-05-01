@@ -1,5 +1,5 @@
 import { IonContent, IonPage } from '@ionic/react';
-import { Navbar } from '../../shared/ui';
+import { Navbar } from '../../components';
 import './PlaceholderPage.css';
 
 interface PlaceholderPageProps {

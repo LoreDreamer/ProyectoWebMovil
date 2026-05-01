@@ -1,8 +1,8 @@
 import { IonContent, IonPage } from '@ionic/react';
-import { Navbar } from '../../shared/ui';
-import './EducacionPage.css';
+import { Navbar } from '../../components';
+import './EducationPage.css';
 
-export const EducacionPage: React.FC = () => {
+export const EducationPage: React.FC = () => {
   return (
     <IonPage>
       <Navbar />

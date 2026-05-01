@@ -1,9 +1,9 @@
 import type { CSSProperties } from 'react';
 import { IonContent, IonPage } from '@ionic/react';
-import { Navbar } from '../../shared/ui';
-import './ProtocolosPage.css';
+import { Navbar } from '../../components';
+import './ProtocolsPage.css';
 
-export const ProtocolosPage: React.FC = () => {
+export const ProtocolsPage: React.FC = () => {
   const accentColors = ['#2f80ed', '#00b7d9', '#7f715a'];
 
   return (
