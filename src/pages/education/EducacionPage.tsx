@@ -1,8 +1,8 @@
-import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/react';
-import {Navbar} from '../components/Navbar';
-import './Tab3.css';
+import { IonContent, IonPage } from '@ionic/react';
+import { Navbar } from '../../components';
+import './EducationPage.css';
 
-const Tab3: React.FC = () => {
+export const EducationPage: React.FC = () => {
   return (
     <IonPage>
       <Navbar />
@@ -21,5 +21,3 @@ const Tab3: React.FC = () => {
     </IonPage>
   );
 };
-
-export default Tab3;

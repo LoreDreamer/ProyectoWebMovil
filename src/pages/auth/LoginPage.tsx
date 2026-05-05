@@ -1,7 +1,6 @@
 import { IonContent, IonPage } from '@ionic/react';
-import { Navbar } from '../components/Navbar';  
-import { LoginForm } from '../components/Forms';
-import './loginAdm.css';
+import { Navbar, LoginForm } from '../../components';
+import './AuthPage.css';
 
 export const LoginPage: React.FC = () => {
   return (
@@ -13,5 +12,3 @@ export const LoginPage: React.FC = () => {
     </IonPage>
   );
 };
-
-export default LoginPage;

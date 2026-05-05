@@ -1,6 +1,5 @@
-import React from 'react';
 import { IonContent, IonPage } from '@ionic/react';
-import { Navbar } from '../components/Navbar';
+import { Navbar } from '../../components';
 import './PlaceholderPage.css';
 
 interface PlaceholderPageProps {

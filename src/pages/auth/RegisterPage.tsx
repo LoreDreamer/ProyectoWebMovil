@@ -1,7 +1,6 @@
 import { IonContent, IonPage } from '@ionic/react';
-import {Navbar} from '../components/Navbar';  
-import { RegisterForm } from '../components/Forms';
-import './loginAdm.css';
+import { Navbar, RegisterForm } from '../../components';
+import './AuthPage.css';
 
 export const RegisterPage: React.FC = () => {
   return (
@@ -13,5 +12,3 @@ export const RegisterPage: React.FC = () => {
     </IonPage>
   );
 };
-
-export default RegisterPage;

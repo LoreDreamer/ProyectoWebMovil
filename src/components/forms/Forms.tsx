@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useHistory } from 'react-router-dom';
 import {
   IonButton,
   IonInput,
@@ -6,19 +7,31 @@ import {
   IonItem,
   IonRouterLink,
 } from '@ionic/react';
-
-import bgImage from '../assets/1_private-tour-of-the-city-of-neiva.png';
+import bgImage from '../../assets/1_private-tour-of-the-city-of-neiva.png';
 import './Forms.css';
 
 export const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  const history = useHistory();
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!email || !password) {
+      alert('Por favor completa todos los campos');
+      return;
+    }
+
+    localStorage.setItem('isLoggedIn', 'true');
+    localStorage.setItem('userEmail', email);
+
     console.log('Correo:', email);
     console.log('Contraseña:', password);
+
+    history.push('/index');
+    window.location.reload();
   };
 
   return (
@@ -84,8 +97,40 @@ export const RegisterForm: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [acceptedTerms, setAcceptedTerms] = useState(false);
 
+  const history = useHistory();
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (
+      !usuario ||
+      !rut ||
+      !region ||
+      !comuna ||
+      !email ||
+      !password ||
+      !confirmPassword
+    ) {
+      alert('Por favor completa todos los campos');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      alert('Las contraseñas no coinciden');
+      return;
+    }
+
+    if (!acceptedTerms) {
+      alert('Debes aceptar los términos y condiciones');
+      return;
+    }
+
+    localStorage.setItem('isLoggedIn', 'true');
+    localStorage.setItem('userName', usuario);
+    localStorage.setItem('userRut', rut);
+    localStorage.setItem('userRegion', region);
+    localStorage.setItem('userComuna', comuna);
+    localStorage.setItem('userEmail', email);
 
     console.log('Usuario:', usuario);
     console.log('Rut:', rut);
@@ -95,6 +140,9 @@ export const RegisterForm: React.FC = () => {
     console.log('Contraseña:', password);
     console.log('Confirmar contraseña:', confirmPassword);
     console.log('Acepta términos:', acceptedTerms);
+
+    history.push('/index');
+    window.location.reload();
   };
 
   return (
@@ -116,6 +164,7 @@ export const RegisterForm: React.FC = () => {
               <IonLabel position="stacked">Usuario</IonLabel>
               <IonInput
                 className="custom-input"
+                type="text"
                 value={usuario}
                 onIonChange={(e) => setUsuario(e.detail.value || '')}
                 placeholder="Ingresa tu usuario"
@@ -126,6 +175,7 @@ export const RegisterForm: React.FC = () => {
               <IonLabel position="stacked">Rut</IonLabel>
               <IonInput
                 className="custom-input"
+                type="text"
                 value={rut}
                 onIonChange={(e) => setRut(e.detail.value || '')}
                 placeholder="12.345.678-9"
@@ -136,6 +186,7 @@ export const RegisterForm: React.FC = () => {
               <IonLabel position="stacked">Región habitada</IonLabel>
               <IonInput
                 className="custom-input"
+                type="text"
                 value={region}
                 onIonChange={(e) => setRegion(e.detail.value || '')}
                 placeholder="Ingresa tu región"
@@ -146,6 +197,7 @@ export const RegisterForm: React.FC = () => {
               <IonLabel position="stacked">Comuna habilitada</IonLabel>
               <IonInput
                 className="custom-input"
+                type="text"
                 value={comuna}
                 onIonChange={(e) => setComuna(e.detail.value || '')}
                 placeholder="Ingresa tu comuna"
@@ -188,7 +240,9 @@ export const RegisterForm: React.FC = () => {
             <IonButton
               type="button"
               fill="clear"
-              className="terms-button"
+              className={`terms-button ${
+                acceptedTerms ? 'terms-button-active' : ''
+              }`}
               onClick={() => setAcceptedTerms(!acceptedTerms)}
             >
               {acceptedTerms ? '✓' : '□'} Acepto los términos y condiciones
