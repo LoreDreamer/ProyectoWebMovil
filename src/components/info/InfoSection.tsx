@@ -1,5 +1,8 @@
 import React from 'react';
 import './InfoSection.css';
+import cursoImage from '../../assets/curso-online-ciberseguridad-empresas.png';
+import reportImage from '../../assets/report.png';
+import stadisticsImage from '../../assets/stat.png';
 
 export const InfoSection: React.FC = () => {
   return (
@@ -18,6 +21,7 @@ export const InfoSection: React.FC = () => {
 
       <div className="info-grid">
         <article className="info-card">
+          <img src={cursoImage} alt="Educación digital"/>
           <h3>Educación digital</h3>
           <p>
             Cursos breves para empleados y ciudadanos sobre phishing, contraseñas
@@ -26,6 +30,7 @@ export const InfoSection: React.FC = () => {
         </article>
 
         <article className="info-card">
+          <img src={reportImage} alt="Reporte de incidentes"/>
           <h3>Reporte de incidentes</h3>
           <p>
             Herramientas rápidas para notificar amenazas y documentar eventos de
@@ -34,27 +39,13 @@ export const InfoSection: React.FC = () => {
         </article>
 
         <article className="info-card">
+          <img src={stadisticsImage} alt="Estadísticas clave"/>
           <h3>Estadísticas clave</h3>
           <p>
             Paneles simples sobre el estado de la seguridad, aumentos de ataques
             y resultados de los diagnósticos municipales.
           </p>
         </article>
-      </div>
-
-      <div className="stats-section">
-        <div className="stats-card">
-          <strong>85%</strong>
-          <span>de concientización alcanzada tras los cursos</span>
-        </div>
-        <div className="stats-card">
-          <strong>120+</strong>
-          <span>incidentes reportados y atendidos</span>
-        </div>
-        <div className="stats-card">
-          <strong>32</strong>
-          <span>módulos disponibles para distintos perfiles</span>
-        </div>
       </div>
     </section>
   );
