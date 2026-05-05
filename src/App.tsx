@@ -8,9 +8,10 @@ import { IonReactRouter } from '@ionic/react-router';
 import { Index } from './pages/index';
 import { LoginPage } from './pages/loginAdm';
 import { RegisterPage } from './pages/registerPage';
-import Tab3 from './pages/Tab3';
+import { Education } from './pages/education';
 import { PlaceholderPage } from './pages/PlaceholderPage';
 import { Complaints } from './pages/complaints';
+import { Inicio } from './pages/inicio'; 
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
@@ -41,10 +42,12 @@ const App: React.FC = () => (
         <Route exact path="/index" component={Index} />
         <Route exact path="/login" component={LoginPage} />
         <Route exact path="/register" component={RegisterPage} />
-        <Route exact path="/educacion" component={Tab3} />
+        <Route exact path="/educacion" component={Education} />
 
         {/* Ruta temporal para probar la pantalla de Complaints sin afectar la navegación principal */}
         <Route exact path="/complaints-test" component={Complaints} />
+        {/* Ruta temporal para probar la pantalla de Complaints sin afectar la navegación principal */}
+        <Route exact path="/inicio" component={Inicio} /> 
 
         <Route exact path="/denuncias" render={() => <PlaceholderPage title="Denuncias" />} />
         <Route exact path="/cuestionarios" render={() => <PlaceholderPage title="Cuestionarios" />} />

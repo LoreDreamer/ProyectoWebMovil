@@ -1,0 +1,48 @@
+/* Archivo: src/components/WeeklyTip/WeeklyTip.css */
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;500;600&display=swap');
+
+.tip-banner {
+  /* Gradiente azul de la imagen */
+  background: linear-gradient(90deg, #4dd0e1 0%, #0d47a1 100%);
+  
+  /* BORDES REDONDEADOS PRONUNCIADOS (como en la imagen original) */
+  width: calc(100% + 200px);  /* 110 + 110 */
+  margin-left: -110px;
+  margin-top: -10px;
+  border-radius: 25px; 
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Texto a la izq, icono a la der */
+  padding: 25px 45px; /* Espaciado interno generoso */
+
+  box-sizing: border-box;
+}
+
+.tip-content {
+  flex: 1;
+  padding-right: 20px;
+}
+
+.tip-content h3 {
+  margin: 0;
+  font-size: 2.1rem;
+  letter-spacing: 1px;
+
+  font-family: 'Archivo Black', sans-serif;
+  text-transform: uppercase; /* Forzar mayúsculas */
+}
+
+.tip-content p {
+  margin: 2px 0px 0px 0px;
+  font-size: 1.01rem;
+  line-height: 1.4;
+  font-weight: 300;
+  max-width: 95%;
+}
+
+.tip-icon {
+  font-size: 4.5rem;
+  color: white;
+  filter: drop-shadow(0px 0px 10px rgba(255,255,255,0.2));
+}
