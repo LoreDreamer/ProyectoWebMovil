@@ -83,7 +83,19 @@ export const Navbar: React.FC<NavbarProps> = ({ isLoggedIn: propIsLoggedIn }) =>
               onClick={handleLogout}
               aria-label="Cerrar sesión"
             >
-              <IonIcon icon={personCircle} className="navbar-profile-icon" />
+              <span className="navbar-profile-ring">
+                <IonIcon icon={personCircle} className="navbar-profile-icon" />
+
+                <svg className="navbar-profile-circle" viewBox="0 0 80 80">
+                  <circle
+                    className="navbar-profile-circle-path"
+                    cx="40"
+                    cy="40"
+                    r="36"
+                    pathLength="1"
+                  />
+                </svg>
+              </span>
             </button>
           </div>
         </div>

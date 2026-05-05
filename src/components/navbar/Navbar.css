@@ -145,21 +145,55 @@
   border: none;
   cursor: pointer;
   padding: 8px;
-  transition: transform 0.2s ease;
 }
 
-.navbar-profile-button:hover {
-  transform: scale(1.1);
+.navbar-profile-ring {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .navbar-profile-icon {
   width: 60px;
   height: 60px;
   color: rgb(0, 106, 168);
+  position: relative;
+  z-index: 2;
+  transition: color 0.3s ease, transform 0.2s ease;
 }
 
-.navbar-profile-icon:hover {
+.navbar-profile-circle {
+  position: absolute;
+  inset: 0;
+  width: 72px;
+  height: 72px;
+  transform: rotate(-90deg);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.navbar-profile-circle-path {
+  fill: none;
+  stroke: rgb(0, 80, 126);
+  stroke-width: 4.5px;
+  stroke-linecap: round;
+
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+
+  transition: stroke-dashoffset 0.4s ease;
+}
+
+.navbar-profile-button:hover .navbar-profile-icon {
   color: rgb(0, 80, 126);
+  transform: scale(1.13);
+}
+
+.navbar-profile-button:hover .navbar-profile-circle-path {
+  stroke-dashoffset: 0;
 }
 
 @media (max-width: 1024px) {
