@@ -196,9 +196,8 @@
   --highlight-color-focused: transparent;
   --highlight-color-valid: transparent;
   --highlight-color-invalid: transparent;
-
-  box-shadow: none;
-
+  --border-width: 0px;
+  
   border-radius: 10px;
   overflow: hidden;
   font-size: 14px;
