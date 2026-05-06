@@ -157,3 +157,49 @@
     padding: 24px 20px;
   }
 }
+
+.select-field {
+  margin-bottom: 7px;
+  --background: transparent;
+  --padding-start: 0;
+  --inner-padding-end: 0;
+  --border-width: 0;
+  --inner-border-width: 0;
+  --highlight-height: 0;
+}
+
+.select-field::part(native),
+.select-field::part(inner) {
+  border: none;
+  box-shadow: none;
+}
+
+.select-field ion-label {
+  margin-bottom: 12px !important;
+  color: #444444 !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  padding-bottom: 4px;
+}
+
+.custom-select {
+  width: 100%;
+  min-height: 39px;
+
+  --background: #f4f5f8;
+  --color: #333333;
+  --placeholder-color: #999999;
+  --placeholder-opacity: 1;
+  --padding-start: 14px;
+  --padding-end: 14px;
+  --border-radius: 0px;
+  --highlight-color-focused: transparent;
+  --highlight-color-valid: transparent;
+  --highlight-color-invalid: transparent;
+
+  box-shadow: none;
+
+  border-radius: 10px;
+  overflow: hidden;
+  font-size: 14px;
+}

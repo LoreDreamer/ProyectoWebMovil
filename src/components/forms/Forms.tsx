@@ -1,14 +1,18 @@
 import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import {
-  IonButton,
+  IonButton,  
   IonInput,
   IonLabel,
   IonItem,
   IonRouterLink,
+  IonSelect,
+  IonSelectOption
 } from '@ionic/react';
 import bgImage from '../../assets/1_private-tour-of-the-city-of-neiva.png';
 import './Forms.css';
+import '../../assets/data/chileRegions';
+import { chileRegions, getComunasByRegion } from '../../assets/data/chileRegions';
 
 export const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -98,7 +102,8 @@ export const RegisterForm: React.FC = () => {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const history = useHistory();
-
+  const comunas = getComunasByRegion(region);
+  
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -181,28 +186,47 @@ export const RegisterForm: React.FC = () => {
                 placeholder="12.345.678-9"
               />
             </IonItem>
+            <div className="select-field">
+            <IonLabel position="stacked">Región</IonLabel>
+            <IonSelect
+              className="custom-select"
+              labelPlacement="stacked"
+              fill="solid"
+              interface="popover"
+              value={region}
+              placeholder="Selecciona una región"
+              onIonChange={(e) => {
+                setRegion(e.detail.value);
+                setComuna('');
+              }}
+            >
+              {chileRegions.map((region) => (
+                <IonSelectOption key={region.id} value={region.id}>
+                  {region.name}
+                </IonSelectOption>
+              ))}
+            </IonSelect>
+          </div>
 
-            <IonItem>
-              <IonLabel position="stacked">Región habitada</IonLabel>
-              <IonInput
-                className="custom-input"
-                type="text"
-                value={region}
-                onIonChange={(e) => setRegion(e.detail.value || '')}
-                placeholder="Ingresa tu región"
-              />
-            </IonItem>
-
-            <IonItem>
-              <IonLabel position="stacked">Comuna habilitada</IonLabel>
-              <IonInput
-                className="custom-input"
-                type="text"
-                value={comuna}
-                onIonChange={(e) => setComuna(e.detail.value || '')}
-                placeholder="Ingresa tu comuna"
-              />
-            </IonItem>
+          <div className="select-field">
+            <IonLabel position="stacked">Comuna</IonLabel>
+            <IonSelect
+              className="custom-select"
+              labelPlacement="stacked"
+              fill="solid"
+              interface="popover"
+              value={comuna}
+              placeholder="Selecciona una comuna"
+              disabled={!region}
+              onIonChange={(e) => setComuna(e.detail.value)}
+            >
+              {comunas.map((comuna) => (
+                <IonSelectOption key={comuna} value={comuna}>
+                  {comuna}
+                </IonSelectOption>
+              ))}
+            </IonSelect>
+          </div>
 
             <IonItem>
               <IonLabel position="stacked">Correo electrónico</IonLabel>
