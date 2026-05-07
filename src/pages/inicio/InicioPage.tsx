@@ -1,12 +1,12 @@
 import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/react';
-import {Navbar} from '../components/Navbar';
-import StatCard from '../components/inicio/StatCard';
-import Progress from '../components/inicio/Progress';
-import NewsPanel from '../components/inicio/NewsPanel';
+import { Navbar, NewsPart } from '../../components';
+import { StatCard } from '../../components/inicio/StatCard';
+import { Progress } from '../../components/inicio/Progress';
+import NewsPanel from '../../components/inicio/NewsPanel';
 import { listOutline, eyeOutline, sendOutline, checkmarkCircleOutline } from 'ionicons/icons';
-import './inicio.css';
+import './InicioPage.css';
 
-export const Inicio: React.FC = () => {
+export const InicioPage: React.FC = () => {
   return (
     <IonPage>
       <Navbar />
@@ -36,4 +36,4 @@ export const Inicio: React.FC = () => {
   );
 };
 
-export default Inicio;    
+export default InicioPage;    

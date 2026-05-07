@@ -3,7 +3,7 @@ import './StatCard.css';
 
 interface StatProps { icon: string; label: string; value: string; }
 
-const StatCard: React.FC<StatProps> = ({ icon, label, value }) => (
+export const StatCard: React.FC<StatProps> = ({ icon, label, value }) => (
   <div className="stat-card">
     <div className="stat-header">
       <div className="stat-icon-box">

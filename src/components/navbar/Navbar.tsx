@@ -64,12 +64,12 @@ export const Navbar: React.FC<NavbarProps> = ({ isLoggedIn: propIsLoggedIn }) =>
     <IonHeader className="navbar-header navbar-authenticated">
       <IonToolbar className="navbar-toolbar">
         <div className="navbar-container navbar-container-authenticated">
-          <Link to="/index" className="navbar-logo-link">
+          <Link to="/inicio" className="navbar-logo-link">
             <img src={logo} alt="Santo Domingo" className="navbar-logo" />
           </Link>
 
           <nav className="navbar-links-authenticated">
-            {renderLink('/index', 'Inicio')}
+            {renderLink('/inicio', 'Inicio')}
             {renderLink('/cuestionarios', 'Cuestionarios')}
             {renderLink('/educacion', 'Educación')}
             {renderLink('/denuncias', 'Denuncias')}

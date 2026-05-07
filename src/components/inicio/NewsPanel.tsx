@@ -1,6 +1,6 @@
 import './NewsPanel.css';
 
-const NewsPanel: React.FC = () => (
+export const NewsPanel: React.FC = () => (
   <div className="news-panel">
     <h3>Novedades</h3>
     <p>Actividades y comunicados recientes del equipo TIC.</p>

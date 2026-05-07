@@ -20,7 +20,7 @@
 }
 
 .header-section h1 {
-  color: #384d2d; /* Verde oliva oscuro */
+  color: #333;
   font-size: 2rem;
   font-weight: 700;
   margin: 2px;
@@ -39,7 +39,7 @@
 }
 
 .modules-section h2 {
-  color: #384d2d;
+  color: #333;
   font-size: 1.6rem;
   font-weight: 600;
   margin-bottom: 24px;
