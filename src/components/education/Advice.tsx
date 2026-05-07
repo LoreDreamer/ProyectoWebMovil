@@ -2,7 +2,7 @@ import './Advice.css';
 import { bulbOutline } from 'ionicons/icons';
 import { IonIcon } from '@ionic/react';
 
-const WeeklyTip: React.FC = () => {
+export const Advice: React.FC = () => {
   return (
     <div className="tip-banner">
       <div className="tip-content">
@@ -16,4 +16,4 @@ const WeeklyTip: React.FC = () => {
   );
 };
 
-export default WeeklyTip;
+export default Advice;

@@ -12,7 +12,7 @@ interface CardProps {
   image: string; // Añadido para que coincida con el src={image}
 }
 
-const EducationCard: React.FC<CardProps> = ({ title, description, tag, time, level, image }) => {
+export const EducationCard: React.FC<CardProps> = ({ title, description, tag, time, level, image }) => {
   return (
     <div className="edu-card">
       <div className="card-image-container">

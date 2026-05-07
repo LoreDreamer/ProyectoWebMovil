@@ -1,7 +1,7 @@
 export { LoginPage } from './auth/LoginPage';
 export { RegisterPage } from './auth/RegisterPage';
 export { QuestionnairePage } from './questionnaires/QuestionnairePage';
-export { EducationPage } from './education/EducationPage';
+export { EducationPage } from './education/EducacionPage';
 export { ComplaintsPage } from './complaints/ComplaintsPage';
 export { HomePage } from './home/HomePage';
 export { PlaceholderPage } from './placeholder/PlaceholderPage';
