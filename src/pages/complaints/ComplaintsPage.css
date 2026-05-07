@@ -1,0 +1,52 @@
+/* complaints-page.css */
+
+.complaints-content {
+  --background: none !important;
+  background: 
+    linear-gradient(rgba(93, 224, 230, 0.7), rgba(0, 74, 173, 0.7)),
+    url('../assets/maxresdefault.jpg') center/cover no-repeat !important;
+
+  /* --- ESTO CENTRA EL CONTENIDO --- */
+  display: flex;
+  flex-direction: column;
+}
+
+.complaints-shell {
+  min-height: 100vh;
+  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.complaints-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.complaints-header h1 {
+  margin: 0;
+  font-size: clamp(2rem, 3vw, 2.8rem);
+  color: #252f2f;
+}
+
+.complaints-header p {
+  margin: 12px 0 0;
+  font-size: 1rem;
+  color: #5a6666;
+  max-width: 720px;
+  line-height: 1.75;
+}
+
+.complaints-form-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .complaints-shell {
+    padding: 24px 16px;
+  }
+}

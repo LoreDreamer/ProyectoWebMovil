@@ -1,0 +1,89 @@
+/* education.css */
+
+.education-content-page {
+  /* Fondo gris muy claro para resaltar las tarjetas blancas */
+  --background: #f8f9fa;
+}
+
+/* Contenedor central para evitar que el contenido se estire en pantallas anchas */
+.central-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px 16px; /* 🔥 en vez de 110px */
+}
+
+/* Sección del título principal */
+.header-section {
+  margin-bottom: 30px;
+  width: calc(100% + 200px);  /* 110 + 110 */
+  margin-left: -110px;
+}
+
+.header-section h1 {
+  color: #384d2d; /* Verde oliva oscuro */
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 2px;
+  margin-bottom: 8px;
+}
+
+.header-section p {
+  color: #666;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+/* Sección de la cuadrícula de módulos */
+.modules-section {
+  margin-top: 40px;
+}
+
+.modules-section h2 {
+  color: #384d2d;
+  font-size: 1.6rem;
+  font-weight: 600;
+  margin-bottom: 24px;
+  width: calc(100% + 200px);  /* 110 + 110 */
+  margin-left: -110px;
+  margin-top: -10px;
+}
+
+/* Layout de las tarjetas: 3 columnas fijas en escritorio */
+.cards-grid {
+  display: grid;
+  width: calc(100% + 200px);  /* 110 + 110 */
+  margin-left: -110px;
+  /* Definimos 3 columnas con un ancho máximo para que no se deformen */
+  grid-template-columns: repeat(4, minmax(280px, 1fr));
+  gap: 24px;
+  align-items: stretch;
+  margin-top: -10px;
+}
+
+/* --- Ajustes Responsivos --- */
+
+/* Tablets: Bajamos a 2 columnas */
+@media (max-width: 992px) {
+  .cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Móviles: 1 sola columna y centrado */
+@media (max-width: 600px) {
+  .central-container {
+    padding: 16px;
+  }
+  
+  .header-section h1 {
+    font-size: 1.6rem;
+  }
+
+  .cards-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .header-section, .modules-section h2 {
+    text-align: left;
+  }
+}

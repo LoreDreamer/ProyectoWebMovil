@@ -1,0 +1,128 @@
+.form-container {
+  width: 88%; 
+  /* Subimos de 760px a 785px para ese 'par de píxeles' extra de ancho */
+  max-width: 785px; 
+  max-height: 96vh; 
+  margin: 1vh auto; 
+  background-color: #ffffff;
+  /* Un poco más de aire interno (de 15px/35px a 20px/40px) */
+  padding: 20px 40px 28px 40px; 
+  border-radius: 35px; 
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #4a5d45;
+}
+
+/* Encabezado */
+.form-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 8px; /* +2px */
+  margin-bottom: 12px; /* +2px */
+  flex-shrink: 0;
+}
+
+.icon-placeholder {
+  font-size: 26px; /* Subimos un poco */
+  background: #e3f2fd;
+  padding: 8px;
+  border-radius: 12px;
+}
+
+.header-text h1 {
+  font-size: 1.3rem; /* +0.05rem */
+  margin: 0;
+  color: #333;
+  text-transform: uppercase;
+}
+
+.header-text p {
+  font-size: 0.88rem;
+  margin: 0;
+  color: #666;
+}
+
+/* Grupos de campos */
+.form-group {
+  margin-bottom: 1vh; 
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-weight: 600;
+  margin-bottom: 3px;
+  font-size: 0.92rem; /* Un pelín más grande */
+}
+
+.form-group input, 
+.form-group select, 
+.form-group textarea {
+  background-color: #f4f4f4;
+  border: 1px solid transparent;
+  padding: 10px 16px; /* Recuperamos un poco de grosor */
+  border-radius: 9px;
+  font-size: 0.98rem; 
+  transition: all 0.2s ease;
+}
+
+/* Grilla (Tipo y Fecha) */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px; /* Un poco más de espacio entre columnas */
+}
+
+/* Textarea compacto pero usable */
+textarea {
+  height: 50px; /* De 45px a 50px */
+  resize: none;
+}
+
+/* Zona de archivos */
+.file-drop-zone {
+  border: 2px dashed #cbd5e0;
+  border-radius: 12px;
+  padding: 10px;
+  text-align: center;
+  background-color: #f8fafc;
+  cursor: pointer;
+  font-size: 0.88rem;
+}
+
+/* Footer */
+.form-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto; 
+  padding-top: 10px;
+  gap: 15px;
+}
+
+.checkbox-container {
+  display: flex;
+  gap: 10px;
+  font-size: 0.78rem; 
+  background-color: #f8fafc;
+  padding: 8px 12px;
+  border-radius: 8px;
+  align-items: center;
+  max-width: 68%;
+}
+
+.btn-send {
+  background: linear-gradient(90deg, #4dd0e1 0%, #0d47a1 100%);
+  color: white;
+  border: none;
+  padding: 10px 30px; 
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 1.05rem; 
+  cursor: pointer;
+}

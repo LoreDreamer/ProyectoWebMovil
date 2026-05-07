@@ -1,17 +1,7 @@
 import { Redirect, Route } from 'react-router-dom';
-import {
-  IonApp,
-  IonRouterOutlet,
-  setupIonicReact
-} from '@ionic/react';
+import { IonApp, IonRouterOutlet, setupIonicReact } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
-import { Index } from './pages/index';
-import { LoginPage } from './pages/loginAdm';
-import { RegisterPage } from './pages/registerPage';
-import { Education } from './pages/education';
-import { PlaceholderPage } from './pages/PlaceholderPage';
-import { Complaints } from './pages/complaints';
-import { Inicio } from './pages/inicio'; 
+import { LoginPage, RegisterPage, ComplaintsPage, EducationPage, HomePage, PlaceholderPage, ProtocolsPage, QuestionnairePage, NewsPage } from './pages';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
@@ -39,19 +29,16 @@ const App: React.FC = () => (
   <IonApp>
     <IonReactRouter>
       <IonRouterOutlet>
-        <Route exact path="/index" component={Index} />
+        <Route exact path="/index" component={HomePage} />
         <Route exact path="/login" component={LoginPage} />
         <Route exact path="/register" component={RegisterPage} />
-        <Route exact path="/educacion" component={Education} />
-
-        {/* Ruta temporal para probar la pantalla de Complaints sin afectar la navegación principal */}
-        <Route exact path="/complaints-test" component={Complaints} />
-        {/* Ruta temporal para probar la pantalla de Complaints sin afectar la navegación principal */}
-        <Route exact path="/inicio" component={Inicio} /> 
-
-        <Route exact path="/denuncias" render={() => <PlaceholderPage title="Denuncias" />} />
-        <Route exact path="/cuestionarios" render={() => <PlaceholderPage title="Cuestionarios" />} />
-
+        <Route exact path="/educacion" component={EducationPage} />
+        <Route exact path="/denuncias" component ={ComplaintsPage} />
+        <Route exact path="/cuestionarios" component={QuestionnairePage} />
+        <Route exact path="/protocolos" component={ProtocolsPage} />
+        <Route exact path="/alertas" component= {NewsPage} />
+        <Route exact path="/perfil" render={() => <PlaceholderPage title="Mi Perfil" />} />
+        <Route exact path="/configuracion" render={() => <PlaceholderPage title="Configuración" />} />
         <Route exact path="/">
           <Redirect to="/index" />
         </Route>
