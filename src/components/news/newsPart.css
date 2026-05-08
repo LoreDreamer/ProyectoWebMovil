@@ -75,19 +75,41 @@
   width: 150px;
   height: 36px;
 
+  /* Borde inicial */
   border: 1px solid #25348a;
   border-radius: 6px;
   background: #ffffff;
 
-  color: #46502d;
+  color: #25348a; /* Ajusté el color para que combine con el borde */
   font-size: 13px;
   font-weight: 700;
 
   cursor: pointer;
+  
+  /* CLAVE: Transición suave y preparación para el brillo */
+  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+  outline: none;
+  background-clip: padding-box; /* Evita fugas de color en los bordes */
 }
 
 .news-card-button:hover {
-  background: #f1f3ff;
+  /* 1. Cambio de colores */
+  background: #ffffff;
+  color: #3250bd;
+  border-color: rgba(21, 151, 168, 0.8);
+
+  /* 2. Efecto Neón */
+  /* Usamos un radio de sombra que coincida con el border-radius de 6px */
+  box-shadow: 
+    0 0 10px rgba(7, 50, 124, 0.5), 
+    0 0 20px rgba(37, 52, 138, 0.2);
+
+  /* 3. Elevación sutil */
+  transform: translateY(-2px);
+}
+
+.news-card-button:active {
+  transform: translateY(0);
 }
 
 @media (max-width: 1000px) {

@@ -1,91 +1,82 @@
-/* education.css */
-
 .education-content-page {
-  /* Fondo gris muy claro para resaltar las tarjetas blancas */
   --background: #f8f9fa;
 }
 
-/* Contenedor central para evitar que el contenido se estire en pantallas anchas */
+/* Contenedor central: ahora es el jefe del ancho */
 .central-container {
-  max-width: 1100px;
+  max-width: 1200px; /* Un poco más ancho para 4 tarjetas */
   margin: 0 auto;
-  padding: 24px 16px; /* 🔥 en vez de 110px */
+  padding: 40px 24px;
+  box-sizing: border-box;
 }
 
-/* Sección del título principal */
+/* Sección del título: Limpia de márgenes negativos */
 .header-section {
-  margin-bottom: 30px;
-  width: calc(100% + 200px);  /* 110 + 110 */
-  margin-left: -110px;
+  margin-bottom: 32px;
+  text-align: left;
 }
 
 .header-section h1 {
   color: #333;
-  font-size: 1.8rem;
-  font-weight: 700;
+  font-size: clamp(1.5rem, 5vw, 2.2rem); /* Tamaño fluido según pantalla */
+  font-weight: 800;
   text-transform: uppercase;
-  margin: 2px;
   margin-bottom: 8px;
+  letter-spacing: -0.5px;
 }
 
 .header-section p {
   color: #666;
   font-size: 1.1rem;
-  margin: 0;
+  max-width: 600px; /* Evita líneas demasiado largas */
 }
 
-/* Sección de la cuadrícula de módulos */
 .modules-section {
-  margin-top: 40px;
+  margin-top: 48px;
 }
 
 .modules-section h2 {
   color: #333;
-  font-size: 1.8rem;
+  font-size: 1.5rem;
   font-weight: 700;
   text-transform: uppercase;
   margin-bottom: 24px;
-  width: calc(100% + 200px);  /* 110 + 110 */
-  margin-left: -110px;
-  margin-top: -10px;
 }
 
-/* Layout de las tarjetas: 3 columnas fijas en escritorio */
+/* Grilla Responsiva Pro: Sin calc() ni márgenes negativos */
 .cards-grid {
   display: grid;
-  width: calc(100% + 200px);  /* 110 + 110 */
-  margin-left: -110px;
-  /* Definimos 3 columnas con un ancho máximo para que no se deformen */
-  grid-template-columns: repeat(4, minmax(280px, 1fr));
+  /* El truco: repeat(auto-fill) hace que las tarjetas se acomoden solas */
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 24px;
   align-items: stretch;
-  margin-top: -10px;
 }
 
 /* --- Ajustes Responsivos --- */
 
-/* Tablets: Bajamos a 2 columnas */
-@media (max-width: 992px) {
-  .cards-grid {
-    grid-template-columns: repeat(2, 1fr);
+/* Tablets */
+@media (max-width: 1024px) {
+  .central-container {
+    padding: 30px 20px;
   }
 }
 
-/* Móviles: 1 sola columna y centrado */
+/* Móviles */
 @media (max-width: 600px) {
   .central-container {
-    padding: 16px;
+    padding: 20px 16px;
   }
   
-  .header-section h1 {
-    font-size: 1.6rem;
+  .header-section {
+    margin-bottom: 24px;
   }
 
-  .cards-grid {
-    grid-template-columns: 1fr;
+  .modules-section {
+    margin-top: 32px;
   }
-  
-  .header-section, .modules-section h2 {
-    text-align: left;
+
+  /* En móviles muy pequeños, bajamos un poco el tamaño de fuente */
+  .header-section h1 {
+    font-size: 1.6rem;
   }
 }

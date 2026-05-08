@@ -85,21 +85,42 @@
   flex-grow: 1;
 }
 
-/* Botón estilo "Ver módulo →" */
 .card-button {
+  /* Variables base */
   --border-radius: 10px;
   --color: #333;
-  --border-color: #444; /* Borde un poco más oscuro y definido */
+  --background: #ffffff;
+  --border-color: #f0f0f0; 
   --border-style: solid;
   --border-width: 1px;
-  --padding-start: 15px;
-  --padding-end: 15px;
   
   font-family: 'Archivo', sans-serif;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: none;
   margin: 0;
   align-self: flex-start;
-  height: 36px;
+  height: 38px;
   font-size: 0.85rem;
+
+  /* Transición */
+  transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+  
+  /* Esto quita cualquier sombra por defecto que traiga el componente */
+  box-shadow: none;
+}
+
+/* En Ionic, el hover se controla mejor con estas propiedades */
+.card-button:hover {
+  /* Cambiamos las variables internas de Ionic */
+  --color: #0d47a1;
+  --background: #ffffff;
+  --border-color: rgba(77, 208, 225, 0.8);
+
+  /* El truco: Aplicamos el neón al elemento pero forzamos el radio */
+  border-radius: 10px; 
+  box-shadow: 
+    0 0 10px rgba(7, 50, 124, 0.5), 
+    0 0 20px rgba(37, 52, 138, 0.2);   /* Aura azul profunda */
+
+  transform: translateY(-2px);
 }

@@ -88,12 +88,37 @@
 
 .card-btn-action {
   position: relative;
-  background: #ffffff; /* Blanco sólido */
-  color: #333333;      /* Color de la letra */
+  background: #ffffff;
+  color: #333333;
   border: none;
   padding: 8px 18px;
   border-radius: 10px;
   font-family: 'Archivo', sans-serif;
   font-weight: 700;
   cursor: pointer;
+
+  /* Agregamos una transición más 'suave' para el neón */
+  /* Propiedad | Duración | Curva (cubic-bezier para un arranque rápido y suavizado lento) */
+  transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+  
+  /* Borde base transparente para que al activarse no 'empuje' al texto */
+  border: 1px solid transparent; 
+}
+
+.card-btn-action:hover {
+  /* PASO 1: Activamos un borde de color */
+  border: 1px solid rgba(77, 208, 225, 0.8); /* Celeste principal */
+  
+  /* PASO 2: EL EFECTO NEÓN (Múltiples sombras) */
+  /* Sombra 1 (Interna): Brillo tenue hacia adentro */
+  /* Sombra 2 (Externa): Brillo fuerte y difuminado (Celeste) */
+  /* Sombra 3 (Externa): Resplandor más profundo (Azul) */
+  box-shadow: 
+    0 0 10px rgba(7, 50, 124, 0.5), 
+    0 0 20px rgba(37, 52, 138, 0.2);
+
+  /* PASO 3: Ajustes de color para contraste */
+  /* Oscurecemos el fondo y el texto para que el neón destaque */
+  background: #fcfdfe;
+  color: #0d47a1; /* Azul profundo en el texto para el hover */
 }
