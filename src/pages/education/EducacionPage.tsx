@@ -14,14 +14,14 @@ export const EducationPage: React.FC = () => {
         <div className="central-container"> 
           
           <div className="header-section">
-            <h1>Aprende sobre ciberseguridad</h1>
+            <h1>APRENDE SOBRE CIBERSEGURIDAD</h1>
             <p>Módulos breves y prácticos para fortalecer tu seguridad digital.</p>
           </div>
 
           <Advice />
 
           <div className="modules-section">
-            <h2>Módulos educativos disponibles</h2>
+            <h2>MÓDULOS EDUCATIVOS DISPONIBLES</h2>
           </div>
 
           <div className="cards-grid">

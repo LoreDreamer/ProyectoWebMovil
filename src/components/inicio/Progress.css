@@ -1,9 +1,21 @@
 .progress-container h3 {
-  font-family: 'Archivo Black', sans-serif;
   color: #333;
-  margin-bottom: 5px;
-  font-size: 1.7rem;
+  font-size: 1.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin: 0;
 }
+
+
+
+
+.progress-container p {
+  color: #666;
+  font-size: 1.1rem;
+  margin: 5px 0 25px 0;
+}
+
+
 
 .progress-row {
   display: flex;

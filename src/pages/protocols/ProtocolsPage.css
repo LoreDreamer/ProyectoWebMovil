@@ -11,10 +11,16 @@
 }
 
 .protocolos-header h1 {
+  color: #333;
+  font-size: 1.9rem;
+  font-weight: 700;
+  text-transform: uppercase;
   margin: 0;
   font-size: clamp(2rem, 3vw, 3.2rem);
   color: #252f2f;
 }
+
+
 
 .protocolos-header p {
   margin: 12px 0 0;

@@ -21,8 +21,9 @@
 
 .header-section h1 {
   color: #333;
-  font-size: 2rem;
+  font-size: 1.8rem;
   font-weight: 700;
+  text-transform: uppercase;
   margin: 2px;
   margin-bottom: 8px;
 }
@@ -40,8 +41,9 @@
 
 .modules-section h2 {
   color: #333;
-  font-size: 1.6rem;
-  font-weight: 600;
+  font-size: 1.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
   margin-bottom: 24px;
   width: calc(100% + 200px);  /* 110 + 110 */
   margin-left: -110px;
