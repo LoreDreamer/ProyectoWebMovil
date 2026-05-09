@@ -17,12 +17,9 @@ export const Navbar: React.FC<NavbarProps> = ({ isLoggedIn: propIsLoggedIn }) =>
     ? propIsLoggedIn
     : localStorage.getItem('isLoggedIn') === 'true';
 
-  const handleLogout = () => {
-    localStorage.removeItem('isLoggedIn');
-    localStorage.removeItem('userEmail');
-    localStorage.removeItem('userName');
-    window.location.href = '/index';
-  };
+  const isAdmin = localStorage.getItem('isAdmin') === 'true';
+
+  const profileLink = isAdmin ? '/admin' : '/inicio';
 
   const renderLink = (to: string, label: string) => (
     <Link to={to} className={`navbar-link-authenticated ${location.pathname === to ? 'active' : ''}`}>
@@ -41,7 +38,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isLoggedIn: propIsLoggedIn }) =>
               <IonMenuButton autoHide={false} />
             </IonButtons>
             
-            <Link to={isLoggedIn ? "/inicio" : "/index"} className="navbar-logo-link">
+            <Link to="/index" className="navbar-logo-link">
               <img src={logo} alt="Santo Domingo" className="navbar-logo" />
             </Link>
           </div>
@@ -50,7 +47,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isLoggedIn: propIsLoggedIn }) =>
           <nav className="navbar-links-desktop">
             {isLoggedIn ? (
               <>
-                {renderLink('/inicio', 'Inicio')}
+                {renderLink('/index', 'Inicio')}
                 {renderLink('/cuestionarios', 'Cuestionarios')}
                 {renderLink('/educacion', 'Educación')}
                 {renderLink('/denuncias', 'Denuncias')}
@@ -80,7 +77,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isLoggedIn: propIsLoggedIn }) =>
               </div>
             ) : (
               <div className="navbar-profile-container">
-                <button className="navbar-profile-button" onClick={handleLogout} aria-label="Cerrar sesión">
+                <Link to={profileLink} className="navbar-profile-button" aria-label="Ir a inicio">
                   <span className="navbar-profile-ring">
                     <IonIcon icon={personCircle} className="navbar-profile-icon" />
                     <svg className="navbar-profile-circle" viewBox="0 0 80 80">
@@ -93,7 +90,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isLoggedIn: propIsLoggedIn }) =>
                       />
                     </svg>
                   </span>
-                </button>
+                </Link>
               </div>
             )}
           </div>
