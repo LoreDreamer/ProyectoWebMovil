@@ -11,8 +11,7 @@
 .hero-visual {
   position: absolute;
   inset: 0;
-  background-image: url('../assets/hero-optimized.jpg');
-  background-size: cover;
+  background-image: url('../../assets/global/652677708_18021012203642875_5614181220272571728_n.png');
   background-position: center;
   background-repeat: no-repeat;
   z-index: 1;

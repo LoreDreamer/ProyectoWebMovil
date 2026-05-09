@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { IonHeader, IonToolbar, IonIcon, IonButtons, IonMenuButton } from '@ionic/react';
 import { personCircle, logOutOutline } from 'ionicons/icons';
 
-import logo from '../../assets/4-isologo-municipal-fondocalipso-rgb.png';
+import logo from '../../assets/logos/4-isologo-municipal-fondocalipso-rgb.png';
 import './Navbar.css';
 
 interface NavbarProps {

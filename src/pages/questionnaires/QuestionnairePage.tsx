@@ -4,11 +4,11 @@ import { Navbar, QuestionnaireCard } from '../../components';
 import './QuestionnairePage.css';
 
 // Importa tus imágenes aquí
-import img_01 from '../../assets/img_01.jpg';
-import ima_2 from '../../assets/ima_2.jpg';
-import im001 from '../../assets/im001.png';
-import im002 from '../../assets/im002.png';
-import im003 from '../../assets/im003.png';
+import img_01 from '../../assets/logos/im001.png';
+import ima_2 from '../../assets/logos/im002.png';
+import im001 from '../../assets/logos/im001.png';
+import im002 from '../../assets/logos/im002.png';
+import im003 from '../../assets/logos/im003.png';
 
 // DATOS PARA REALIZADOS (Cada uno apunta a su propia variable de imagen)
 const realizadosData = [

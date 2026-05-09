@@ -2,7 +2,7 @@ import React from 'react';
 import { SubscribeBanner } from '../subscribe/subscribeBanner';
 import './newsPart.css';
 
-import newsImageOne from '../../assets/652677708_18021012203642875_5614181220272571728_n.png';
+import newsImageOne from '../../assets/global/652677708_18021012203642875_5614181220272571728_n.png';
 
 const newsItems = [
   {

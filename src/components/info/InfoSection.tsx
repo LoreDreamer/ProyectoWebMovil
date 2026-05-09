@@ -1,8 +1,8 @@
 import React from 'react';
 import './InfoSection.css';
-import cursoImage from '../../assets/curso-online-ciberseguridad-empresas.png';
-import reportImage from '../../assets/report.png';
-import stadisticsImage from '../../assets/stat.png';
+import cursoImage from '../../assets/global/curso-online-ciberseguridad-empresas.png';
+import reportImage from '../../assets/global/report.png';
+import stadisticsImage from '../../assets/global/stat.png';
 
 export const InfoSection: React.FC = () => {
   return (

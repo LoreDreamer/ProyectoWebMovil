@@ -2,9 +2,13 @@
   --background: transparent;
 }
 
-.ion-page {
+.auth-page {
   background-color: #000000;
-  background-image: linear-gradient(rgba(0, 0, 0, 0.705), rgba(0, 0, 0, 0.705)), url('../../assets/652677708_18021012203642875_5614181220272571728_n.png');
+  background-image: linear-gradient(
+      rgba(0, 0, 0, 0.705),
+      rgba(0, 0, 0, 0.705)
+    ),
+    url('../../assets/global/652677708_18021012203642875_5614181220272571728_n.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
