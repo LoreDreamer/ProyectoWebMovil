@@ -34,7 +34,7 @@ export const LoginForm: React.FC = () => {
     console.log('Correo:', email);
     console.log('Contraseña:', password);
 
-    history.push('/index');
+    history.push('/inicio');
     window.location.reload();
   };
 
@@ -146,7 +146,7 @@ export const RegisterForm: React.FC = () => {
     console.log('Confirmar contraseña:', confirmPassword);
     console.log('Acepta términos:', acceptedTerms);
 
-    history.push('/index');
+    history.push('/inicio');
     window.location.reload();
   };
 

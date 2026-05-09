@@ -1,9 +1,23 @@
-import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/react';
-import { Navbar, NewsPart, StatCard, Progress, NewsPanel } from '../../components';
+import { IonContent, IonPage, IonButton } from '@ionic/react';
+import { Navbar, StatCard, Progress, NewsPanel } from '../../components';
 import { listOutline, eyeOutline, sendOutline, checkmarkCircleOutline } from 'ionicons/icons';
+import { useHistory } from 'react-router-dom';
 import './InicioPage.css';
 
 export const InicioPage: React.FC = () => {
+  const history = useHistory();
+
+  const handleLogout = () => {
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('userEmail');
+    localStorage.removeItem('userName');
+    localStorage.removeItem('userRut');
+    localStorage.removeItem('userRegion');
+    localStorage.removeItem('userComuna');
+    history.push('/index');
+    window.location.reload();
+  };
+
   return (
     <IonPage>
       <Navbar />
@@ -27,10 +41,16 @@ export const InicioPage: React.FC = () => {
             <NewsPanel />
           </div>
 
+          <IonButton 
+            expand="block" 
+            onClick={handleLogout}
+            className="logout-button"
+          >
+            Cerrar sesión
+          </IonButton>
+
         </div>
       </IonContent>
     </IonPage>
   );
-};
-
-export default InicioPage;    
+};    

@@ -39,7 +39,19 @@
   align-items: start;
 }
 
+.logout-button {
+  --background: #dc3545;
+  --background-activated: #c82333;
+  --background-focused: #c82333;
+  --background-hover: #c82333;
+  --color: white;
+  margin-top: 30px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
 @media (max-width: 992px) {
-  .stats-grid { grid-template-columns: repeat(2, 1fr); }
-  .main-grid { grid-template-columns: 1fr; }
+  .logout-button {
+    margin-top: 20px;
+  }
 }

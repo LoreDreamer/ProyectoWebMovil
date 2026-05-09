@@ -1,4 +1,4 @@
-import { Redirect, Route } from 'react-router-dom';
+import { Route } from 'react-router-dom';
 import { 
   IonApp, 
   IonRouterOutlet, 
@@ -48,7 +48,7 @@ const App: React.FC = () => {
           </IonHeader>
           <IonContent>
             <IonList>
-              <IonItem button routerLink="/inicio" onClick={closeMenu}>
+              <IonItem button routerLink="/index" onClick={closeMenu}>
                 <IonIcon slot="start" icon={homeOutline} />
                 <IonLabel>Inicio</IonLabel>
               </IonItem>
@@ -84,14 +84,14 @@ const App: React.FC = () => {
           <Route exact path="/login" component={LoginPage} />
           <Route exact path="/register" component={RegisterPage} />
           <Route exact path="/educacion" component={EducationPage} />
-          <Route exact path="/denuncias" component ={ComplaintsPage} />
+          <Route exact path="/denuncias" component={ComplaintsPage} />
           <Route exact path="/cuestionarios" component={QuestionnairePage} />
           <Route exact path="/protocolos" component={ProtocolsPage} />
-          <Route exact path="/alertas" component= {NewsPage} />
+          <Route exact path="/alertas" component={NewsPage} />
           <Route exact path="/perfil" render={() => <PlaceholderPage title="Mi Perfil" />} />
           <Route exact path="/configuracion" render={() => <PlaceholderPage title="Configuración" />} />
           <Route exact path="/">
-            <Redirect to="/index" />
+            <HomePage />
           </Route>
         </IonRouterOutlet>
 
