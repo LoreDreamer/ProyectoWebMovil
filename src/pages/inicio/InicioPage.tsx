@@ -1,5 +1,5 @@
 import { IonContent, IonPage } from '@ionic/react';
-import { Navbar, StatCard, Progress, NewsPanel } from '../../components';
+import { Navbar, StatCard, Progress, NewsPanel, Footer } from '../../components';
 import { listOutline, eyeOutline, sendOutline, checkmarkCircleOutline } from 'ionicons/icons';
 import './InicioPage.css';
 
@@ -28,6 +28,7 @@ export const InicioPage: React.FC = () => {
           </div>
 
         </div>
+        <Footer />
       </IonContent>
     </IonPage>
   );

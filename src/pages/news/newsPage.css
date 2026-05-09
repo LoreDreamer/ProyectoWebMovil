@@ -3,13 +3,8 @@
 }
 
 .news-page-main {
-  min-height: 100%;
-  padding: 36px 48px 130px;
+  min-height: auto;
+  padding: 36px 48px 32px;
   box-sizing: border-box;
+  overflow: visible;
 }
-/*
-@media (max-width: 768px) {
-  .news-page-main {
-    padding: 24px 18px 140px;
-  }
-}*/

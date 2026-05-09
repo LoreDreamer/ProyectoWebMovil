@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react';
 import { IonContent, IonPage } from '@ionic/react';
-import { Navbar } from '../../components';
+import { Navbar, Footer } from '../../components';
 import './ProtocolsPage.css';
 
 export const ProtocolsPage: React.FC = () => {
@@ -52,6 +52,7 @@ export const ProtocolsPage: React.FC = () => {
             <button className="cta-button">Solicitar</button>
           </section>
         </div>
+        <Footer />
       </IonContent>
     </IonPage>
   );

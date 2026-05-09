@@ -1,6 +1,6 @@
 import React from 'react';
 import { IonContent, IonPage } from '@ionic/react';
-import { Navbar, QuestionnaireCard } from '../../components';
+import { Navbar, QuestionnaireCard, Footer } from '../../components';
 import './QuestionnairePage.css';
 
 // Importa tus imágenes aquí
@@ -86,6 +86,7 @@ export const QuestionnairePage: React.FC = () => {
           </div>
 
         </div>
+        <Footer />
       </IonContent>
     </IonPage>
   );

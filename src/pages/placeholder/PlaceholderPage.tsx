@@ -1,5 +1,5 @@
 import { IonContent, IonPage } from '@ionic/react';
-import { Navbar } from '../../components';
+import { Navbar, Footer } from '../../components';
 import './PlaceholderPage.css';
 
 interface PlaceholderPageProps {
@@ -21,6 +21,7 @@ export const PlaceholderPage: React.FC<PlaceholderPageProps> = ({ title }) => {
             </p>
           </div>
         </div>
+        <Footer />
       </IonContent>
     </IonPage>
   );
