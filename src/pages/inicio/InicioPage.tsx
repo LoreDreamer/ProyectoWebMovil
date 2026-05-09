@@ -14,6 +14,7 @@ export const InicioPage: React.FC = () => {
     localStorage.removeItem('userRut');
     localStorage.removeItem('userRegion');
     localStorage.removeItem('userComuna');
+    localStorage.removeItem('isAdmin');
     history.push('/index');
     window.location.reload();
   };

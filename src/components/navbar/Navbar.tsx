@@ -17,6 +17,10 @@ export const Navbar: React.FC<NavbarProps> = ({ isLoggedIn: propIsLoggedIn }) =>
     ? propIsLoggedIn
     : localStorage.getItem('isLoggedIn') === 'true';
 
+  const isAdmin = localStorage.getItem('isAdmin') === 'true';
+
+  const profileLink = isAdmin ? '/admin' : '/inicio';
+
   const renderLink = (to: string, label: string) => (
     <Link to={to} className={`navbar-link-authenticated ${location.pathname === to ? 'active' : ''}`}>
       {label}
@@ -73,7 +77,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isLoggedIn: propIsLoggedIn }) =>
               </div>
             ) : (
               <div className="navbar-profile-container">
-                <Link to="/inicio" className="navbar-profile-button" aria-label="Ir a inicio">
+                <Link to={profileLink} className="navbar-profile-button" aria-label="Ir a inicio">
                   <span className="navbar-profile-ring">
                     <IonIcon icon={personCircle} className="navbar-profile-icon" />
                     <svg className="navbar-profile-circle" viewBox="0 0 80 80">
