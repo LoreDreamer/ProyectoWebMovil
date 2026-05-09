@@ -1,7 +1,5 @@
 import { IonContent, IonPage } from '@ionic/react';
-import { Navbar } from '../../components/navbar/Navbar';
-import { ComplaintsForm } from '../../components/complaints/ComplaintsForm';
-import { ComplaintTips } from '../../components/complaints/ComplaintTips'; // Asegúrate de que la ruta sea correcta
+import { Navbar, ComplaintsForm, ComplaintTips} from '../../components';
 import './ComplaintsPage.css';
 
 export const ComplaintsPage: React.FC = () => {

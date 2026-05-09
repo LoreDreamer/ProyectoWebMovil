@@ -1,8 +1,5 @@
 import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/react';
-import { Navbar, NewsPart } from '../../components';
-import { StatCard } from '../../components/inicio/StatCard';
-import { Progress } from '../../components/inicio/Progress';
-import NewsPanel from '../../components/inicio/NewsPanel';
+import { Navbar, NewsPart, StatCard, Progress, NewsPanel } from '../../components';
 import { listOutline, eyeOutline, sendOutline, checkmarkCircleOutline } from 'ionicons/icons';
 import './InicioPage.css';
 

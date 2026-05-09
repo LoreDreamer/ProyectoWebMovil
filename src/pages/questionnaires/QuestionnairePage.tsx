@@ -1,7 +1,6 @@
 import React from 'react';
 import { IonContent, IonPage } from '@ionic/react';
-import { Navbar } from '../../components';
-import { QuestionnaireCard } from '../../components/questionnaire/QuestionnaireCard';
+import { Navbar, QuestionnaireCard } from '../../components';
 import './QuestionnairePage.css';
 
 // Importa tus imágenes aquí
