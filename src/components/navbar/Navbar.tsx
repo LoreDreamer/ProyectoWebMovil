@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { IonHeader, IonToolbar, IonIcon, IonButtons, IonMenuButton } from '@ionic/react';
-import { personCircle } from 'ionicons/icons';
+import { personCircle, logOutOutline } from 'ionicons/icons';
 
 import logo from '../../assets/4-isologo-municipal-fondocalipso-rgb.png';
 import './Navbar.css';
@@ -16,6 +16,16 @@ export const Navbar: React.FC<NavbarProps> = ({ isLoggedIn: propIsLoggedIn }) =>
   const isLoggedIn = propIsLoggedIn !== undefined
     ? propIsLoggedIn
     : localStorage.getItem('isLoggedIn') === 'true';
+
+  const handleLogout = () => {
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('userEmail');
+    localStorage.removeItem('userName');
+    localStorage.removeItem('userRut');
+    localStorage.removeItem('userRegion');
+    localStorage.removeItem('userComuna');
+    window.location.href = '/index';
+  };
 
   const renderLink = (to: string, label: string) => (
     <Link to={to} className={`navbar-link-authenticated ${location.pathname === to ? 'active' : ''}`}>
@@ -87,6 +97,15 @@ export const Navbar: React.FC<NavbarProps> = ({ isLoggedIn: propIsLoggedIn }) =>
                     </svg>
                   </span>
                 </Link>
+                <div 
+                  className="navbar-logout-button"
+                  onClick={handleLogout}
+                  aria-label="Cerrar sesión"
+                  role="button"
+                  tabIndex={0}
+                >
+                  <IonIcon icon={logOutOutline} />
+                </div>
               </div>
             )}
           </div>

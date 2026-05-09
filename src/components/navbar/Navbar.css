@@ -4,7 +4,6 @@
   top: 0;
   z-index: 1000;
   background: #ffffff;
-  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.08);
 }
 
 .navbar-toolbar {
@@ -38,7 +37,6 @@
   display: block;
 }
 
-/* --- Navegación Central --- */
 .navbar-links-desktop {
   display: flex;
   align-items: center;
@@ -78,7 +76,6 @@
   width: 100%;
 }
 
-/* --- Botones de Acción (Lado Derecho) --- */
 .navbar-right {
   display: flex;
   align-items: center;
@@ -112,6 +109,26 @@
 .navbar-register-button:hover {
   transform: translateY(-2px);
   box-shadow: 0 12px 24px rgba(9, 85, 166, 0.2);
+}
+
+.navbar-logout-button {
+  background: transparent;
+  cursor: pointer;
+  width: 45px;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.navbar-logout-button ion-icon {
+  font-size: 60px;
+  color: #d62033;
+}
+
+.navbar-logout-button:hover ion-icon {
+  color: #c50000;
+  transform: scale(1.13);
 }
 
 /* --- PERFIL ANIMADO (RESTAURADO) --- */
@@ -169,7 +186,11 @@
   padding: 8px;
 }
 
-/* --- RESPONSIVIDAD MEJORADA --- */
+.navbar-profile-container {
+  display: flex;
+  align-items: center;
+}
+
 .mobile-menu-button {
   display: none !important;
 }
