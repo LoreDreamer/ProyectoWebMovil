@@ -1,0 +1,54 @@
+.complaints-shell {
+  padding: 40px 20px;
+  display: flex;
+  justify-content: center;
+  min-height: 100vh; /* Cambiado a 100vh para asegurar que cubra toda la pantalla */
+  
+  /* CAPA 1: Degradado con transparencia (RGBA) */
+  /* CAPA 2: La imagen de fondo */
+  background: linear-gradient(
+      135deg, 
+      rgba(77, 208, 225, 0.6), /* Celeste con 60% opacidad */
+      rgba(13, 71, 161, 0.6)   /* Azul con 60% opacidad */
+    ), 
+    url('../../assets/maxresdefault.jpg');
+
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-attachment: fixed; /* Mantiene el fondo quieto al hacer scroll */
+  background-size: cover;
+}
+.complaints-layout-container {
+  display: flex;
+  flex-direction: row; /* Uno al lado del otro */
+  gap: 30px;           /* Espacio entre el form y el sidebar */
+  max-width: 1250px;   /* Ajusta según necesites */
+  width: 100%;
+  align-items: flex-start; /* Evita que el sidebar se estire verticalmente */
+  justify-content: center;
+}
+
+.complaints-form-wrapper {
+  flex: 2;             /* El formulario toma más espacio */
+  max-width: 850px;
+}
+
+.complaints-sidebar-wrapper {
+  flex: 1;             /* El sidebar es más angosto */
+  max-width: 350px;
+  position: sticky;    /* Opcional: para que el panel te siga al bajar */
+  top: 20px;
+}
+
+/* Responsivo: Si la pantalla es chica, se ponen uno abajo del otro */
+@media (max-width: 1000px) {
+  .complaints-layout-container {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .complaints-sidebar-wrapper {
+    max-width: 850px; /* En móvil que tome el mismo ancho que el form */
+    width: 100%;
+  }
+}

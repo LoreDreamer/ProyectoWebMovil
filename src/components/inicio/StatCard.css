@@ -1,0 +1,38 @@
+.stat-card {
+  background: white;
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.stat-icon-box {
+  background: #f0f0f0;
+  padding: 8px;
+  border-radius: 10px;
+  font-size: 1.5rem;
+  color: #333;
+}
+
+.stat-label {
+  font-family: 'Archivo', sans-serif;
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: #555;
+  line-height: 1.1;
+}
+
+.stat-value {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 2.5rem;
+  color: #333;
+}

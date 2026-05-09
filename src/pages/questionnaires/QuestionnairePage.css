@@ -3,6 +3,7 @@
 }
 
 .cuestionarios-shell {
+<<<<<<< HEAD
   padding: 24px;
   min-height: 100vh;
   display: flex;
@@ -75,10 +76,81 @@
   margin: 0;
   font-size: 1.5rem;
   color: #0a1631;
+=======
+  padding: 40px;
+  max-width: 1300px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.resumen-title {
+  color: #333;
+  font-size: 1.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.section-title {
+  color: #333;
+  font-size: 1.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin: 0;
+  margin-bottom: -17px;
+}
+
+.resumen-subtitle {
+  color: #666;
+  font-size: 1.1rem;
+  margin: 5px 0 25px 0;
+  margin-bottom: -5px;
+}
+
+.stats-banner {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+  margin-top: 30px;
+}
+
+.stat-box {
+  background: white;
+  padding: 15px 25px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex: 1;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+}
+
+.stat-icon {
+  width: 35px;
+  height: 35px;
+}
+
+.stat-info {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  font-size: 1.5rem;
+
+  align-items: center;
+}
+
+.stat-value {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #333;
+>>>>>>> cony-branch
 }
 
 .cuestionarios-grid {
   display: grid;
+<<<<<<< HEAD
   gap: 18px;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
 }
@@ -171,3 +243,18 @@
     grid-template-columns: 1fr;
   }
 }
+=======
+  grid-template-columns: repeat(4, 1fr); 
+  gap: 24px;
+  width: 100%; 
+}
+
+@media (max-width: 1100px) {
+  .cuestionarios-grid { grid-template-columns: repeat(2, 1fr); }
+  .stats-banner { flex-direction: column; }
+}
+
+@media (max-width: 600px) {
+  .cuestionarios-grid { grid-template-columns: 1fr; }
+}
+>>>>>>> cony-branch

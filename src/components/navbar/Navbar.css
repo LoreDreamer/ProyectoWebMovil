@@ -1,17 +1,29 @@
+<<<<<<< HEAD
+=======
+/* --- Estructura y Header --- */
+>>>>>>> cony-branch
 .navbar-header {
   position: sticky;
   top: 0;
   z-index: 1000;
+<<<<<<< HEAD
   box-shadow: 0 1px 0 rgba(15, 23, 42, 0.08);
   background: #ffffff;
   backdrop-filter: blur(10px);
+=======
+  background: #ffffff;
+  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.08);
+>>>>>>> cony-branch
 }
 
 .navbar-toolbar {
   --background: transparent;
+<<<<<<< HEAD
   --border-width: 0;
   --padding-start: 0;
   --padding-end: 0;
+=======
+>>>>>>> cony-branch
   --min-height: 80px;
 }
 
@@ -22,6 +34,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+<<<<<<< HEAD
   gap: 24px;
   padding: 0 24px;
   box-sizing: border-box;
@@ -45,6 +58,18 @@
   display: flex;
   align-items: center;
   justify-content: flex-start;
+=======
+  padding: 0 24px;
+  height: 80px;
+  box-sizing: border-box;
+}
+
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-shrink: 0;
+>>>>>>> cony-branch
 }
 
 .navbar-logo {
@@ -54,6 +79,7 @@
   display: block;
 }
 
+<<<<<<< HEAD
 .navbar-links-authenticated {
   display: flex;
   align-items: center;
@@ -68,6 +94,21 @@
   font-size: 0.95rem;
   font-weight: 600;
   letter-spacing: 0.05em;
+=======
+/* --- Navegación Central --- */
+.navbar-links-desktop {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 35px;
+  flex: 1;
+}
+
+.navbar-link-authenticated {
+  color: #333;
+  font-size: 0.95rem;
+  font-weight: 600;
+>>>>>>> cony-branch
   text-decoration: none;
   white-space: nowrap;
   position: relative;
@@ -81,6 +122,7 @@
   left: 0;
   width: 0;
   height: 2px;
+<<<<<<< HEAD
   background: var(--primary);
   transition: width 0.3s ease;
 }
@@ -97,15 +139,42 @@
   color: var(--primary);
 }
 
+=======
+  background: #006aa8;
+  transition: width 0.3s ease;
+}
+
+.navbar-link-authenticated:hover, 
+.navbar-link-authenticated.active {
+  color: #006aa8;
+}
+
+.navbar-link-authenticated:hover::after,
+>>>>>>> cony-branch
 .navbar-link-authenticated.active::after {
   width: 100%;
 }
 
+<<<<<<< HEAD
 .navbar-actions {
   display: flex;
   align-items: center;
   gap: 14px;
   flex-wrap: wrap;
+=======
+/* --- Botones de Acción (Lado Derecho) --- */
+.navbar-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+>>>>>>> cony-branch
 }
 
 .navbar-register-button {
@@ -115,15 +184,24 @@
   min-height: 44px;
   padding: 0 22px;
   border-radius: 8px;
+<<<<<<< HEAD
   background: linear-gradient(90deg, var(--primary-soft) 0%, var(--primary) 100%);
+=======
+  background: linear-gradient(90deg, #4dd0e1 0%, #0d47a1 100%);
+>>>>>>> cony-branch
   color: #ffffff;
   font-size: 0.95rem;
   font-weight: 600;
   text-decoration: none;
   white-space: nowrap;
+<<<<<<< HEAD
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   min-width: 150px;
   border: none;
+=======
+  min-width: 150px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+>>>>>>> cony-branch
 }
 
 .navbar-register-button:hover {
@@ -131,6 +209,7 @@
   box-shadow: 0 12px 24px rgba(9, 85, 166, 0.2);
 }
 
+<<<<<<< HEAD
 .navbar-profile-container {
   position: relative;
   display: flex;
@@ -147,6 +226,9 @@
   padding: 8px;
 }
 
+=======
+/* --- PERFIL ANIMADO (RESTAURADO) --- */
+>>>>>>> cony-branch
 .navbar-profile-ring {
   position: relative;
   width: 72px;
@@ -180,10 +262,15 @@
   stroke: rgb(0, 80, 126);
   stroke-width: 4.5px;
   stroke-linecap: round;
+<<<<<<< HEAD
 
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
 
+=======
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+>>>>>>> cony-branch
   transition: stroke-dashoffset 0.4s ease;
 }
 
@@ -196,6 +283,7 @@
   stroke-dashoffset: 0;
 }
 
+<<<<<<< HEAD
 @media (max-width: 1024px) {
   .navbar-links-authenticated {
     gap: 30px;
@@ -229,5 +317,57 @@
     order: 2;
     width: 100%;
     margin-top: 12px;
+=======
+.navbar-profile-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+}
+
+/* --- RESPONSIVIDAD MEJORADA --- */
+.mobile-menu-button {
+  display: none !important;
+}
+
+/* 1. Primero achicamos espacios y el logo antes de quitar los links */
+@media (max-width: 1200px) {
+  .navbar-links-desktop {
+    gap: 15px; /* Menos espacio entre links */
+  }
+  .navbar-logo {
+    height: 40px; /* Logo más pequeño para ganar espacio */
+  }
+  .navbar-container {
+    padding: 0 12px;
+  }
+}
+
+/* 2. Solo cuando de verdad ya no caben (992px), activamos la hamburguesa */
+@media (max-width: 992px) {
+  .mobile-menu-button {
+    display: block !important;
+  }
+
+  .navbar-links-desktop {
+    display: none !important; /* Aquí es cuando se guardan en el menú lateral */
+  }
+
+  .navbar-left, .navbar-right {
+    flex: 1; /* Esto ayuda a que el logo se mantenga centrado o equilibrado */
+  }
+}
+
+/* 3. Ajuste para celulares pequeños */
+@media (max-width: 600px) {
+  .navbar-actions .link-login {
+    display: none; /* Ocultamos 'Iniciar sesión' para priorizar el botón de cuenta */
+  }
+  
+  .navbar-register-button {
+    min-width: 120px;
+    padding: 0 15px;
+    font-size: 0.85rem;
+>>>>>>> cony-branch
   }
 }

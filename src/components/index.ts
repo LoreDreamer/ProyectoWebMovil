@@ -3,4 +3,16 @@ export { HeroSection } from './hero/HeroSection';
 export { InfoSection } from './info/InfoSection';
 export { LoginForm, RegisterForm } from './forms/Forms';
 export { NewsPart } from './news/newsPart';
+<<<<<<< HEAD
 export { SubscribeBanner } from './subscribe/subscribeBanner';
+=======
+export { SubscribeBanner } from './subscribe/subscribeBanner';
+export { ComplaintTips } from './complaints/ComplaintTips';
+export { ComplaintsForm } from './complaints/ComplaintsForm';
+export { QuestionnaireCard } from './questionnaire/QuestionnaireCard';
+export { NewsPanel } from './inicio/NewsPanel';
+export { Progress } from './inicio/Progress';
+export { StatCard } from './inicio/StatCard';
+export { Advice } from './education/Advice';
+export { EducationCard } from './education/EducationCard';
+>>>>>>> cony-branch

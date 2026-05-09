@@ -1,0 +1,86 @@
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;500;600&display=swap');
+
+.tip-banner {
+  background: linear-gradient(90deg, #4dd0e1 0%, #0d47a1 100%);
+  
+  /* ELIMINAMOS los anchos fijos y márgenes negativos */
+  width: 100%; 
+  margin: 20px 0; /* Un poco de aire arriba y abajo */
+  
+  border-radius: 25px; 
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 30px 40px; 
+  box-sizing: border-box;
+  
+  /* Sombra para darle profundidad */
+  box-shadow: 0 10px 20px rgba(13, 71, 161, 0.2);
+}
+
+.tip-content {
+  flex: 1;
+  /* Eliminamos el padding fijo a la derecha para móviles */
+}
+
+.tip-content h3 {
+  margin: 0;
+  /* Usamos clamp para que el título se achique solo en móviles */
+  font-size: clamp(1.4rem, 4vw, 2.1rem); 
+  letter-spacing: 1px;
+  font-family: 'Archivo Black', sans-serif;
+  text-transform: uppercase;
+}
+
+.tip-content p {
+  margin: 8px 0 0 0;
+  font-size: clamp(0.9rem, 2vw, 1.05rem);
+  line-height: 1.4;
+  font-weight: 300;
+  max-width: 90%;
+}
+
+.tip-icon {
+  /* Icono que también escala */
+  font-size: clamp(3rem, 8vw, 4.5rem);
+  color: white;
+  filter: drop-shadow(0px 0px 10px rgba(255,255,255,0.2));
+  margin-left: 20px;
+}
+
+/* --- AJUSTES RESPONSIVOS --- */
+
+/* Tablets y móviles grandes */
+@media (max-width: 768px) {
+  .tip-banner {
+    padding: 25px;
+    border-radius: 20px;
+  }
+}
+
+/* Móviles pequeños */
+@media (max-width: 600px) {
+  .tip-banner {
+    flex-direction: column; /* Icono arriba o abajo del texto */
+    text-align: center;
+    padding: 30px 20px;
+  }
+
+  .tip-content {
+    order: 2; /* Texto abajo */
+    padding-right: 0;
+  }
+
+  .tip-content p {
+    max-width: 100%;
+    margin-top: 12px;
+  }
+
+  .tip-icon {
+    order: 1; /* Icono arriba */
+    margin-left: 0;
+    margin-bottom: 15px;
+    font-size: 3.5rem;
+  }
+}
