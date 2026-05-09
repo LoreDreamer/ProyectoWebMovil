@@ -9,10 +9,10 @@
 }
 
 .logout-button {
-  --background: #dc3545;
-  --background-activated: #c82333;
-  --background-focused: #c82333;
-  --background-hover: #c82333;
+  --background: #000000;
+  --background-activated: #000000;
+  --background-focused: #000000;
+  --background-hover: #000000;
   --color: white;
   margin-top: 30px;
   font-weight: 600;
