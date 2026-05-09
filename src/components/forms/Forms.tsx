@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import {
-  IonButton,  
+  IonButton,
   IonInput,
   IonLabel,
   IonItem,
@@ -9,10 +9,10 @@ import {
   IonSelect,
   IonSelectOption
 } from '@ionic/react';
+
 import bgImage from '../../assets/1_private-tour-of-the-city-of-neiva.png';
 import './Forms.css';
-import chileRegions from '../../assets/data/chileRegions.json'
-import { getComunasByRegion } from '../../assets/data/chileRegions';
+import chileRegions from '../../assets/data/chileRegions.json';
 
 type ChileRegion = {
   id: string;
@@ -37,6 +37,7 @@ export const LoginForm: React.FC = () => {
     }
 
     const isAdmin = email === 'admin@inicio' && password === '1234';
+
     localStorage.setItem('isLoggedIn', 'true');
     localStorage.setItem('userEmail', email);
     localStorage.setItem('isAdmin', isAdmin ? 'true' : 'false');
@@ -112,9 +113,10 @@ export const RegisterForm: React.FC = () => {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const history = useHistory();
+
   const selectedRegion = CHILE_REGIONS.find((item) => item.id === region);
-  const comunas = selectedRegion?.comunas ?? []; // siempre va a estar
-  
+  const comunas = selectedRegion?.comunas ?? [];
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -163,7 +165,7 @@ export const RegisterForm: React.FC = () => {
 
   return (
     <div className="dividor">
-      <div className="auth-card">
+      <div className="auth-card register-card">
         <div
           className="auth-image"
           style={{ backgroundImage: `url(${bgImage})` }}
@@ -197,11 +199,11 @@ export const RegisterForm: React.FC = () => {
                 placeholder="12.345.678-9"
               />
             </IonItem>
-            <div className="select-field">
+
+            <IonItem className="select-field">
               <IonLabel position="stacked">Región</IonLabel>
               <IonSelect
                 className="custom-select"
-                labelPlacement="stacked"
                 interface="popover"
                 value={region}
                 placeholder="Selecciona una región"
@@ -210,32 +212,31 @@ export const RegisterForm: React.FC = () => {
                   setComuna('');
                 }}
               >
-                {CHILE_REGIONS.map((region) => (
-                  <IonSelectOption key={region.id} value={region.id}>
-                    {region.name}
+                {CHILE_REGIONS.map((item) => (
+                  <IonSelectOption key={item.id} value={item.id}>
+                    {item.name}
                   </IonSelectOption>
                 ))}
               </IonSelect>
-            </div>
+            </IonItem>
 
-          <div className="select-field">
-            <IonLabel position="stacked">Comuna</IonLabel>
-            <IonSelect
-              className="custom-select"
-              labelPlacement="stacked"
-              interface="popover"
-              value={comuna}
-              placeholder="Selecciona una comuna"
-              disabled={!region}
-              onIonChange={(e) => setComuna(e.detail.value)}
-            >
-              {comunas.map((comuna) => (
-                <IonSelectOption key={comuna} value={comuna}>
-                  {comuna}
-                </IonSelectOption>
-              ))}
-            </IonSelect>
-          </div>
+            <IonItem className="select-field">
+              <IonLabel position="stacked">Comuna</IonLabel>
+              <IonSelect
+                className="custom-select"
+                interface="popover"
+                value={comuna}
+                placeholder="Selecciona una comuna"
+                disabled={!region}
+                onIonChange={(e) => setComuna(e.detail.value)}
+              >
+                {comunas.map((item) => (
+                  <IonSelectOption key={item} value={item}>
+                    {item}
+                  </IonSelectOption>
+                ))}
+              </IonSelect>
+            </IonItem>
 
             <IonItem>
               <IonLabel position="stacked">Correo electrónico</IonLabel>
@@ -273,6 +274,7 @@ export const RegisterForm: React.FC = () => {
             <IonButton
               type="button"
               fill="clear"
+              expand="block"
               className={`terms-button ${
                 acceptedTerms ? 'terms-button-active' : ''
               }`}
