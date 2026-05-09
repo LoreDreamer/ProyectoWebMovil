@@ -45,7 +45,7 @@ const CountUp: React.FC<CountUpProps> = ({
 export const HeroSection: React.FC = () => {
   return (
     <section className="hero-section">
-      <div className="hero-visual" />
+      <div className="hero-visual"/>
       <div className="hero-overlay" />
 
       <div className="hero-content-wrapper">
@@ -53,9 +53,9 @@ export const HeroSection: React.FC = () => {
           <span className="hero-badge">Ciberseguridad municipal</span>
           <h1>Protege la ciudad con un diagnóstico digital seguro</h1>
           <div className="hero-actions">
-            <a href="#educacion" className="hero-button hero-button-primary">
+            <Link to="/educacion" className="hero-button hero-button-primary">
               Comenzar diagnóstico
-            </a>
+            </Link>
             <Link to="/login" className="hero-button hero-button-secondary">
               Reportar incidente
             </Link>

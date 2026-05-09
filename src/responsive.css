@@ -66,6 +66,13 @@ img {
   .dividor {
     min-height: calc(100dvh - 64px) !important;
     padding: 14px 12px !important;
+  }
+
+  .login-layout {
+    align-items: center !important;
+  }
+
+  .register-layout {
     align-items: flex-start !important;
   }
 
@@ -74,6 +81,14 @@ img {
     max-width: 430px !important;
     flex-direction: column !important;
     border-radius: 18px !important;
+  }
+
+  .login-card {
+    min-height: auto !important;
+  }
+
+  .register-card {
+    min-height: auto !important;
   }
 
   .auth-image {
@@ -85,7 +100,16 @@ img {
     padding: 22px 18px !important;
   }
 
+  .login-form-container {
+    align-items: center !important;
+  }
+
+  .register-form-container {
+    align-items: flex-start !important;
+  }
+
   .auth-form,
+  .login-form,
   .register-form {
     width: 100% !important;
     max-width: 100% !important;

@@ -1,7 +1,7 @@
 import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/react';
 import { Navbar, EducationCard, Advice } from '../../components';
-import img_01 from '../../assets/img_01.jpg';
-import ima_2 from '../../assets/ima_2.jpg';
+import img_01 from '../../assets/questions/img_01.jpg';
+import ima_2 from '../../assets/questions/ima_2.jpg';
 import './EducationPage.css'; 
 
 export const EducationPage: React.FC = () => {

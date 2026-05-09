@@ -4,7 +4,7 @@ import './AuthPage.css';
 
 export const LoginPage: React.FC = () => {
   return (
-    <IonPage>
+    <IonPage className="auth-page login-page">
       <Navbar />
       <IonContent className="transparent-content">
         <LoginForm />

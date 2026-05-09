@@ -10,7 +10,7 @@ import {
   IonSelectOption
 } from '@ionic/react';
 
-import bgImage from '../../assets/1_private-tour-of-the-city-of-neiva.png';
+import bgImage from '../../assets/auth/1_private-tour-of-the-city-of-neiva.png';
 import './Forms.css';
 import chileRegions from '../../assets/data/chileRegions.json';
 
@@ -50,15 +50,15 @@ export const LoginForm: React.FC = () => {
   };
 
   return (
-    <div className="dividor">
-      <div className="auth-card">
+    <div className="dividor login-layout">
+      <div className="auth-card login-card">
         <div
-          className="auth-image"
+          className="auth-image login-image"
           style={{ backgroundImage: `url(${bgImage})` }}
         />
 
-        <div className="auth-form-container">
-          <form className="auth-form" onSubmit={handleSubmit}>
+        <div className="auth-form-container login-form-container">
+          <form className="auth-form login-form" onSubmit={handleSubmit}>
             <div className="auth-form-header">
               <h2>Iniciar sesión</h2>
               <p>Accede al sistema con tu correo y contraseña.</p>
@@ -164,14 +164,14 @@ export const RegisterForm: React.FC = () => {
   };
 
   return (
-    <div className="dividor">
+    <div className="dividor register-layout">
       <div className="auth-card register-card">
         <div
-          className="auth-image"
+          className="auth-image register-image"
           style={{ backgroundImage: `url(${bgImage})` }}
         />
 
-        <div className="auth-form-container">
+        <div className="auth-form-container register-form-container">
           <form className="auth-form register-form" onSubmit={handleSubmit}>
             <div className="auth-form-header">
               <h2>Registrarse</h2>

@@ -2,13 +2,16 @@
   box-sizing: border-box;
 }
 
+/* =============================== */
+/* BASE COMPARTIDA AUTH */
+/* =============================== */
+
 .dividor {
   min-height: calc(100vh - 86px);
   width: 100%;
   padding: 14px 16px;
   display: flex;
   justify-content: center;
-  align-items: flex-start;
 }
 
 .auth-card {
@@ -33,12 +36,10 @@
   min-width: 0;
   padding: 18px 24px 20px;
   display: flex;
-  align-items: flex-start;
   justify-content: center;
 }
 
-.auth-form,
-.register-form {
+.auth-form {
   width: 100%;
   max-width: none;
 }
@@ -75,6 +76,53 @@
   overflow: visible;
 }
 
+/* =============================== */
+/* LOGIN ESPECÍFICO */
+/* =============================== */
+
+.login-layout {
+  align-items: center;
+}
+
+.login-card {
+  min-height: 540px;
+}
+
+.login-form-container {
+  align-items: center;
+  padding: 34px 36px;
+}
+
+.login-form {
+  width: 100%;
+  max-width: 430px;
+}
+
+/* =============================== */
+/* REGISTER ESPECÍFICO */
+/* =============================== */
+
+.register-layout {
+  align-items: flex-start;
+}
+
+.register-card {
+  min-height: auto;
+}
+
+.register-form-container {
+  align-items: flex-start;
+}
+
+.register-form {
+  width: 100%;
+  max-width: none;
+}
+
+/* =============================== */
+/* ION ITEMS / LABELS */
+/* =============================== */
+
 .auth-form ion-item,
 .select-field {
   margin-bottom: 7px;
@@ -108,6 +156,10 @@
   overflow: visible !important;
   text-overflow: unset !important;
 }
+
+/* =============================== */
+/* INPUTS / SELECTS */
+/* =============================== */
 
 .custom-input {
   width: 100%;
@@ -156,6 +208,10 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* =============================== */
+/* BOTONES */
+/* =============================== */
 
 .terms-button {
   width: 100%;
@@ -222,117 +278,3 @@
   white-space: normal;
   line-height: 1.2;
 }
-
-/*
-
-@media (max-width: 768px) {
-  .dividor {
-    min-height: calc(100dvh - 64px);
-    padding: 20px 14px;
-  }
-
-  .auth-image {
-    display: none;
-  }
-
-  .auth-card {
-    max-width: 430px;
-    flex-direction: column;
-  }
-
-  .auth-form-container {
-    width: 100%;
-    padding: 24px 20px;
-  }
-
-  .auth-form,
-  .register-form {
-    max-width: 100%;
-  }
-
-  .auth-form-header h2 {
-    font-size: 22px;
-  }
-
-  .auth-form-header p {
-    font-size: 12.5px;
-  }
-
-  .custom-input,
-  .custom-select {
-    min-height: 40px;
-    font-size: 13px;
-  }
-
-  .terms-button {
-    font-size: 12px;
-  }
-
-  .submit-button {
-    height: 42px;
-  }
-}
-
-@media (max-height: 760px) {
-  .dividor {
-    padding-top: 14px;
-    padding-bottom: 14px;
-  }
-
-  .auth-form-container {
-    padding-top: 14px;
-    padding-bottom: 14px;
-  }
-
-  .auth-form-header {
-    margin-bottom: 10px;
-  }
-
-  .auth-form ion-item,
-  .select-field {
-    margin-bottom: 5px;
-  }
-
-  .custom-input,
-  .custom-select {
-    min-height: 37px;
-  }
-}
-
-@media (max-height: 690px) and (max-width: 768px) {
-  .auth-form-container {
-    padding: 16px;
-  }
-
-  .auth-form-header {
-    margin-bottom: 8px;
-  }
-
-  .auth-form-header h2 {
-    font-size: 21px;
-  }
-
-  .auth-form-header p {
-    font-size: 12px;
-  }
-
-  .auth-form ion-item,
-  .select-field {
-    margin-bottom: 4px;
-  }
-
-  .custom-input,
-  .custom-select {
-    min-height: 36px;
-  }
-
-  .submit-button {
-    height: 39px;
-    margin-top: 8px;
-  }
-
-  .secondary-button {
-    min-height: 30px;
-    margin-top: 4px;
-  }
-}*/
