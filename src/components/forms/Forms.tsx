@@ -11,8 +11,16 @@ import {
 } from '@ionic/react';
 import bgImage from '../../assets/1_private-tour-of-the-city-of-neiva.png';
 import './Forms.css';
-import '../../assets/data/chileRegions';
-import { chileRegions, getComunasByRegion } from '../../assets/data/chileRegions';
+import chileRegions from '../../assets/data/chileRegions.json'
+import { getComunasByRegion } from '../../assets/data/chileRegions';
+
+type ChileRegion = {
+  id: string;
+  name: string;
+  comunas: string[];
+};
+
+const CHILE_REGIONS = chileRegions as ChileRegion[];
 
 export const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -102,7 +110,8 @@ export const RegisterForm: React.FC = () => {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const history = useHistory();
-  const comunas = getComunasByRegion(region);
+  const selectedRegion = CHILE_REGIONS.find((item) => item.id === region);
+  const comunas = selectedRegion?.comunas ?? []; // siempre va a estar
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -187,33 +196,31 @@ export const RegisterForm: React.FC = () => {
               />
             </IonItem>
             <div className="select-field">
-            <IonLabel position="stacked">Región</IonLabel>
-            <IonSelect
-              className="custom-select"
-              labelPlacement="stacked"
-              fill="solid"
-              interface="popover"
-              value={region}
-              placeholder="Selecciona una región"
-              onIonChange={(e) => {
-                setRegion(e.detail.value);
-                setComuna('');
-              }}
-            >
-              {chileRegions.map((region) => (
-                <IonSelectOption key={region.id} value={region.id}>
-                  {region.name}
-                </IonSelectOption>
-              ))}
-            </IonSelect>
-          </div>
+              <IonLabel position="stacked">Región</IonLabel>
+              <IonSelect
+                className="custom-select"
+                labelPlacement="stacked"
+                interface="popover"
+                value={region}
+                placeholder="Selecciona una región"
+                onIonChange={(e) => {
+                  setRegion(e.detail.value);
+                  setComuna('');
+                }}
+              >
+                {CHILE_REGIONS.map((region) => (
+                  <IonSelectOption key={region.id} value={region.id}>
+                    {region.name}
+                  </IonSelectOption>
+                ))}
+              </IonSelect>
+            </div>
 
           <div className="select-field">
             <IonLabel position="stacked">Comuna</IonLabel>
             <IonSelect
               className="custom-select"
               labelPlacement="stacked"
-              fill="solid"
               interface="popover"
               value={comuna}
               placeholder="Selecciona una comuna"
