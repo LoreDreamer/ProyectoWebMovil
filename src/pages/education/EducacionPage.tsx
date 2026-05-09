@@ -1,8 +1,8 @@
-import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/react';
-import { Navbar, EducationCard, Advice } from '../../components';
+import { IonContent, IonPage } from '@ionic/react';
+import { Navbar, EducationCard, Advice, Footer } from '../../components';
 import img_01 from '../../assets/questions/img_01.jpg';
 import ima_2 from '../../assets/questions/ima_2.jpg';
-import './EducationPage.css'; 
+import './EducationPage.css';
 
 export const EducationPage: React.FC = () => {
   return (
@@ -59,8 +59,8 @@ export const EducationPage: React.FC = () => {
               />
             </div>
           </section>
-
         </div>
+        <Footer />
       </IonContent>
     </IonPage>
   );

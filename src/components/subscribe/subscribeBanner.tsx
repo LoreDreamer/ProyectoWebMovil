@@ -17,7 +17,7 @@ export const SubscribeBanner: React.FC = () => {
     <>
       <div className="subscribe-banner">
         <div className="subscribe-text">
-          <h2>¡Subscríbete para revisar noticias!</h2>
+          <h2>¡Suscríbete para revisar noticias!</h2>
           <p>Te enviaremos estas noticias todos los días a tu correo electrónico.</p>
         </div>
 
@@ -26,14 +26,14 @@ export const SubscribeBanner: React.FC = () => {
           type="button"
           onClick={() => setIsOpen(true)}
         >
-          Subscribirse
+          Suscribirse
         </button>
       </div>
 
       {isOpen && (
         <div className="subscribe-modal-backdrop">
           <form className="subscribe-modal" onSubmit={handleSubscribe}>
-            <h3>Subscribirse</h3>
+            <h3>Suscribirse</h3>
 
             <p>Ingresa tu correo para recibir noticias de ciberseguridad.</p>
 

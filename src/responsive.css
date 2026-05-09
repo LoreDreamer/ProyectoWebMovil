@@ -994,3 +994,176 @@ img {
     font-size: 0.85rem !important;
   }
 }
+
+/* =============================== */
+/* FOOTER RESPONSIVE */
+/* =============================== */
+
+@media (max-width: 768px) {
+  .footer {
+    padding: 48px 20px 24px !important;
+    margin-top: 48px !important;
+  }
+
+  .footer-container {
+    grid-template-columns: 1fr !important;
+    gap: 40px !important;
+    margin-bottom: 30px !important;
+  }
+
+  .footer-section-title {
+    font-size: 1rem !important;
+  }
+
+  .footer-logo {
+    height: 50px !important;
+  }
+
+  .footer-address,
+  .footer-hours {
+    font-size: 0.9rem !important;
+  }
+
+  .footer-link {
+    font-size: 0.9rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .footer {
+    padding: 36px 16px 20px !important;
+    margin-top: 36px !important;
+  }
+
+  .footer-container {
+    grid-template-columns: 1fr !important;
+    gap: 32px !important;
+    margin-bottom: 24px !important;
+  }
+
+  .footer-logo {
+    height: 45px !important;
+  }
+
+  .footer-address,
+  .footer-hours {
+    font-size: 0.85rem !important;
+  }
+
+  .footer-hours-list li {
+    font-size: 0.8rem !important;
+  }
+
+  .footer-section-title {
+    font-size: 0.95rem !important;
+    margin-bottom: 16px !important;
+  }
+
+  .footer-link {
+    font-size: 0.85rem !important;
+  }
+
+  .footer-copyright {
+    font-size: 0.8rem !important;
+  }
+
+  .footer-bottom {
+    padding-top: 16px !important;
+  }
+}
+
+/* =============================== */
+/* NEWS / SUBSCRIBE BANNER MOBILE */
+/* =============================== */
+
+@media (max-width: 1000px) {
+  .news-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .news-page-main {
+    padding: 22px 16px 24px !important;
+  }
+
+  .news-header h1 {
+    font-size: 1.6rem !important;
+    line-height: 1.15 !important;
+  }
+
+  .news-header p {
+    font-size: 0.9rem !important;
+  }
+
+  .news-grid {
+    grid-template-columns: 1fr !important;
+    gap: 18px !important;
+  }
+
+  .news-card {
+    min-height: auto !important;
+    border-radius: 20px !important;
+  }
+
+  .news-card-image {
+    height: 155px !important;
+  }
+
+  .news-card-body {
+    padding: 16px 18px 20px !important;
+  }
+
+  .subscribe-banner {
+    position: static !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    margin: 28px 0 0 !important;
+    padding: 22px 18px !important;
+
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 16px !important;
+
+    border-radius: 18px !important;
+  }
+
+  .subscribe-text h2 {
+    font-size: 1.35rem !important;
+    line-height: 1.15 !important;
+  }
+
+  .subscribe-text p {
+    font-size: 0.9rem !important;
+    line-height: 1.4 !important;
+  }
+
+  .subscribe-button {
+    width: 100% !important;
+    height: 46px !important;
+    font-size: 1rem !important;
+  }
+
+  .subscribe-modal-backdrop {
+    padding: 16px !important;
+  }
+
+  .subscribe-modal {
+    max-width: 100% !important;
+    padding: 22px 18px !important;
+  }
+
+  .subscribe-modal h3 {
+    font-size: 1.5rem !important;
+  }
+
+  .subscribe-modal-actions {
+    flex-direction: column-reverse !important;
+  }
+
+  .subscribe-cancel-button,
+  .subscribe-confirm-button {
+    width: 100% !important;
+  }
+}
