@@ -29,12 +29,12 @@
   padding: 24px 36px;
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 
-.auth-form {
-  width: 100%;
-  max-width: 380px;
-  margin: 0 auto;
+.auth-form-header {
+  margin-bottom: 14px;
+  text-align: center;
 }
 
 .register-form {
