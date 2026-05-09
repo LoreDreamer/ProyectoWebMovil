@@ -52,16 +52,16 @@
   align-items: stretch;
 }
 
-/* --- Ajustes Responsivos --- */
+/* --- Ajustes Responsivos --- 
 
-/* Tablets */
+/* Tablets 
 @media (max-width: 1024px) {
   .central-container {
     padding: 30px 20px;
   }
 }
 
-/* Móviles */
+/* Móviles 
 @media (max-width: 600px) {
   .central-container {
     padding: 20px 16px;
@@ -75,8 +75,8 @@
     margin-top: 32px;
   }
 
-  /* En móviles muy pequeños, bajamos un poco el tamaño de fuente */
+  /* En móviles muy pequeños, bajamos un poco el tamaño de fuente 
   .header-section h1 {
     font-size: 1.6rem;
   }
-}
+}*/

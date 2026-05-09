@@ -40,7 +40,7 @@
   top: 20px;
 }
 
-/* Responsivo: Si la pantalla es chica, se ponen uno abajo del otro */
+/* Responsivo: Si la pantalla es chica, se ponen uno abajo del otro 
 @media (max-width: 1000px) {
   .complaints-layout-container {
     flex-direction: column;
@@ -48,7 +48,7 @@
   }
   
   .complaints-sidebar-wrapper {
-    max-width: 850px; /* En móvil que tome el mismo ancho que el form */
+    max-width: 850px; /* En móvil que tome el mismo ancho que el form 
     width: 100%;
   }
-}
+}*/

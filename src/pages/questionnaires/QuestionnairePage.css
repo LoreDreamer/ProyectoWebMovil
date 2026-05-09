@@ -79,7 +79,7 @@
   gap: 24px;
   width: 100%; 
 }
-
+/*
 @media (max-width: 1100px) {
   .cuestionarios-grid { grid-template-columns: repeat(2, 1fr); }
   .stats-banner { flex-direction: column; }
@@ -88,3 +88,4 @@
 @media (max-width: 600px) {
   .cuestionarios-grid { grid-template-columns: 1fr; }
 }
+*/

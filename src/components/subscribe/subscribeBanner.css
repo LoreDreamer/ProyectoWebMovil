@@ -137,7 +137,7 @@
   background: #0064c9;
   color: #ffffff;
 }
-
+/*
 @media (max-width: 768px) {
   .subscribe-banner {
     width: calc(100% - 32px);
@@ -157,4 +157,4 @@
   .subscribe-button {
     width: 100%;
   }
-}
+}*/

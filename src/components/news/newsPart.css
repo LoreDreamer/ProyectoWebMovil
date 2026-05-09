@@ -111,7 +111,7 @@
 .news-card-button:active {
   transform: translateY(0);
 }
-
+/*
 @media (max-width: 1000px) {
   .news-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -126,4 +126,4 @@
   .news-grid {
     grid-template-columns: 1fr;
   }
-}
+}*/

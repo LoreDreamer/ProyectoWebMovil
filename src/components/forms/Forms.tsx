@@ -57,7 +57,7 @@ export const LoginForm: React.FC = () => {
           style={{ backgroundImage: `url(${bgImage})` }}
         />
 
-        <div className="form-container">
+        <div className="auth-form-container">
           <form className="auth-form" onSubmit={handleSubmit}>
             <div className="auth-form-header">
               <h2>Iniciar sesión</h2>
@@ -171,7 +171,7 @@ export const RegisterForm: React.FC = () => {
           style={{ backgroundImage: `url(${bgImage})` }}
         />
 
-        <div className="form-container">
+        <div className="auth-form-container">
           <form className="auth-form register-form" onSubmit={handleSubmit}>
             <div className="auth-form-header">
               <h2>Registrarse</h2>

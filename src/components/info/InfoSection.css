@@ -80,7 +80,7 @@
   color: var(--text-muted);
   line-height: 1.75;
 }
-
+/*
 @media (max-width: 960px) {
   .info-grid,
   .stats-section {
@@ -97,4 +97,4 @@
   .stats-card {
     padding: 24px;
   }
-}
+}*/

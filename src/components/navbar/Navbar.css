@@ -4,6 +4,7 @@
   top: 0;
   z-index: 1000;
   background: #ffffff;
+  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.08);
 }
 
 .navbar-toolbar {
@@ -30,6 +31,11 @@
   flex-shrink: 0;
 }
 
+.navbar-logo-link {
+  display: inline-flex;
+  align-items: center;
+}
+
 .navbar-logo {
   height: 50px;
   width: auto;
@@ -37,6 +43,7 @@
   display: block;
 }
 
+/* --- Navegación Central --- */
 .navbar-links-desktop {
   display: flex;
   align-items: center;
@@ -66,7 +73,7 @@
   transition: width 0.3s ease;
 }
 
-.navbar-link-authenticated:hover, 
+.navbar-link-authenticated:hover,
 .navbar-link-authenticated.active {
   color: #006aa8;
 }
@@ -76,6 +83,7 @@
   width: 100%;
 }
 
+/* --- Botones de Acción - Lado Derecho --- */
 .navbar-right {
   display: flex;
   align-items: center;
@@ -111,6 +119,7 @@
   box-shadow: 0 12px 24px rgba(9, 85, 166, 0.2);
 }
 
+/* --- Logout --- */
 .navbar-logout-button {
   background: transparent;
   cursor: pointer;
@@ -131,7 +140,19 @@
   transform: scale(1.13);
 }
 
-/* --- PERFIL ANIMADO (RESTAURADO) --- */
+/* --- Perfil Animado --- */
+.navbar-profile-container {
+  display: flex;
+  align-items: center;
+}
+
+.navbar-profile-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+}
+
 .navbar-profile-ring {
   position: relative;
   width: 72px;
@@ -179,59 +200,60 @@
   stroke-dashoffset: 0;
 }
 
-.navbar-profile-button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 8px;
-}
-
-.navbar-profile-container {
-  display: flex;
-  align-items: center;
-}
-
+/* --- Botón menú móvil oculto por defecto --- */
+/* En móvil lo activa responsive.css */
 .mobile-menu-button {
   display: none !important;
 }
 
-/* 1. Primero achicamos espacios y el logo antes de quitar los links */
+/* ================================================= */
+/* MEDIA QUERIES COMENTADAS                         */
+/* Ahora la responsividad se maneja en responsive.css */
+/* ================================================= */
+
+/*
 @media (max-width: 1200px) {
   .navbar-links-desktop {
-    gap: 15px; /* Menos espacio entre links */
+    gap: 15px;
   }
+
   .navbar-logo {
-    height: 40px; /* Logo más pequeño para ganar espacio */
+    height: 40px;
   }
+
   .navbar-container {
     padding: 0 12px;
   }
 }
+*/
 
-/* 2. Solo cuando de verdad ya no caben (992px), activamos la hamburguesa */
+/*
 @media (max-width: 992px) {
   .mobile-menu-button {
     display: block !important;
   }
 
   .navbar-links-desktop {
-    display: none !important; /* Aquí es cuando se guardan en el menú lateral */
+    display: none !important;
   }
 
-  .navbar-left, .navbar-right {
-    flex: 1; /* Esto ayuda a que el logo se mantenga centrado o equilibrado */
+  .navbar-left,
+  .navbar-right {
+    flex: 1;
   }
 }
+*/
 
-/* 3. Ajuste para celulares pequeños */
+/*
 @media (max-width: 600px) {
   .navbar-actions .link-login {
-    display: none; /* Ocultamos 'Iniciar sesión' para priorizar el botón de cuenta */
+    display: none;
   }
-  
+
   .navbar-register-button {
     min-width: 120px;
     padding: 0 15px;
     font-size: 0.85rem;
   }
 }
+*/

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './SubscribeBanner.css';
+import './subscribeBanner.css';
 
 export const SubscribeBanner: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
