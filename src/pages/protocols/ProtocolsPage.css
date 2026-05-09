@@ -188,7 +188,7 @@
   color: white;
   white-space: nowrap;
 }
-
+/*
 @media (max-width: 860px) {
   .protocolos-cta {
     grid-template-columns: 1fr;
@@ -198,4 +198,4 @@
   .cta-button {
     width: 100%;
   }
-}
+}*/

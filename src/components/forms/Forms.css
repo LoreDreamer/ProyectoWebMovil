@@ -28,7 +28,7 @@
   background-position: center;
 }
 
-.form-container {
+.auth-form-container {
   flex: 1;
   min-width: 0;
   padding: 18px 24px 20px;
@@ -223,8 +223,11 @@
   line-height: 1.2;
 }
 
+/*
+
 @media (max-width: 768px) {
   .dividor {
+    min-height: calc(100dvh - 64px);
     padding: 20px 14px;
   }
 
@@ -234,15 +237,39 @@
 
   .auth-card {
     max-width: 430px;
+    flex-direction: column;
   }
 
-  .form-container {
+  .auth-form-container {
+    width: 100%;
     padding: 24px 20px;
   }
 
   .auth-form,
   .register-form {
     max-width: 100%;
+  }
+
+  .auth-form-header h2 {
+    font-size: 22px;
+  }
+
+  .auth-form-header p {
+    font-size: 12.5px;
+  }
+
+  .custom-input,
+  .custom-select {
+    min-height: 40px;
+    font-size: 13px;
+  }
+
+  .terms-button {
+    font-size: 12px;
+  }
+
+  .submit-button {
+    height: 42px;
   }
 }
 
@@ -252,7 +279,7 @@
     padding-bottom: 14px;
   }
 
-  .form-container {
+  .auth-form-container {
     padding-top: 14px;
     padding-bottom: 14px;
   }
@@ -271,3 +298,41 @@
     min-height: 37px;
   }
 }
+
+@media (max-height: 690px) and (max-width: 768px) {
+  .auth-form-container {
+    padding: 16px;
+  }
+
+  .auth-form-header {
+    margin-bottom: 8px;
+  }
+
+  .auth-form-header h2 {
+    font-size: 21px;
+  }
+
+  .auth-form-header p {
+    font-size: 12px;
+  }
+
+  .auth-form ion-item,
+  .select-field {
+    margin-bottom: 4px;
+  }
+
+  .custom-input,
+  .custom-select {
+    min-height: 36px;
+  }
+
+  .submit-button {
+    height: 39px;
+    margin-top: 8px;
+  }
+
+  .secondary-button {
+    min-height: 30px;
+    margin-top: 4px;
+  }
+}*/

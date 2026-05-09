@@ -145,7 +145,7 @@ hr {
   display: block;
   text-align: center;
 }
-
+/*
 @media (max-width: 820px) {
   .hero-content {
     max-width: 100%;
@@ -178,4 +178,4 @@ hr {
   hr {
     max-width: 100%;
   }
-}
+}*/

@@ -49,9 +49,8 @@
   margin-left: 20px;
 }
 
-/* --- AJUSTES RESPONSIVOS --- */
+/* --- AJUSTES RESPONSIVOS --- 
 
-/* Tablets y móviles grandes */
 @media (max-width: 768px) {
   .tip-banner {
     padding: 25px;
@@ -59,16 +58,15 @@
   }
 }
 
-/* Móviles pequeños */
 @media (max-width: 600px) {
   .tip-banner {
-    flex-direction: column; /* Icono arriba o abajo del texto */
+    flex-direction: column;
     text-align: center;
     padding: 30px 20px;
   }
 
   .tip-content {
-    order: 2; /* Texto abajo */
+    order: 2;
     padding-right: 0;
   }
 
@@ -78,9 +76,9 @@
   }
 
   .tip-icon {
-    order: 1; /* Icono arriba */
+    order: 1;
     margin-left: 0;
     margin-bottom: 15px;
     font-size: 3.5rem;
   }
-}
+} */

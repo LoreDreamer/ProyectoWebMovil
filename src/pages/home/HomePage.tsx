@@ -6,7 +6,7 @@ export const HomePage: React.FC = () => {
   return (
     <IonPage>
       <Navbar />
-      <IonContent fullscreen className="home-content">
+      <IonContent className="home-content">
         <main className="home-main">
           <HeroSection />
           <InfoSection />
@@ -14,4 +14,4 @@ export const HomePage: React.FC = () => {
       </IonContent>
     </IonPage>
   );
-}
+};

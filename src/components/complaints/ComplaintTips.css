@@ -81,10 +81,10 @@
   color: #afb42b;
 }
 
-/* Ajuste para que se pegue al formulario si usas un Flexbox o Grid en el padre */
+/* Ajuste para que se pegue al formulario si usas un Flexbox o Grid en el padre
 @media (max-width: 900px) {
   .sidebar-container {
     max-width: 100%;
     margin-top: 20px;
   }
-}
+}*/

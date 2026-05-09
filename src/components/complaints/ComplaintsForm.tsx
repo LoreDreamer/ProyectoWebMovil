@@ -2,7 +2,7 @@ import './ComplaintsForm.css';
 
 export const ComplaintsForm: React.FC = () => {
   return (
-    <div className="form-container">
+    <div className="complaints-form-container">
       <header className="form-header">
         <div className="icon-container">
           <span className="icon-placeholder">📋</span>
