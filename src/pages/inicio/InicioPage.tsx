@@ -4,20 +4,6 @@ import { listOutline, eyeOutline, sendOutline, checkmarkCircleOutline } from 'io
 import './InicioPage.css';
 
 export const InicioPage: React.FC = () => {
-  const history = useHistory();
-
-  const handleLogout = () => {
-    localStorage.removeItem('isLoggedIn');
-    localStorage.removeItem('userEmail');
-    localStorage.removeItem('userName');
-    localStorage.removeItem('userRut');
-    localStorage.removeItem('userRegion');
-    localStorage.removeItem('userComuna');
-    localStorage.removeItem('isAdmin');
-    history.push('/index');
-    window.location.reload();
-  };
-
   return (
     <IonPage>
       <Navbar />
