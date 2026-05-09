@@ -1,250 +1,463 @@
 # Plataforma Municipal de Ciberseguridad
 
-Aplicación web desarrollada con **Ionic + React** orientada a fortalecer la educación, prevención y gestión de ciberseguridad en el contexto municipal. El proyecto busca entregar herramientas informativas, formativas y de reporte tanto para funcionarios municipales como para la ciudadanía, incorporando además un rol administrador encargado de gestionar contenidos, alertas y protocolos.
+Aplicación web desarrollada con **Ionic + React** orientada a la educación, prevención y gestión básica de ciberseguridad. La plataforma permite a los usuarios revisar información educativa, noticias, protocolos, cuestionarios y realizar denuncias. Además, contempla un acceso administrativo para gestionar información y revisar datos generales del sistema.
 
 ## 1. Descripción general del proyecto
 
-La creciente digitalización de los municipios en Chile ha generado nuevos desafíos en materia de seguridad digital. En este contexto, las municipalidades manejan información sensible de vecinos, funcionarios y procesos administrativos, por lo que resulta necesario contar con herramientas que permitan prevenir incidentes, educar a los usuarios y centralizar información relevante sobre ciberseguridad.
+La digitalización de servicios y procesos municipales aumenta la necesidad de contar con herramientas que ayuden a prevenir riesgos de ciberseguridad. Muchas personas utilizan plataformas digitales sin tener conocimientos suficientes para reconocer amenazas como phishing, estafas, robo de información o malas prácticas de seguridad.
 
-Esta aplicación propone una plataforma municipal que permite informar, capacitar, alertar y apoyar a distintos tipos de usuarios frente a riesgos digitales, tales como phishing, filtración de datos, desconocimiento de protocolos o falta de canales claros para reportar incidentes.
+Este proyecto propone una plataforma web y móvil orientada a entregar información clara sobre ciberseguridad, permitir el acceso a contenidos educativos, facilitar reportes o denuncias, y entregar al administrador una vista de gestión general.
 
-El sistema contempla una capa pública, orientada principalmente a la ciudadanía, y una capa privada, destinada a usuarios autenticados y administradores.
+## 2. Integrantes
+
+- Integrante 1:
+- Integrante 2:
+- Integrante 3:
+
+## 3. Roles del sistema
+
+La aplicación considera dos roles principales.
+
+### Usuario
+
+El usuario general puede navegar por las secciones públicas de la aplicación, revisar información educativa, consultar protocolos, leer noticias o alertas, responder cuestionarios y realizar denuncias.
+
+### Administrador
+
+El administrador puede acceder al panel administrativo de la aplicación. Desde este panel puede manejar usuarios, publicar noticias o actividades, y revisar estadísticas generales relacionadas con el nivel de riesgo de ciberseguridad de los usuarios.
+
+Para acceder como administrador en la versión actual del proyecto:
+
+```txt
+Correo: admin@inicio
+Contraseña: 1234
+```
+
+Después de iniciar sesión, se debe presionar el ícono de perfil para ingresar al panel administrativo.
 
 ## EP 1.1: Requerimientos funcionales y no funcionales
 
-## 2. Roles del sistema
+## 4. Requerimientos funcionales
 
-La aplicación considera dos tipos de roles principales: **Usuario** y **Administrador**.
+### RF1 - Visualización de noticias y alertas
 
-### 2.1 Usuario
-
-Corresponde a funcionarios municipales o ciudadanos que acceden a la plataforma para informarse, responder cuestionarios, revisar alertas, aprender protocolos básicos o realizar reportes.
-
-### 2.2 Administrador
-
-Corresponde a un encargado municipal o responsable de transformación digital/ciberseguridad. Este usuario tiene permisos para gestionar contenidos, publicar protocolos, administrar noticias, revisar reportes y mantener actualizada la información disponible en la plataforma.
-
-## 3. Requerimientos funcionales
-
-### RF1 - Visualización de alertas de ciberseguridad
-
-El sistema debe mostrar una sección de alertas con noticias, advertencias y recomendaciones relacionadas con ciberseguridad. Estas alertas pueden informar sobre amenazas activas, campañas de phishing, fraudes digitales o recomendaciones emitidas por organismos oficiales.
+El sistema debe mostrar una sección de noticias o alertas relacionadas con ciberseguridad.
 
 **Rol relacionado:** Usuario y Administrador.
 
-### RF2 - Suscripción a noticias de ciberseguridad
+### RF2 - Suscripción a noticias
 
-El sistema debe permitir que un usuario ingrese su correo electrónico para suscribirse a actualizaciones de noticias o alertas de ciberseguridad. Esta funcionalidad busca mantener informada a la comunidad municipal sobre amenazas recientes.
-
-**Rol relacionado:** Usuario.
-
-### RF3 - Cuestionarios de autodiagnóstico
-
-El sistema debe permitir que los usuarios respondan cuestionarios sobre conocimientos y prácticas de ciberseguridad. El objetivo es evaluar el nivel de preparación del usuario frente a riesgos digitales comunes.
+El sistema debe permitir que el usuario se suscriba para recibir información o novedades relacionadas con ciberseguridad.
 
 **Rol relacionado:** Usuario.
 
-### RF4 - Visualización de resultados o nivel de riesgo
+### RF3 - Visualización de contenido educativo
 
-Después de responder un cuestionario, el sistema debe mostrar un resultado o retroalimentación que permita identificar el nivel de conocimiento o riesgo del usuario. Esta información puede servir para orientar futuras capacitaciones.
-
-**Rol relacionado:** Usuario y Administrador.
-
-### RF5 - Reporte de incidentes o ataques cibernéticos
-
-El sistema debe permitir que usuarios o ciudadanos reporten incidentes relacionados con ciberseguridad, como intentos de estafa, phishing, robo de cuentas, suplantación de identidad u otros ataques digitales.
+El sistema debe contar con una sección educativa sobre ciberseguridad, buenas prácticas digitales y prevención de riesgos.
 
 **Rol relacionado:** Usuario.
 
-### RF6 - Gestión de protocolos de seguridad
+### RF4 - Cuestionarios de ciberseguridad
 
-El administrador debe poder gestionar protocolos, guías o documentos relacionados con buenas prácticas de ciberseguridad. Estos protocolos pueden incluir instrucciones sobre teletrabajo seguro, uso de contraseñas, reporte de incidentes, manejo de correos sospechosos y protección de datos.
+El sistema debe permitir que los usuarios accedan a cuestionarios relacionados con conocimientos o prácticas de ciberseguridad.
+
+**Rol relacionado:** Usuario.
+
+### RF5 - Denuncias o reportes
+
+El sistema debe permitir que los usuarios accedan a una sección para reportar incidentes, amenazas o situaciones sospechosas.
+
+**Rol relacionado:** Usuario.
+
+### RF6 - Visualización de protocolos
+
+El sistema debe contar con una sección de protocolos o recomendaciones de seguridad digital.
+
+**Rol relacionado:** Usuario.
+
+### RF7 - Panel administrativo
+
+El sistema debe contar con una vista administrativa accesible para usuarios con rol administrador.
 
 **Rol relacionado:** Administrador.
 
-### RF7 - Visualización de protocolos de seguridad
+### RF8 - Gestión de usuarios
 
-Los usuarios deben poder acceder a una sección donde se presenten protocolos y guías de seguridad digital. Esta funcionalidad permite que funcionarios y ciudadanos consulten instrucciones claras frente a situaciones de riesgo.
-
-**Rol relacionado:** Usuario.
-
-### RF8 - Gestión de novedades o actividades municipales
-
-El administrador debe poder publicar actividades, eventos o novedades relacionadas con la educación en ciberseguridad, tales como charlas, campañas preventivas, talleres o capacitaciones.
+El administrador debe poder manejar información asociada a usuarios de la plataforma.
 
 **Rol relacionado:** Administrador.
 
-### RF9 - Certificación o reconocimiento de conocimientos
+### RF9 - Estadísticas generales de riesgo
 
-El sistema debe permitir que los usuarios que completen actividades, cuestionarios o módulos educativos puedan obtener una certificación o constancia básica de participación o conocimiento en ciberseguridad.
+El administrador debe poder revisar estadísticas generales sobre el riesgo o avance de los usuarios en materia de ciberseguridad.
 
-**Rol relacionado:** Usuario.
+**Rol relacionado:** Administrador.
 
-## 4. Requerimientos no funcionales
+### RF10 - Publicación de noticias o actividades
+
+El administrador debe poder publicar noticias, actividades o contenidos informativos relacionados con ciberseguridad.
+
+**Rol relacionado:** Administrador.
+
+## 5. Requerimientos no funcionales
 
 ### RNF1 - Seguridad y control de acceso por roles
 
-El sistema debe diferenciar el acceso según el tipo de usuario. Las funciones administrativas, como la gestión de protocolos, alertas o actividades, deben estar protegidas y disponibles únicamente para usuarios con rol de administrador.
+El sistema debe diferenciar el acceso entre usuario general y administrador, evitando que funciones administrativas estén disponibles para usuarios sin permisos.
 
-### RNF2 - Usabilidad y diseño responsive
+### RNF2 - Usabilidad
 
-La aplicación debe ser fácil de utilizar tanto en versión web como móvil. La interfaz debe considerar una navegación clara, botones visibles, jerarquía visual adecuada y formularios comprensibles para usuarios con distintos niveles de conocimiento tecnológico.
+La interfaz debe ser clara, con formularios comprensibles, botones visibles y navegación simple.
 
-### RNF3 - Rendimiento
+### RNF3 - Diseño responsive
 
-La aplicación debe cargar sus pantallas principales de forma rápida y fluida. Se busca que la navegación entre vistas sea eficiente y que los componentes se presenten sin demoras innecesarias.
+La aplicación debe adaptarse correctamente a distintos tamaños de pantalla, considerando uso web y móvil.
 
-### RNF4 - Escalabilidad frontend
+### RNF4 - Rendimiento
 
-La estructura del proyecto debe permitir agregar nuevas páginas, componentes y servicios sin afectar el funcionamiento general de la aplicación. Para ello, se organiza el código en carpetas separadas por responsabilidad.
+Las pantallas principales deben cargar de forma fluida y permitir navegación sin demoras innecesarias.
 
 ### RNF5 - Mantenibilidad
 
-El código debe mantener una separación clara entre páginas, componentes y estilos. Cada archivo `.tsx` debe contar con su propio archivo `.css` cuando corresponda, permitiendo una mantención más ordenada del diseño y la lógica visual.
+El código debe mantener una separación clara entre páginas, componentes, estilos y recursos visuales.
 
 ## EP 1.2: Justificación del problema y análisis del usuario objetivo
 
-## 5. Justificación del problema
+## 6. Justificación del problema
 
-La digitalización de los servicios municipales, impulsada por la Ley 21.180 sobre Transformación Digital del Estado, ha generado nuevos desafíos para las municipalidades chilenas. La literatura especializada advierte que los municipios enfrentan dificultades relevantes en planificación, recursos, procesos internos y comunicación institucional, lo que puede afectar su capacidad para implementar adecuadamente procesos digitales seguros. En particular, el artículo **“Gestión municipal en Chile y entrada en régimen de la Ley 21.180. El desafío de la transformación digital”** analiza la situación de 345 municipios chilenos e identifica déficits en planificación, recursos y comunicación entre actores institucionales y ciudadanía.  
-Fuente: https://dialnet.unirioja.es/servlet/articulo?codigo=9540138
+La ciberseguridad es un aspecto cada vez más importante dentro de los servicios digitales. Los usuarios pueden estar expuestos a amenazas como correos fraudulentos, robo de datos, suplantación de identidad o desconocimiento de buenas prácticas digitales.
 
-En este contexto, las municipalidades manejan información sensible de ciudadanos, funcionarios y procesos internos, pero muchas veces no cuentan con suficientes recursos, capacitación o cultura organizacional para enfrentar amenazas digitales de forma adecuada.
+La plataforma busca responder a este problema mediante una solución educativa y preventiva, que permita centralizar información, entregar contenidos simples, facilitar denuncias y apoyar la gestión administrativa de la información relacionada con ciberseguridad.
 
-Entre los principales problemas detectados se encuentran:
+Como referencia académica del contexto municipal chileno, se considera el artículo de Carlos Humberto Umaña Mardones sobre la gestión municipal en Chile y la entrada en régimen de la Ley 21.180, el cual aborda los desafíos asociados a la transformación digital municipal.
 
-- Falta de capacitación del personal municipal.
-- Bajo conocimiento ciudadano sobre riesgos digitales.
-- Ausencia de canales simples para reportar incidentes.
-- Dificultad para centralizar protocolos y alertas.
-- Falta de visibilidad sobre el nivel de preparación de los usuarios.
-- Riesgo de exposición de datos personales o información sensible.
+## 7. Usuario objetivo
 
-La plataforma propuesta busca responder a este problema mediante una solución educativa, preventiva y de gestión. La aplicación no solo informa sobre ciberseguridad, sino que también permite evaluar conocimientos, difundir protocolos, reportar incidentes y entregar herramientas al administrador para mantener actualizada la información.
+La aplicación está dirigida a dos perfiles principales.
 
-De esta manera, el sistema contribuye a fortalecer la cultura de ciberseguridad municipal y a reducir la vulnerabilidad de funcionarios y ciudadanos frente a ataques digitales.
+### 7.1 Usuario general
 
-## 6. Usuario objetivo
-
-La aplicación está dirigida a tres perfiles principales de usuarios.
-
-### 6.1 Administrador municipal
-
-El administrador corresponde al encargado de tecnología, transformación digital o ciberseguridad dentro del municipio.
+Corresponde a una persona que utiliza la plataforma para informarse sobre ciberseguridad, revisar noticias, responder cuestionarios, consultar protocolos o realizar denuncias.
 
 #### Objetivos
 
-- Gestionar alertas y noticias de ciberseguridad.
-- Publicar protocolos y documentos oficiales.
-- Revisar reportes de incidentes.
-- Supervisar el nivel de conocimiento de los usuarios.
-- Coordinar actividades educativas.
-
-#### Necesidades
-
-- Contar con una plataforma centralizada.
-- Diferenciar contenidos públicos y privados.
-- Acceder a herramientas de gestión.
-- Mantener actualizada la información disponible.
-
-#### Problema principal
-
-El administrador no siempre cuenta con una herramienta clara para centralizar información, protocolos, alertas y reportes relacionados con ciberseguridad.
-
-### 6.2 Funcionario municipal
-
-El funcionario municipal corresponde a trabajadores de distintas áreas, como atención ciudadana, tránsito, tesorería, DIDECO u otras unidades.
-
-#### Objetivos
-
-- Aprender buenas prácticas de seguridad digital.
-- Reconocer correos o enlaces sospechosos.
-- Saber cómo actuar frente a incidentes.
-- Acceder a protocolos internos de forma rápida.
-- Reportar situaciones de riesgo.
-
-#### Necesidades
-
-- Información clara y fácil de entender.
-- Acceso rápido a protocolos.
-- Cuestionarios o capacitaciones simples.
-- Canal de reporte accesible.
-
-#### Problema principal
-
-El funcionario puede manejar información sensible sin tener conocimientos técnicos suficientes para identificar riesgos digitales o responder adecuadamente ante un incidente.
-
-### 6.3 Ciudadano o vecino
-
-El ciudadano corresponde a una persona de la comunidad que utiliza servicios digitales y puede estar expuesta a fraudes, estafas o ataques informáticos.
-
-#### Objetivos
-
-- Informarse sobre riesgos digitales.
-- Aprender medidas básicas de protección.
-- Reportar ataques o intentos de estafa.
-- Participar en actividades educativas.
+- Aprender sobre ciberseguridad.
+- Revisar noticias o alertas.
+- Consultar protocolos.
+- Responder cuestionarios.
+- Realizar denuncias o reportes.
 
 #### Necesidades
 
 - Lenguaje simple.
-- Acceso desde dispositivos móviles.
-- Información confiable.
-- Interfaz intuitiva.
+- Navegación clara.
+- Acceso rápido a información relevante.
+- Formularios fáciles de completar.
+- Interfaz adaptable a computador y móvil.
 
-#### Problema principal
+### 7.2 Administrador
 
-El ciudadano puede desconocer conceptos básicos de ciberseguridad y no saber cómo actuar frente a una amenaza digital.
+Corresponde a un usuario con permisos especiales para acceder al panel administrativo.
+
+#### Objetivos
+
+- Publicar noticias o actividades.
+- Manejar usuarios.
+- Revisar estadísticas generales.
+- Gestionar información relevante de la plataforma.
+
+#### Necesidades
+
+- Acceso diferenciado mediante credenciales.
+- Panel administrativo claro.
+- Herramientas para administrar contenido.
+- Vista general del estado de los usuarios.
 
 ## EP 1.4: Arquitectura de navegación y experiencia de usuario
 
-## 7. Estado de esta sección
-
-La arquitectura de navegación definitiva aún no se encuentra completamente implementada en el código del proyecto. Por lo tanto, las siguientes secciones quedan declaradas para ser completadas a medida que se definan las rutas, vistas y flujos reales de la aplicación.
-
 ## 8. Arquitectura general de navegación
 
-La aplicación se proyecta como una arquitectura híbrida compuesta por vistas públicas y vistas protegidas. Esta estructura busca permitir que cualquier usuario pueda acceder a información educativa básica, mientras que ciertas funciones de gestión queden reservadas para usuarios autenticados o administradores.
+La aplicación utiliza una arquitectura basada en rutas, páginas y componentes reutilizables. La navegación se implementa con Ionic React y React Router.
 
-Esta definición deberá ajustarse según las rutas efectivamente implementadas en el frontend.
+El proyecto utiliza componentes de Ionic como:
+
+- `IonApp`
+- `IonReactRouter`
+- `IonRouterOutlet`
+- `IonMenu`
+- `IonHeader`
+- `IonToolbar`
+- `IonContent`
+- `IonPage`
+- `IonButton`
+- `IonInput`
+- `IonSelect`
 
 ## 9. Rutas principales
 
-
+| Ruta | Vista asociada | Descripción |
+|---|---|---|
+| `/` | HomePage | Ruta inicial de la aplicación. |
+| `/index` | HomePage | Página principal del sitio. |
+| `/inicio` | InicioPage | Vista inicial alternativa. |
+| `/login` | LoginPage | Pantalla de inicio de sesión. |
+| `/register` | RegisterPage | Pantalla de registro de usuario. |
+| `/educacion` | EducationPage | Sección educativa. |
+| `/denuncias` | ComplaintsPage | Sección de denuncias o reportes. |
+| `/cuestionarios` | QuestionnairePage | Sección de cuestionarios. |
+| `/protocolos` | ProtocolsPage | Sección de protocolos. |
+| `/alertas` | NewsPage | Sección de noticias o alertas. |
+| `/admin` | AdminPage | Panel administrativo. |
 
 ## 10. Rutas secundarias
 
-
+| Ruta | Vista asociada | Descripción |
+|---|---|---|
+| `/perfil` | PlaceholderPage | Vista temporal de perfil. |
+| `/configuracion` | PlaceholderPage | Vista temporal de configuración. |
 
 ## 11. Jerarquía de vistas
 
+```txt
+Aplicación
+│
+├── Vistas generales
+│   ├── Inicio
+│   ├── Educación
+│   ├── Denuncias
+│   ├── Cuestionarios
+│   ├── Protocolos
+│   └── Alertas
+│
+├── Autenticación
+│   ├── Login
+│   └── Registro
+│
+├── Usuario
+│   ├── Perfil
+│   └── Configuración
+│
+└── Administración
+    └── Panel administrador
+```
 
+## 12. Flujo de navegación
 
-## 12. Flujo de navegación entre funcionalidades
+El flujo general de usuario es:
 
+```txt
+Inicio
+→ Sección seleccionada desde navbar o menú lateral
+→ Interacción con contenido, formulario o cuestionario
+```
 
+El flujo de autenticación es:
+
+```txt
+Login / Registro
+→ Validación de datos
+→ Acceso a la aplicación
+```
+
+El flujo de administrador es:
+
+```txt
+Login con admin@inicio y contraseña 1234
+→ Ícono de perfil
+→ Panel administrativo
+```
 
 ## 13. Diferenciación de acceso según roles
 
+### Usuario general
 
+Puede acceder a las secciones principales de la aplicación:
+
+- Inicio.
+- Educación.
+- Denuncias.
+- Cuestionarios.
+- Protocolos.
+- Alertas.
+- Perfil.
+- Configuración.
+
+### Administrador
+
+Puede acceder a las secciones generales y al panel administrativo, donde puede manejar usuarios, publicar noticias o actividades y revisar estadísticas generales.
 
 ## 14. Task flows principales
 
+### Registro de usuario
 
+```txt
+Usuario entra a Registro
+→ Completa datos solicitados
+→ Selecciona región y comuna
+→ Acepta términos y condiciones
+→ Envía formulario
+```
+
+### Inicio de sesión
+
+```txt
+Usuario entra a Login
+→ Ingresa correo y contraseña
+→ Envía formulario
+→ Accede a la aplicación
+```
+
+### Acceso administrador
+
+```txt
+Administrador entra a Login
+→ Ingresa admin@inicio
+→ Ingresa contraseña 1234
+→ Presiona ícono de perfil
+→ Accede al panel administrativo
+```
+
+### Denuncia
+
+```txt
+Usuario entra a Denuncias
+→ Completa información solicitada
+→ Envía reporte
+```
+
+### Cuestionario
+
+```txt
+Usuario entra a Cuestionarios
+→ Responde preguntas
+→ Envía respuestas
+```
 
 ## 15. Puntos críticos de interacción
 
+Los puntos críticos de interacción son:
 
+- Inicio de sesión.
+- Registro.
+- Selección de región y comuna.
+- Aceptación de términos y condiciones.
+- Acceso mediante ícono de perfil.
+- Acceso al panel administrativo.
+- Envío de denuncias.
+- Uso de cuestionarios.
+- Navegación mediante navbar o menú lateral.
 
 ## 16. Coherencia entre dispositivos
 
-
+La aplicación se desarrolla con Ionic React, lo que permite construir una interfaz adaptable para web y móvil. En pantallas grandes se prioriza la navegación mediante navbar y menú lateral. En pantallas pequeñas se busca mantener una estructura simple, con contenido organizado verticalmente y botones fáciles de presionar.
 
 ## 17. Justificación técnica de la arquitectura
 
+La arquitectura se basa en la separación entre páginas, componentes, estilos y recursos visuales. Las páginas representan vistas completas asociadas a rutas, mientras que los componentes agrupan partes reutilizables de la interfaz, como formularios, navbar, noticias, educación, denuncias, cuestionarios y suscripción.
 
+Esta organización facilita mantener el código ordenado, reutilizar componentes y continuar agregando funcionalidades en futuras entregas.
 
-## 18. Referencias
+## EP 1.5: Creación del proyecto en Ionic con React
 
-- Umaña Mardones, C. H. (2023). *Gestión municipal en Chile y entrada en régimen de la Ley 21.180. El desafío de la transformación digital*. Revista Mexicana de Análisis Político y Administración Pública, 12(23), 67-87.
-- Dialnet: https://dialnet.unirioja.es/servlet/articulo?codigo=9540138
+## 18. Implementación inicial del frontend
+
+El proyecto cuenta con una estructura inicial en Ionic + React. Actualmente considera:
+
+- Uso de React Router con Ionic React Router.
+- Rutas declaradas en `src/App.tsx`.
+- Uso de menú lateral y navegación superior.
+- Vistas organizadas en `src/pages`.
+- Componentes reutilizables organizados en `src/components`.
+- Formularios de inicio de sesión y registro.
+- Panel administrativo básico.
+
+## 19. Estructura del proyecto
+
+```txt
+ProyectoWebMovil/
+├── public/
+├── src/
+│   ├── assets/
+│   ├── components/
+│   │   ├── complaints/
+│   │   ├── education/
+│   │   ├── forms/
+│   │   ├── hero/
+│   │   ├── info/
+│   │   ├── inicio/
+│   │   ├── navbar/
+│   │   ├── news/
+│   │   ├── questionnaire/
+│   │   ├── subscribe/
+│   │   └── index.ts
+│   ├── pages/
+│   │   ├── admin/
+│   │   ├── auth/
+│   │   ├── complaints/
+│   │   ├── education/
+│   │   ├── home/
+│   │   ├── inicio/
+│   │   ├── news/
+│   │   ├── placeholder/
+│   │   ├── protocols/
+│   │   ├── questionnaires/
+│   │   └── index.ts
+│   ├── theme/
+│   ├── App.tsx
+│   ├── global.css
+│   ├── main.tsx
+│   └── vite-env.d.ts
+├── package.json
+├── tsconfig.json
+├── vite.config.ts
+└── README.md
+```
+
+## EP 1.6: Diseño de pantallas principales
+
+## 20. Pantallas principales
+
+| Pantalla | Ruta | Descripción |
+|---|---|---|
+| Inicio | `/` y `/index` | Página principal de la aplicación. |
+| Inicio alternativo | `/inicio` | Vista adicional de inicio. |
+| Login | `/login` | Inicio de sesión. |
+| Registro | `/register` | Creación de cuenta. |
+| Educación | `/educacion` | Contenido educativo. |
+| Denuncias | `/denuncias` | Reporte de incidentes. |
+| Cuestionarios | `/cuestionarios` | Preguntas o evaluación. |
+| Protocolos | `/protocolos` | Recomendaciones o guías. |
+| Alertas / Noticias | `/alertas` | Noticias y alertas. |
+| Panel administrador | `/admin` | Gestión administrativa. |
+| Perfil | `/perfil` | Vista temporal de perfil. |
+| Configuración | `/configuracion` | Vista temporal de configuración. |
+
+## 21. Instrucciones de instalación y ejecución
+
+### Clonar el repositorio
+
+```bash
+git clone https://github.com/LoreDreamer/ProyectoWebMovil.git
+```
+
+### Entrar a la carpeta del proyecto
+
+```bash
+cd ProyectoWebMovil
+```
+
+### Instalar dependencias
+
+```bash
+npm install
+```
+
+### Ejecutar el proyecto
+
+```bash
+npm run dev
+```
+
+## 22. Referencias
+
+- Umaña Mardones, C. H. (2023). *Gestión municipal en Chile y entrada en régimen de la Ley 21.180. El desafío de la transformación digital*. Revista Mexicana de Análisis Político y Administración Pública, 12(23), 67-87. Disponible en: https://dialnet.unirioja.es/servlet/articulo?codigo=9540138

@@ -15,7 +15,7 @@ import {
 } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import { homeOutline, bookOutline, alertCircleOutline, documentTextOutline, shieldCheckmarkOutline, notificationsOutline } from 'ionicons/icons';
-import { LoginPage, RegisterPage, ComplaintsPage, EducationPage, HomePage, PlaceholderPage, ProtocolsPage, QuestionnairePage, NewsPage, InicioPage } from './pages';
+import { LoginPage, RegisterPage, ComplaintsPage, EducationPage, HomePage, PlaceholderPage, ProtocolsPage, QuestionnairePage, NewsPage, InicioPage, AdminPage } from './pages';
 
 /* CSS de Ionic (mantén tus importaciones actuales) */
 import '@ionic/react/css/core.css';
@@ -88,6 +88,7 @@ const App: React.FC = () => {
           <Route exact path="/cuestionarios" component={QuestionnairePage} />
           <Route exact path="/protocolos" component={ProtocolsPage} />
           <Route exact path="/alertas" component={NewsPage} />
+          <Route exact path="/admin" component={AdminPage} />
           <Route exact path="/perfil" render={() => <PlaceholderPage title="Mi Perfil" />} />
           <Route exact path="/configuracion" render={() => <PlaceholderPage title="Configuración" />} />
           <Route exact path="/">

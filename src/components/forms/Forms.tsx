@@ -36,8 +36,10 @@ export const LoginForm: React.FC = () => {
       return;
     }
 
+    const isAdmin = email === 'admin@inicio' && password === '1234';
     localStorage.setItem('isLoggedIn', 'true');
     localStorage.setItem('userEmail', email);
+    localStorage.setItem('isAdmin', isAdmin ? 'true' : 'false');
 
     console.log('Correo:', email);
     console.log('Contraseña:', password);
