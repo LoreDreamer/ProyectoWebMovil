@@ -11,23 +11,17 @@
 }
 
 .protocolos-header h1 {
-<<<<<<< HEAD
-=======
   color: #333;
   font-size: 1.9rem;
   font-weight: 700;
   text-transform: uppercase;
->>>>>>> cony-branch
   margin: 0;
   font-size: clamp(2rem, 3vw, 3.2rem);
   color: #252f2f;
 }
 
-<<<<<<< HEAD
-=======
 
 
->>>>>>> cony-branch
 .protocolos-header p {
   margin: 12px 0 0;
   font-size: 1rem;

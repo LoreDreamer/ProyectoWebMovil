@@ -1,9 +1,4 @@
 import { Redirect, Route } from 'react-router-dom';
-<<<<<<< HEAD
-import { IonApp, IonRouterOutlet, setupIonicReact } from '@ionic/react';
-import { IonReactRouter } from '@ionic/react-router';
-import { LoginPage, RegisterPage, EducationPage, HomePage, PlaceholderPage, ProtocolsPage, QuestionnairePage, NewsPage } from './pages';
-=======
 import { 
   IonApp, 
   IonRouterOutlet, 
@@ -21,7 +16,6 @@ import {
 import { IonReactRouter } from '@ionic/react-router';
 import { homeOutline, bookOutline, alertCircleOutline, documentTextOutline, shieldCheckmarkOutline, notificationsOutline } from 'ionicons/icons';
 import { LoginPage, RegisterPage, ComplaintsPage, EducationPage, HomePage, PlaceholderPage, ProtocolsPage, QuestionnairePage, NewsPage, InicioPage } from './pages';
->>>>>>> cony-branch
 
 /* CSS de Ionic (mantén tus importaciones actuales) */
 import '@ionic/react/css/core.css';
@@ -33,36 +27,12 @@ import './theme/variables.css';
 
 setupIonicReact();
 
-<<<<<<< HEAD
-const App: React.FC = () => (
-  <IonApp>
-    <IonReactRouter>
-      <IonRouterOutlet>
-        <Route exact path="/index" component={HomePage} />
-        <Route exact path="/login" component={LoginPage} />
-        <Route exact path="/register" component={RegisterPage} />
-        <Route exact path="/educacion" component={EducationPage} />
-        <Route exact path="/denuncias" render={() => <PlaceholderPage title="Denuncias" />} />
-        <Route exact path="/cuestionarios" component={QuestionnairePage} />
-        <Route exact path="/protocolos" component={ProtocolsPage} />
-        <Route exact path="/alertas" component= {NewsPage} />
-        <Route exact path="/perfil" render={() => <PlaceholderPage title="Mi Perfil" />} />
-        <Route exact path="/configuracion" render={() => <PlaceholderPage title="Configuración" />} />
-        <Route exact path="/">
-          <Redirect to="/index" />
-        </Route>
-      </IonRouterOutlet>
-    </IonReactRouter>
-  </IonApp>
-);
-=======
 const App: React.FC = () => {
   // Función para cerrar el menú al hacer clic en un link (opcional pero recomendado)
   const closeMenu = () => {
     const menu = document.querySelector('ion-menu');
     if (menu) menu.close();
   };
->>>>>>> cony-branch
 
   return (
     <IonApp>

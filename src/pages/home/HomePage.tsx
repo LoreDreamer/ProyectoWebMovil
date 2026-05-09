@@ -1,11 +1,5 @@
 import { IonPage, IonContent } from '@ionic/react';
-<<<<<<< HEAD
-import { Navbar } from '../../components/navbar/Navbar';
-import { HeroSection } from '../../components/hero/HeroSection';
-import { InfoSection } from '../../components/info/InfoSection';
-=======
 import { Navbar, HeroSection, InfoSection } from '../../components';
->>>>>>> cony-branch
 import './HomePage.css';
 
 export const HomePage: React.FC = () => {

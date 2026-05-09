@@ -1,31 +1,13 @@
-<<<<<<< HEAD
-import { IonContent, IonPage } from '@ionic/react';
-import { Navbar } from '../../components';
-import './EducationPage.css';
-=======
 import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/react';
 import { Navbar, EducationCard, Advice } from '../../components';
 import img_01 from '../../assets/img_01.jpg';
 import ima_2 from '../../assets/ima_2.jpg';
 import './EducationPage.css'; 
->>>>>>> cony-branch
 
 export const EducationPage: React.FC = () => {
   return (
     <IonPage>
       <Navbar />
-<<<<<<< HEAD
-      <IonContent fullscreen className="placeholder-content">
-        <div className="tab-shell">
-          <div className="tab-card">
-            <span>Educación</span>
-            <h1>Contenidos pedagógicos municipales</h1>
-            <p>
-              Explora cursos, guías y herramientas diseñadas para mejorar la
-              cultura digital de empleados, vecinos y servidores públicos.
-            </p>
-          </div>
-=======
       <IonContent className="education-content-page">
         <div className="central-container"> 
           
@@ -78,13 +60,8 @@ export const EducationPage: React.FC = () => {
             </div>
           </section>
 
->>>>>>> cony-branch
         </div>
       </IonContent>
     </IonPage>
   );
-<<<<<<< HEAD
 };
-=======
-};
->>>>>>> cony-branch
