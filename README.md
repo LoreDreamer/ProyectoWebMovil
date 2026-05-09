@@ -10,9 +10,9 @@ Este proyecto propone una plataforma web y móvil orientada a entregar informaci
 
 ## 2. Integrantes
 
-- Integrante 1:
-- Integrante 2:
-- Integrante 3:
+- Integrante 1: Eduardo Cordero
+- Integrante 2: Lucas Contreras
+- Integrante 3: Constanza Suarez
 
 ## 3. Roles del sistema
 
