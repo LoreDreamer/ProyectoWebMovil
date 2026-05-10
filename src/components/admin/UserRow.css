@@ -1,0 +1,180 @@
+.admin-table-container {
+  background: white;
+  border-radius: 15px;
+  padding: 25px;
+  margin-top: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  width: 100%;
+}
+
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.table-title h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #333;
+  margin-bottom: 5px;
+  margin-top: -5px;
+}
+
+
+
+.table-title p {
+  color: #666;
+  font-size: 1.1rem;
+  margin: 5px 0 25px 0;
+  margin-bottom: -5px;
+}
+
+/* ALINEACIÓN DEL BUSCADOR Y BOTÓN */
+.table-search {
+  display: flex;
+  align-items: center;
+}
+
+.search-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Espacio entre barra y botón */
+  background: #f2f2f2;
+  border-radius: 15px;
+  padding-right: 10px; /* Margen derecho para que el botón no toque el borde del wrapper */
+}
+
+.admin-searchbar {
+  --background: transparent;
+  --box-shadow: none;
+  --padding-start: 10px;
+  width: 250px;
+  margin: 0;
+  padding: 0;
+}
+
+.btn-buscar-tabla {
+  --background: linear-gradient(to right, #55d2db, #0056b3);
+  --border-radius: 10px;
+  --box-shadow: none;
+  height: 38px;
+  font-weight: bold;
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+/* Estilos de la Tabla */
+.table-responsive {
+  overflow-x: auto;
+}
+
+.custom-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.custom-table th {
+  text-align: left;
+  color: #888;
+  font-size: 0.85rem;
+  padding: 15px 10px;
+  border-bottom: 1.5px solid #eee;
+  text-transform: uppercase;
+}
+
+.custom-table td {
+  padding: 15px 10px;
+  border-bottom: 1px solid #f2f2f2;
+  vertical-align: middle;
+}
+
+/* Avatar y Nombre */
+.user-cell {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.user-avatar {
+  width: 42px;
+  height: 42px;
+  background: linear-gradient(to bottom, #3892e3, #1366b1);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.user-data {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-name {
+  font-weight: 700;
+  color: #4a5d3f;
+  font-size: 0.95rem;
+}
+
+.user-email {
+  color: #888;
+  font-size: 0.85rem;
+}
+
+/* Badges */
+.badge-estado {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 95px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.badge-estado.activo { background-color: #7ab356; }
+.badge-estado.inactivo { background-color: #e65252; }
+
+@media (max-width: 480px) {
+  .badge-estado {
+    width: 80px;
+    font-size: 0.65rem;
+  }
+}
+
+.badge-riesgo {
+  padding: 6px 16px;
+  border-radius: 20px;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: bold;
+  display: inline-block;
+  min-width: 80px;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+/* Iconos */
+.actions-cell {
+  font-size: 1.5rem;
+  color: #555;
+  white-space: nowrap;
+}
+
+.actions-cell ion-icon {
+  margin-right: 15px;
+  cursor: pointer;
+}

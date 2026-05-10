@@ -18,6 +18,18 @@
   gap: 60px;
 }
 
+@media (max-width: 768px) {
+  .footer {
+    padding: 40px 16px 20px;
+  }
+
+  .footer-container {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    text-align: center;
+  }
+}
+
 .footer-column {
   display: flex;
   flex-direction: column;

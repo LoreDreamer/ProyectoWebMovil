@@ -1,26 +1,59 @@
-.admin-content-page {
-  --background: #f8f9fa;
+.admin-container {
+  --background: #f4f5f7;
 }
 
-.central-container {
-  max-width: 1200px;
+.admin-content-wrapper {
+  /* 1. Volvemos a un ancho máximo generoso pero que no toca los bordes en 4K */
+  max-width: 95%; 
   margin: 0 auto;
-  padding: 20px;
+
+  /* 2. ESPACIADO LATERAL Y SUPERIOR 
+     Agregamos un par de pixeles más (10px arriba, 20px a los lados) */
+  padding: 10px 20px 30px 20px; 
 }
 
-.logout-button {
-  --background: #dc3545;
-  --background-activated: #c82333;
-  --background-focused: #c82333;
-  --background-hover: #c82333;
-  --color: white;
-  margin-top: 30px;
-  font-weight: 600;
-  text-transform: uppercase;
+.admin-header {
+  /* Espacio extra para que el título no se sienta apretado */
+  margin-top: 15px;
+  margin-bottom: 20px;
+  padding-left: 5px;
 }
-/*
-@media (max-width: 992px) {
-  .logout-button {
-    margin-top: 20px;
-  }
-}*/
+
+.admin-header h1 {
+  color: #333;
+  font-size: clamp(1.5rem, 5vw, 2.2rem); /* Tamaño fluido según pantalla */
+  font-weight: 800;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+
+.admin-header p {
+  color: #666;
+  font-size: 1.1rem;
+  margin: 5px 0 25px 0;
+  margin-bottom: -5px;
+}
+
+
+/* Grid de Tarjetas de Estadísticas */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px; /* Separamos un poco más las tarjetas entre sí */
+  margin-bottom: 25px;
+}
+
+/* Grid de Formularios */
+.forms-container-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 25px; /* Un poco más de espacio entre los dos cuadros de abajo */
+  margin-top: 35px;
+  margin-bottom: 30px;
+}
+
+.footer {
+  margin-top: 40px;
+}
+
