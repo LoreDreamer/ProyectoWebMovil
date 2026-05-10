@@ -148,13 +148,6 @@
 .badge-estado.activo { background-color: #7ab356; }
 .badge-estado.inactivo { background-color: #e65252; }
 
-@media (max-width: 480px) {
-  .badge-estado {
-    width: 80px;
-    font-size: 0.65rem;
-  }
-}
-
 .badge-riesgo {
   padding: 6px 16px;
   border-radius: 20px;

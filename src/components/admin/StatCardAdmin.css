@@ -75,27 +75,6 @@
 .stat-card.warning .stat-icon { background: #ffe9b3; color: #a67c00; }
 .stat-card.success .stat-icon { background: #d4f5d0; color: #2e7d32; }
 
-@media (max-width: 768px) {
-  .stat-card {
-    padding: 25px 15px 15px;
-    min-height: auto;
-  }
-
-  .stat-icon {
-    width: 42px;
-    height: 42px;
-    font-size: 22px;
-  }
-
-  .stat-value {
-    font-size: 28px;
-  }
-
-  .stat-title {
-    font-size: 12px;
-  }
-}
-
 .stat-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 10px 25px rgba(0,0,0,0.08);
