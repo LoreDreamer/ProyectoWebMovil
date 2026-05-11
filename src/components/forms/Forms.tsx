@@ -44,8 +44,11 @@ export const LoginForm: React.FC = () => {
 
     console.log('Correo:', email);
     console.log('Contraseña:', password);
-
-    history.push('/inicio');
+    if (isAdmin) {
+      history.push('/admin');
+    } else {
+      history.push('/inicio');
+    }
     window.location.reload();
   };
 
