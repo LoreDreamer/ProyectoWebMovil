@@ -1,7 +1,9 @@
 import { IonContent, IonPage } from '@ionic/react';
 import { Navbar, EducationCard, Advice, Footer } from '../../components';
 import img_01 from '../../assets/questions/img_01.jpg';
-import ima_2 from '../../assets/questions/ima_2.jpg';
+import vpn from '../../assets/education/vpn.jpg';
+import pishing from '../../assets/education/pishing.png';
+import huella from '../../assets/education/huella.png';
 import './EducationPage.css';
 
 export const EducationPage: React.FC = () => {
@@ -28,7 +30,7 @@ export const EducationPage: React.FC = () => {
                 tag="Phishing"
                 time="12 min"
                 level="Básico"
-                image={img_01}
+                image={pishing}
               />
               
               <EducationCard 
@@ -46,16 +48,16 @@ export const EducationPage: React.FC = () => {
                 tag="Privacidad"
                 time="10 min"
                 level="Básico"
-                image={ima_2}
+                image={vpn}
               />
 
               <EducationCard 
-                title="Seguridad en Redes" 
-                description="Consejos para navegar de forma segura en redes Wi-Fi públicas."
+                title="Huella Digital y Privacidad" 
+                description="Aprende a gestionar tu huella digital y a configurar la privacidad de tus redes para evitar que rastreen tus datos."
                 tag="Redes"
                 time="15 min"
                 level="Intermedio"
-                image={img_01}
+                image={huella}
               />
             </div>
           </section>

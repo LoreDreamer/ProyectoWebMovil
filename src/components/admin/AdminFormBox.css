@@ -1,0 +1,108 @@
+.admin-form-card {
+  background: white;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-header-inline {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.icon-square {
+  background: #e0e0e0;
+  width: 55px;
+  height: 55px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: #333;
+}
+
+.header-text-container h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #333;
+  margin-bottom: -7px;
+  margin-top: -5px;
+}
+
+.header-text-container p {
+  color: #666;
+  font-size: 1.1rem;
+  margin: 5px 0 25px 0;
+  margin-bottom: -5px;
+}
+
+.admin-form-body {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  flex: 1;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: #4a5d3f;
+  font-size: 0.95rem;
+}
+
+.custom-input, .custom-textarea {
+  background: #f2f2f2;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 15px;
+  font-size: 0.9rem;
+  color: #666;
+  width: 100%;
+}
+
+.small-input {
+  width: 150px;
+}
+
+.file-drop-zone {
+  border: 2px dashed #ccc;
+  border-radius: 15px;
+  height: 80px;
+  background: #f9f9f9;
+}
+
+.form-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: auto;
+  padding-top: 10px;
+}
+
+.btn-submit {
+  background: linear-gradient(to right, #55d2db, #0056b3);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 25px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 86, 179, 0.2);
+  text-transform: uppercase;
+}
+
+.btn-submit:hover {
+  filter: brightness(1.1);
+}

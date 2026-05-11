@@ -9,19 +9,25 @@ import ima_2 from '../../assets/logos/im002.png';
 import im001 from '../../assets/logos/im001.png';
 import im002 from '../../assets/logos/im002.png';
 import im003 from '../../assets/logos/im003.png';
+import inge from '../../assets/questions/inge.png';
+import contrasena from '../../assets/questions/contrasena.webp';
+import dispositivos from '../../assets/questions/dispositivos.png';
+import wifi from '../../assets/questions/wifi.png';
+import phishing from '../../assets/questions/phishing.png';
+import datos from '../../assets/questions/datos.png';
 
 // DATOS PARA REALIZADOS (Cada uno apunta a su propia variable de imagen)
 const realizadosData = [
-  { id: 1, titulo: "PHISHING Y CORREO", score: 30, riesgo: "Medio", img: ima_2 },
-  { id: 2, titulo: "SEGURIDAD DE DATOS", score: 60, riesgo: "Alto", img: img_01 },
-  { id: 3, titulo: "CONTRASEÑAS", score: 50, riesgo: "Medio", img: img_01 },
-  { id: 4, titulo: "INGENIERÍA SOCIAL", score: 90, riesgo: "Bajo", img: ima_2 } // Puedes repetir si quieres, o usar otra
+  { id: 1, titulo: "PHISHING Y CORREO", score: 30, riesgo: "Medio", img: phishing },
+  { id: 2, titulo: "SEGURIDAD DE DATOS", score: 60, riesgo: "Alto", img: datos },
+  { id: 3, titulo: "CONTRASEÑAS", score: 50, riesgo: "Medio", img: contrasena },
+  { id: 4, titulo: "INGENIERÍA SOCIAL", score: 90, riesgo: "Bajo", img: inge } // Puedes repetir si quieres, o usar otra
 ];
 
 // DATOS PARA DISPONIBLES
 const disponiblesData = [
-  { id: 5, titulo: "WIFI SEGURA", riesgo: "Medio", img: ima_2 },
-  { id: 6, titulo: "DISPOSITIVOS", riesgo: "Bajo", img: img_01 }
+  { id: 5, titulo: "WIFI SEGURA", riesgo: "Medio", img: wifi },
+  { id: 6, titulo: "DISPOSITIVOS", riesgo: "Bajo", img: dispositivos }
 ];
 
 export const QuestionnairePage: React.FC = () => {

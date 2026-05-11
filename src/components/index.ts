@@ -13,3 +13,6 @@ export { Progress } from './inicio/Progress';
 export { StatCard } from './inicio/StatCard';
 export { Advice } from './education/Advice';
 export { EducationCard } from './education/EducationCard';
+export { UserRow } from './admin/UserRow';
+export { AdminFormBox } from './admin/AdminFormBox';
+export { StatCardAdmin } from './admin/StatCardAdmin';
