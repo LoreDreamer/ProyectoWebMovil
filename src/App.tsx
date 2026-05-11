@@ -57,6 +57,8 @@ const App: React.FC = () => {
     }
   };
 
+  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+
   return (
     <IonApp>
       <IonReactRouter>
@@ -84,15 +86,19 @@ const App: React.FC = () => {
                 <IonLabel>Denuncias</IonLabel>
               </IonItem>
 
-              <IonItem button routerLink="/cuestionarios" onClick={closeMenu}>
-                <IonIcon slot="start" icon={documentTextOutline} />
-                <IonLabel>Cuestionarios</IonLabel>
-              </IonItem>
+              {isLoggedIn && (
+                <>
+                  <IonItem button routerLink="/cuestionarios" onClick={closeMenu}>
+                    <IonIcon slot="start" icon={documentTextOutline} />
+                    <IonLabel>Cuestionarios</IonLabel>
+                  </IonItem>
 
-              <IonItem button routerLink="/protocolos" onClick={closeMenu}>
-                <IonIcon slot="start" icon={shieldCheckmarkOutline} />
-                <IonLabel>Protocolos</IonLabel>
-              </IonItem>
+                  <IonItem button routerLink="/protocolos" onClick={closeMenu}>
+                    <IonIcon slot="start" icon={shieldCheckmarkOutline} />
+                    <IonLabel>Protocolos</IonLabel>
+                  </IonItem>
+                </>
+              )}
 
               <IonItem button routerLink="/alertas" onClick={closeMenu}>
                 <IonIcon slot="start" icon={notificationsOutline} />

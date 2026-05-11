@@ -1,38 +1,61 @@
-.stat-card {
-  background: white;
-  border-radius: 20px;
-  padding: 20px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+.dashboard-stat-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 12px 14px 10px;
+  min-height: 82px;
+
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   align-items: center;
+  gap: 6px;
+
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
 }
 
-.stat-header {
+.dashboard-stat-top {
+  width: 100%;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
-  margin-bottom: 10px;
+
 }
 
-.stat-icon-box {
-  background: #f0f0f0;
-  padding: 8px;
-  border-radius: 10px;
-  font-size: 1.5rem;
-  color: #333;
+.dashboard-stat-icon {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #eeeeee;
+  border-radius: 7px;
+  color: #3f4640;
+  font-size: 1.15rem;
 }
 
-.stat-label {
+.dashboard-stat-label {
+  max-width: 110px;
+
   font-family: 'Archivo', sans-serif;
-  font-weight: 600;
-  font-size: 0.75rem;
-  color: #555;
-  line-height: 1.1;
+  font-size: 0.66rem;
+  font-weight: 800;
+  line-height: 1.05;
+  text-transform: uppercase;
+  color: #4c5848;
+  text-align: left;
 }
 
-.stat-value {
+.dashboard-stat-number {
+  display: block;
+  width: 100%;
+
   font-family: 'Archivo Black', sans-serif;
-  font-size: 2.5rem;
-  color: #333;
+  font-size: 1.35rem;
+  line-height: 1;
+  color: #3d4738;
+  text-align: center;
 }

@@ -69,7 +69,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isLoggedIn: propIsLoggedIn }) =>
                 {renderLink('/index', 'Inicio')}
                 {renderLink('/educacion', 'Educación')}
                 {renderLink('/denuncias', 'Denuncias')}
-                {renderLink('/cuestionarios', 'Cuestionarios')}
+                {renderLink('/alertas', 'Alertas')}
               </>
             )}
           </nav>
