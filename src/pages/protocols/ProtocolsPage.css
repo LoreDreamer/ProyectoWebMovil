@@ -11,16 +11,12 @@
 }
 
 .protocolos-header h1 {
-  color: #333;
-  font-size: 1.9rem;
   font-weight: 700;
   text-transform: uppercase;
   margin: 0;
   font-size: clamp(2rem, 3vw, 3.2rem);
   color: #252f2f;
 }
-
-
 
 .protocolos-header p {
   margin: 12px 0 0;
@@ -30,125 +26,160 @@
   line-height: 1.75;
 }
 
+/* ==========================================================================
+   GRID: SIEMPRE 3 POR FILA (Y SE ALINEAN AL ESTIRARSE)
+   ========================================================================== */
 .protocolos-grid {
   display: grid;
-  gap: 20px;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 25px;
+  grid-template-columns: repeat(3, 1fr); 
+  align-items: stretch;                  
 }
 
-.protocolo-card {
-  background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%);
-  border: 1px solid rgba(26, 39, 72, 0.08);
-  border-radius: 28px;
-  padding: 24px;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 20px 45px rgba(18, 42, 97, 0.09);
+/* ==========================================================================
+   ESTILOS DE LA TARJETA
+   ========================================================================== */
+.protocolo-card {   
+  background: #fbfbfb;
+  border: 1px solid rgba(26, 39, 72, 0.04);
+  border-radius: 42px; 
+  padding: 32px;
+  
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  
+  box-shadow: 0 15px 35px rgba(18, 42, 97, 0.04);
+  transition: transform 0.2s ease;
 }
 
-.protocolo-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(255,255,255,0.5), transparent 35%);
-  pointer-events: none;
+.protocolo-card:hover {
+  transform: translateY(-3px);
 }
 
-.card-top {
+/* Header (Icono Portapapeles y Badge PDF) */
+.protocolo-card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
-  position: relative;
-  z-index: 1;
+  margin-bottom: 24px;
 }
 
-.card-icon {
-  width: 42px;
-  height: 42px;
+.icon-clipboard-wrapper {
+  border: 1.5px solid #4a5d3e;
   border-radius: 14px;
-  display: grid;
-  place-items: center;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 10px 22px rgba(8, 24, 66, 0.08);
-  font-size: 1.25rem;
-}
-
-.card-label {
-  padding: 10px 16px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.9);
-  color: #3a4864;
-  font-weight: 700;
-  font-size: 0.85rem;
-}
-
-.card-meta {
+  padding: 10px;
   display: flex;
-  justify-content: space-between;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-clipboard-wrapper ion-icon {
+  font-size: 26px;
+  color: #4a5d3e;
+}
+
+.badge-pdf {
+  border: 1.5px solid #4a5d3e;
+  color: #4a5d3e;
+  border-radius: 25px;
+  padding: 8px 24px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+/* Meta (Carpeta y Fecha) */
+.protocolo-card-meta {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #555555;
+  font-size: 1rem;
+}
+
+.meta-item ion-icon {
+  font-size: 20px;
+  color: #555555;
+}
+
+/* Cuerpo de textos */
+.protocolo-card-body {
+  display: flex;
+  flex-direction: column;
   gap: 10px;
-  flex-wrap: wrap;
-  color: #5d6c7a;
-  font-size: 0.95rem;
-  margin-top: 18px;
-  position: relative;
-  z-index: 1;
+  margin-bottom: 32px;
 }
 
-.protocolo-card h2 {
-  margin: 16px 0 10px;
-  font-size: 1.25rem;
-  line-height: 1.2;
-  color: #1e2a3a;
-  position: relative;
-  z-index: 1;
-}
-
-.protocolo-card p {
-  margin: 0;
-  color: #5a6777;
-  line-height: 1.75;
-  position: relative;
-  z-index: 1;
-}
-
-.card-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 20px;
-  position: relative;
-  z-index: 1;
-}
-
-.btn-primary,
-.btn-secondary,
-.cta-button {
-  border: none;
-  cursor: pointer;
-  border-radius: 999px;
-  padding: 12px 22px;
+.protocolo-card-body h2 {
+  color: #3b4b2e; 
+  font-size: 1.6rem;
   font-weight: 700;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  margin: 0;
+  line-height: 1.25;
 }
 
-.btn-primary {
-  background: linear-gradient(90deg, #4f98ff, #0b60d9);
+.protocolo-card-body p {
+  color: #555555;
+  font-size: 1.1rem;
+  line-height: 1.4;
+  margin: 0;
+}
+
+/* ==========================================================================
+   BOTONES CORREGIDOS (Menos altos con padding: 10px 0)
+   ========================================================================== */
+.protocolo-card-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: auto; 
+  width: 100%;
+}
+
+.btn-view-pdf {
+  flex: 1;
+  background: linear-gradient(90deg, #4ad3e7 0%, #0052cc 100%);
   color: white;
+  border: none;
+  border-radius: 16px;
+  padding: 10px 0; /* 🔥 Alto disminuido */
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
 }
 
-.btn-secondary {
-  background: rgba(255, 255, 255, 0.92);
-  color: #4b5563;
-  border: 1px solid rgba(75, 85, 99, 0.16);
+.btn-view-pdf:hover {
+  opacity: 0.9;
 }
 
-.btn-primary:hover,
-.btn-secondary:hover,
-.cta-button:hover {
-  transform: translateY(-1px);
+.btn-download {
+  flex: 1;
+  background-color: transparent;
+  color: #2b3822;
+  border: 1.5px solid #2b3822;
+  border-radius: 16px;
+  padding: 10px 0; /* 🔥 Alto disminuido */
+  font-size: 1.1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
 }
 
+.btn-download:hover {
+  background-color: rgba(43, 56, 34, 0.04);
+}
+
+/* ==========================================================================
+   BANNER CTA INFERIOR
+   ========================================================================== */
 .protocolos-cta {
   display: grid;
   grid-template-columns: auto 1fr auto;
@@ -184,18 +215,17 @@
 }
 
 .cta-button {
+  border: none;
+  cursor: pointer;
+  border-radius: 999px;
+  padding: 12px 22px;
+  font-weight: 700;
   background: #2b3340;
   color: white;
   white-space: nowrap;
+  transition: transform 0.2s ease;
 }
-/*
-@media (max-width: 860px) {
-  .protocolos-cta {
-    grid-template-columns: 1fr;
-    text-align: center;
-  }
 
-  .cta-button {
-    width: 100%;
-  }
-}*/
+.cta-button:hover {
+  transform: translateY(-1px);
+}

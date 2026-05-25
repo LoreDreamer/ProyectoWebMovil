@@ -2,33 +2,40 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { IonHeader, IonToolbar, IonIcon, IonButtons, IonMenuButton } from '@ionic/react';
 import { personCircle, logOutOutline } from 'ionicons/icons';
+import { jwtDecode } from 'jwt-decode';
 
 import logo from '../../assets/logos/4-isologo-municipal-fondocalipso-rgb.png';
 import './Navbar.css';
 
-interface NavbarProps {
-  isLoggedIn?: boolean;
+interface CustomJwtPayload {
+  email: string;
+  role: string;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ isLoggedIn: propIsLoggedIn }) => {
+export const Navbar: React.FC = () => {
   const location = useLocation();
 
-  const isLoggedIn = propIsLoggedIn !== undefined
-    ? propIsLoggedIn
-    : localStorage.getItem('isLoggedIn') === 'true';
+  // 🌟 Conexión real con el Token
+  const token = localStorage.getItem('auth_token');
+  let isLoggedIn = false;
+  let isAdmin = false;
+
+  if (token) {
+    try {
+      const decoded = jwtDecode<CustomJwtPayload>(token);
+      isLoggedIn = true;
+      isAdmin = decoded.role === 'admin';
+    } catch (e) {
+      // Token inválido
+    }
+  }
 
   const handleLogout = () => {
-    localStorage.removeItem('isLoggedIn');
-    localStorage.removeItem('userEmail');
-    localStorage.removeItem('userName');
-    localStorage.removeItem('userRut');
-    localStorage.removeItem('userRegion');
-    localStorage.removeItem('userComuna');
+    localStorage.clear();
     window.location.href = '/index';
   };
 
-  const isAdmin = localStorage.getItem('isAdmin') === 'true';
-
+  // 🌟 Volvemos a tu lógica original: El círculo del perfil decide a dónde mandarlo
   const profileLink = isAdmin ? '/admin' : '/inicio';
 
   const renderLink = (to: string, label: string) => (
@@ -42,7 +49,6 @@ export const Navbar: React.FC<NavbarProps> = ({ isLoggedIn: propIsLoggedIn }) =>
       <IonToolbar className="navbar-toolbar">
         <div className="navbar-container">
           
-          {/* LADO IZQUIERDO: Hamburguesa y Logo */}
           <div className="navbar-left">
             <IonButtons slot="start" className="mobile-menu-button">
               <IonMenuButton autoHide={false} />
@@ -53,7 +59,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isLoggedIn: propIsLoggedIn }) =>
             </Link>
           </div>
 
-          {/* CENTRO: Links de navegación (Ocultos en móvil) */}
+          {/* 🌟 Tu barra del centro original (Sin botones raros agregados por mí) */}
           <nav className="navbar-links-desktop">
             {isLoggedIn ? (
               <>
@@ -74,7 +80,6 @@ export const Navbar: React.FC<NavbarProps> = ({ isLoggedIn: propIsLoggedIn }) =>
             )}
           </nav>
 
-          {/* LADO DERECHO: Acciones o Perfil Animado */}
           <div className="navbar-right">
             {!isLoggedIn ? (
               <div className="navbar-actions">
@@ -87,6 +92,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isLoggedIn: propIsLoggedIn }) =>
               </div>
             ) : (
               <div className="navbar-profile-container">
+                {/* 🌟 Aquí está tu botón de usuario original que te lleva a /admin o /inicio */}
                 <Link to={profileLink} className="navbar-profile-button" aria-label="Ir a inicio">
                   <span className="navbar-profile-ring">
                     <IonIcon icon={personCircle} className="navbar-profile-icon" />
@@ -104,9 +110,6 @@ export const Navbar: React.FC<NavbarProps> = ({ isLoggedIn: propIsLoggedIn }) =>
                 <div 
                   className="navbar-logout-button"
                   onClick={handleLogout}
-                  aria-label="Cerrar sesión"
-                  role="button"
-                  tabIndex={0}
                 >
                   <IonIcon icon={logOutOutline} />
                 </div>

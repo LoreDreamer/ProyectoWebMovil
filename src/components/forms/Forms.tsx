@@ -28,7 +28,8 @@ export const LoginForm: React.FC = () => {
 
   const history = useHistory();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // 🔥 AQUÍ ESTÁ EL CAMBIO: Ahora es una función asíncrona (async) que usa fetch
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!email || !password) {
@@ -36,20 +37,46 @@ export const LoginForm: React.FC = () => {
       return;
     }
 
-    const isAdmin = email === 'admin@inicio' && password === '1234';
+    try {
+      const response = await fetch('http://localhost:3000/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-    localStorage.setItem('isLoggedIn', 'true');
-    localStorage.setItem('userEmail', email);
-    localStorage.setItem('isAdmin', isAdmin ? 'true' : 'false');
+      const data = await response.json();
 
-    console.log('Correo:', email);
-    console.log('Contraseña:', password);
-    if (isAdmin) {
-      history.push('/admin');
-    } else {
-      history.push('/inicio');
+      if (!response.ok) {
+        alert(data.message || 'Error al iniciar sesión');
+        return;
+      }
+
+      // 1. Guardamos el TOKEN JWT real (Lo que te pide la Entrega 2)
+      localStorage.setItem('auth_token', data.token);
+      console.log('¡Token JWT recibido y guardado con éxito!');
+
+      // 2. 🌟 EL PARCHE: Guardamos las variables viejas que tus páginas necesitan para reaccionar
+      const isAdminUser = email === 'admin@inicio';
+      localStorage.setItem('isLoggedIn', 'true');
+      localStorage.setItem('userEmail', email);
+      localStorage.setItem('isAdmin', isAdminUser ? 'true' : 'false'); // 👈 Esto volverá a poner "isAdmin: true"
+
+      // 3. Redirección limpia
+      if (isAdminUser) {
+        history.push('/admin');
+      } else {
+        history.push('/inicio');
+      }
+
+      // 4. Forzamos el recargo para que la app lea el nuevo Local Storage (como lo tenías antes)
+      window.location.reload();
+
+    } catch (error) {
+      console.error('Error de conexión:', error);
+      alert('No se pudo conectar con el servidor Express en el puerto 3000.');
     }
-    window.location.reload();
   };
 
   return (
@@ -120,9 +147,10 @@ export const RegisterForm: React.FC = () => {
   const selectedRegion = CHILE_REGIONS.find((item) => item.id === region);
   const comunas = selectedRegion?.comunas ?? [];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // 1. Mantenemos todas tus validaciones actuales (¡Están perfectas!)
     if (
       !usuario ||
       !rut ||
@@ -146,24 +174,41 @@ export const RegisterForm: React.FC = () => {
       return;
     }
 
-    localStorage.setItem('isLoggedIn', 'true');
-    localStorage.setItem('userName', usuario);
-    localStorage.setItem('userRut', rut);
-    localStorage.setItem('userRegion', region);
-    localStorage.setItem('userComuna', comuna);
-    localStorage.setItem('userEmail', email);
+    // 2. 🚀 EL CAMBIO REAL: Enviamos los datos al servidor Express
+    try {
+      const response = await fetch('http://localhost:3000/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        // Enviamos el email y password que Node necesita para registrar en su lista temporal
+        body: JSON.stringify({ email, password }), 
+      });
 
-    console.log('Usuario:', usuario);
-    console.log('Rut:', rut);
-    console.log('Región:', region);
-    console.log('Comuna:', comuna);
-    console.log('Correo:', email);
-    console.log('Contraseña:', password);
-    console.log('Confirmar contraseña:', confirmPassword);
-    console.log('Acepta términos:', acceptedTerms);
+      const data = await response.json();
 
-    history.push('/inicio');
-    window.location.reload();
+      if (!response.ok) {
+        // Si Node dice que el correo ya existe, saltará este error
+        alert(data.message || 'Error al registrarse');
+        return;
+      }
+
+      // 3. Si el servidor responde éxito, guardamos opcionalmente los datos estéticos en el navegador
+      localStorage.setItem('userName', usuario);
+      localStorage.setItem('userRut', rut);
+      localStorage.setItem('userRegion', region);
+      localStorage.setItem('userComuna', comuna);
+
+      alert('¡Usuario registrado con éxito en el servidor! Ahora inicia sesión.');
+
+      // 4. Lo mandamos al LOGIN para que pruebe su nueva cuenta real
+      history.push('/login'); 
+      window.location.reload();
+
+    } catch (error) {
+      console.error('Error de conexión:', error);
+      alert('No se pudo conectar con el servidor Express en el puerto 3000.');
+    }
   };
 
   return (

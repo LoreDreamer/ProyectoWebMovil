@@ -1,4 +1,4 @@
-import { Route } from 'react-router-dom';
+import { Route, Redirect } from 'react-router-dom';
 import {
   IonApp,
   IonRouterOutlet,
@@ -22,6 +22,8 @@ import {
   shieldCheckmarkOutline,
   notificationsOutline
 } from 'ionicons/icons';
+
+import { jwtDecode } from 'jwt-decode';
 
 import {
   LoginPage,
@@ -48,16 +50,31 @@ import './responsive.css';
 
 setupIonicReact();
 
+interface CustomJwtPayload {
+  email: string;
+  role: string;
+}
+
 const App: React.FC = () => {
   const closeMenu = () => {
     const menu = document.querySelector('ion-menu');
-
-    if (menu) {
-      menu.close();
-    }
+    if (menu) menu.close();
   };
 
-  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+  const token = localStorage.getItem('auth_token');
+  let isLoggedIn = false;
+  let isAdmin = false;
+
+  if (token) {
+    try {
+      const decoded = jwtDecode<CustomJwtPayload>(token);
+      isLoggedIn = true;
+      isAdmin = decoded.role === 'admin';
+    } catch (error) {
+      console.error("Token inválido:", error);
+      localStorage.removeItem('auth_token');
+    }
+  }
 
   return (
     <IonApp>
@@ -69,6 +86,7 @@ const App: React.FC = () => {
             </IonToolbar>
           </IonHeader>
 
+          {/* 🌟 Tu menú lateral original intacto */}
           <IonContent>
             <IonList>
               <IonItem button routerLink="/index" onClick={closeMenu}>
@@ -118,19 +136,16 @@ const App: React.FC = () => {
           <Route exact path="/cuestionarios" component={QuestionnairePage} />
           <Route exact path="/protocolos" component={ProtocolsPage} />
           <Route exact path="/alertas" component={NewsPage} />
-          <Route exact path="/admin" component={AdminPage} />
 
-          <Route
-            exact
-            path="/perfil"
-            render={() => <PlaceholderPage title="Mi Perfil" />}
+          {/* 🌟 Mantenemos la seguridad de la puerta trasera: Solo entra si el Token dice admin */}
+          <Route 
+            exact 
+            path="/admin" 
+            render={() => isAdmin ? <AdminPage /> : <Redirect to="/login" />} 
           />
 
-          <Route
-            exact
-            path="/configuracion"
-            render={() => <PlaceholderPage title="Configuración" />}
-          />
+          <Route exact path="/perfil" render={() => <PlaceholderPage title="Mi Perfil" />} />
+          <Route exact path="/configuracion" render={() => <PlaceholderPage title="Configuración" />} />
 
           <Route exact path="/">
             <HomePage />
