@@ -19,6 +19,7 @@
     "react-router-dom": "^5.3.4"
   },
   "devDependencies": {
+    "@types/jwt-decode": "^2.2.1",
     "@types/react": "19.0.10",
     "@types/react-dom": "19.0.4",
     "@types/react-router": "^5.1.20",

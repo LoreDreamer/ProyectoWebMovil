@@ -1,14 +1,11 @@
 const jwt = require('jsonwebtoken');
+const { JWT_SECRET } = require('../config/jwt.config');
 
-const JWT_SECRET = 'mi_llave_secreta_municipal_super_segura';
-
-// Base de datos temporal en memoria
 const usuariosTemporales = [
   { email: 'admin@inicio', password: '1234', role: 'admin' },
   { email: 'user@inicio', password: '1234', role: 'user' }
 ];
 
-// 1. Lógica de Registro
 const register = (req, res) => {
   const { email, password } = req.body;
 
@@ -25,13 +22,12 @@ const register = (req, res) => {
   usuariosTemporales.push(nuevoUsuario);
 
   console.log(`¡Usuario registrado temporalmente!: ${email}`);
-  
-  return res.status(201).json({ 
-    message: "¡Usuario registrado con éxito en la memoria temporal!" 
+
+  return res.status(201).json({
+    message: "¡Usuario registrado con éxito en la memoria temporal!"
   });
 };
 
-// 2. Lógica de Login
 const login = (req, res) => {
   const { email, password } = req.body;
 
@@ -48,17 +44,30 @@ const login = (req, res) => {
 
     return res.json({
       message: "¡Inicio de sesión exitoso!",
-      token: token
+      token: token,
+      role: usuarioEncontrado.role
     });
   }
 
-  return res.status(401).json({ 
-    message: "Correo o contraseña incorrectos." 
+  return res.status(401).json({
+    message: "Correo o contraseña incorrectos."
   });
 };
 
-// Exportamos las funciones del controlador
+const me = (req, res) => {
+  const user = usuariosTemporales.find(u => u.email === req.user.email);
+  if (!user) {
+    return res.status(404).json({ message: "Usuario no encontrado" });
+  }
+
+  res.json({
+    email: user.email,
+    role: user.role
+  });
+};
+
 module.exports = {
   register,
-  login
+  login,
+  me
 };

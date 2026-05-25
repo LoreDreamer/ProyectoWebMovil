@@ -2,18 +2,12 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import logo from '../../assets/logos/4-isologo-municipal-fondocalipso-rgb.png';
 import './Footer.css';
+import { useAuth } from '../../context/AuthContext';
 
-interface FooterProps {
-  isLoggedIn?: boolean;
-}
+export const Footer: React.FC = () => {
+  const { user } = useAuth();
 
-export const Footer: React.FC<FooterProps> = ({ isLoggedIn: propIsLoggedIn }) => {
-  const isLoggedIn =
-    propIsLoggedIn !== undefined
-      ? propIsLoggedIn
-      : localStorage.getItem('isLoggedIn') === 'true';
-
-  const links = isLoggedIn
+  const links = user
     ? [
         { to: '/index', label: 'Inicio' },
         { to: '/cuestionarios', label: 'Cuestionarios' },
@@ -26,7 +20,7 @@ export const Footer: React.FC<FooterProps> = ({ isLoggedIn: propIsLoggedIn }) =>
         { to: '/index', label: 'Inicio' },
         { to: '/educacion', label: 'Educación' },
         { to: '/denuncias', label: 'Denuncias' },
-        { to: '/cuestionarios', label: 'Cuestionarios' },
+        { to: '/alertas', label: 'Alertas' },
       ];
 
   return (

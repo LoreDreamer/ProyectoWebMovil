@@ -57,7 +57,7 @@
   flex-direction: column;
   justify-content: space-between;
 
-  height: 320px;              /* 🔥 todas las cards iguales */
+  height: 320px;              /* todas las cards iguales */
   padding: 16px;
 
   background: white;
@@ -86,7 +86,7 @@
   color: #555;
 
   display: -webkit-box;
-  -webkit-line-clamp: 3;     /* 🔥 máximo 3 líneas */
+  -webkit-line-clamp: 3;     /* máximo 3 líneas */
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -102,7 +102,7 @@
 /* ========================= */
 
 .card-actions {
-  margin-top: auto;           /* 🔥 empuja abajo */
+  margin-top: auto;           /* empuja abajo */
   display: flex;
   gap: 10px;
 }
@@ -115,5 +115,3 @@
   border: none;
   cursor: pointer;
 }
-
-

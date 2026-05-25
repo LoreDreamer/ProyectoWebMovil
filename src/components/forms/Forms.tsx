@@ -13,6 +13,7 @@ import {
 import bgImage from '../../assets/auth/1_private-tour-of-the-city-of-neiva.png';
 import './Forms.css';
 import chileRegions from '../../assets/data/chileRegions.json';
+import { useAuth } from '../../context/AuthContext';
 
 type ChileRegion = {
   id: string;
@@ -27,8 +28,8 @@ export const LoginForm: React.FC = () => {
   const [password, setPassword] = useState('');
 
   const history = useHistory();
+  const { login } = useAuth();
 
-  // 🔥 AQUÍ ESTÁ EL CAMBIO: Ahora es una función asíncrona (async) que usa fetch
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -53,25 +54,13 @@ export const LoginForm: React.FC = () => {
         return;
       }
 
-      // 1. Guardamos el TOKEN JWT real (Lo que te pide la Entrega 2)
-      localStorage.setItem('auth_token', data.token);
-      console.log('¡Token JWT recibido y guardado con éxito!');
+      await login(data.token);
 
-      // 2. 🌟 EL PARCHE: Guardamos las variables viejas que tus páginas necesitan para reaccionar
-      const isAdminUser = email === 'admin@inicio';
-      localStorage.setItem('isLoggedIn', 'true');
-      localStorage.setItem('userEmail', email);
-      localStorage.setItem('isAdmin', isAdminUser ? 'true' : 'false'); // 👈 Esto volverá a poner "isAdmin: true"
-
-      // 3. Redirección limpia
-      if (isAdminUser) {
+      if (data.role === 'admin' || email === 'admin@inicio') {
         history.push('/admin');
       } else {
         history.push('/inicio');
       }
-
-      // 4. Forzamos el recargo para que la app lea el nuevo Local Storage (como lo tenías antes)
-      window.location.reload();
 
     } catch (error) {
       console.error('Error de conexión:', error);
@@ -150,7 +139,6 @@ export const RegisterForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // 1. Mantenemos todas tus validaciones actuales (¡Están perfectas!)
     if (
       !usuario ||
       !rut ||
@@ -174,26 +162,22 @@ export const RegisterForm: React.FC = () => {
       return;
     }
 
-    // 2. 🚀 EL CAMBIO REAL: Enviamos los datos al servidor Express
     try {
       const response = await fetch('http://localhost:3000/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        // Enviamos el email y password que Node necesita para registrar en su lista temporal
-        body: JSON.stringify({ email, password }), 
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        // Si Node dice que el correo ya existe, saltará este error
         alert(data.message || 'Error al registrarse');
         return;
       }
 
-      // 3. Si el servidor responde éxito, guardamos opcionalmente los datos estéticos en el navegador
       localStorage.setItem('userName', usuario);
       localStorage.setItem('userRut', rut);
       localStorage.setItem('userRegion', region);
@@ -201,9 +185,7 @@ export const RegisterForm: React.FC = () => {
 
       alert('¡Usuario registrado con éxito en el servidor! Ahora inicia sesión.');
 
-      // 4. Lo mandamos al LOGIN para que pruebe su nueva cuenta real
-      history.push('/login'); 
-      window.location.reload();
+      history.push('/login');
 
     } catch (error) {
       console.error('Error de conexión:', error);

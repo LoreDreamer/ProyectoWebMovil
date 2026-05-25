@@ -5,9 +5,10 @@ const {
   getProtocolos,
   createProtocolo
 } = require('../controllers/protocolos.controller');
+const { authenticateToken, requireAdmin } = require('../middleware/auth.middleware');
 
 router.get('/', getProtocolos);
 
-router.post('/', createProtocolo);
+router.post('/', authenticateToken, requireAdmin, createProtocolo);
 
 module.exports = router;

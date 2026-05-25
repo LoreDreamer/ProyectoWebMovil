@@ -23,8 +23,6 @@ import {
   notificationsOutline
 } from 'ionicons/icons';
 
-import { jwtDecode } from 'jwt-decode';
-
 import {
   LoginPage,
   RegisterPage,
@@ -39,6 +37,7 @@ import {
   AdminPage
 } from './pages';
 
+import { AuthProvider, useAuth } from './context/AuthContext';
 import '@ionic/react/css/core.css';
 import '@ionic/react/css/normalize.css';
 import '@ionic/react/css/structure.css';
@@ -50,30 +49,16 @@ import './responsive.css';
 
 setupIonicReact();
 
-interface CustomJwtPayload {
-  email: string;
-  role: string;
-}
+const closeMenu = () => {
+  const menu = document.querySelector('ion-menu');
+  if (menu) menu.close();
+};
 
-const App: React.FC = () => {
-  const closeMenu = () => {
-    const menu = document.querySelector('ion-menu');
-    if (menu) menu.close();
-  };
+const AppRoutes: React.FC = () => {
+  const { user, isLoading } = useAuth();
 
-  const token = localStorage.getItem('auth_token');
-  let isLoggedIn = false;
-  let isAdmin = false;
-
-  if (token) {
-    try {
-      const decoded = jwtDecode<CustomJwtPayload>(token);
-      isLoggedIn = true;
-      isAdmin = decoded.role === 'admin';
-    } catch (error) {
-      console.error("Token inválido:", error);
-      localStorage.removeItem('auth_token');
-    }
+  if (isLoading) {
+    return null;
   }
 
   return (
@@ -86,7 +71,6 @@ const App: React.FC = () => {
             </IonToolbar>
           </IonHeader>
 
-          {/* 🌟 Tu menú lateral original intacto */}
           <IonContent>
             <IonList>
               <IonItem button routerLink="/index" onClick={closeMenu}>
@@ -104,7 +88,7 @@ const App: React.FC = () => {
                 <IonLabel>Denuncias</IonLabel>
               </IonItem>
 
-              {isLoggedIn && (
+              {user && (
                 <>
                   <IonItem button routerLink="/cuestionarios" onClick={closeMenu}>
                     <IonIcon slot="start" icon={documentTextOutline} />
@@ -137,11 +121,14 @@ const App: React.FC = () => {
           <Route exact path="/protocolos" component={ProtocolsPage} />
           <Route exact path="/alertas" component={NewsPage} />
 
-          {/* 🌟 Mantenemos la seguridad de la puerta trasera: Solo entra si el Token dice admin */}
-          <Route 
-            exact 
-            path="/admin" 
-            render={() => isAdmin ? <AdminPage /> : <Redirect to="/login" />} 
+          <Route
+            exact
+            path="/admin"
+            render={() => {
+              if (!user) return <Redirect to="/login" />;
+              if (user.role !== 'admin') return <Redirect to="/inicio" />;
+              return <AdminPage />;
+            }}
           />
 
           <Route exact path="/perfil" render={() => <PlaceholderPage title="Mi Perfil" />} />
@@ -153,6 +140,14 @@ const App: React.FC = () => {
         </IonRouterOutlet>
       </IonReactRouter>
     </IonApp>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <AuthProvider>
+      <AppRoutes />
+    </AuthProvider>
   );
 };
 

@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
 
-// Importamos las funciones desde el controlador
-const { register, login } = require('../controllers/auth.controller');
+const { register, login, me } = require('../controllers/auth.controller');
+const { authenticateToken } = require('../middleware/auth.middleware');
 
-// Definimos los endpoints y les pasamos su función correspondiente
 router.post('/register', register);
 router.post('/login', login);
+router.get('/me', authenticateToken, me);
 
 module.exports = router;
