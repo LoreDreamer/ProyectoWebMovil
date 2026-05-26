@@ -1,12 +1,21 @@
-const jwt = require('jsonwebtoken');
-const { JWT_SECRET } = require('../config/jwt.config');
+import { Request, Response } from 'express';
+import jwt from 'jsonwebtoken';
+// Asegúrate de cambiar también tu config a .ts después, o impórtalo directo si ya exporta por default
+import { JWT_SECRET } from '../config/jwt.config';
 
-const usuariosTemporales = [
+// Definimos la estructura de un usuario para que TypeScript sepa qué tiene
+interface Usuario {
+  email: string;
+  password?: string; // Opcional por si en algún método no lo necesitas, pero obligatorio en el arreglo
+  role: string;
+}
+
+const usuariosTemporales: Usuario[] = [
   { email: 'admin@inicio', password: '1234', role: 'admin' },
   { email: 'user@inicio', password: '1234', role: 'user' }
 ];
 
-const register = (req, res) => {
+export const register = (req: Request, res: Response) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -18,7 +27,7 @@ const register = (req, res) => {
     return res.status(400).json({ message: "El correo ya está registrado." });
   }
 
-  const nuevoUsuario = { email, password, role: 'user' };
+  const nuevoUsuario: Usuario = { email, password, role: 'user' };
   usuariosTemporales.push(nuevoUsuario);
 
   console.log(`¡Usuario registrado temporalmente!: ${email}`);
@@ -28,7 +37,7 @@ const register = (req, res) => {
   });
 };
 
-const login = (req, res) => {
+export const login = (req: Request, res: Response) => {
   const { email, password } = req.body;
 
   const usuarioEncontrado = usuariosTemporales.find(
@@ -54,20 +63,15 @@ const login = (req, res) => {
   });
 };
 
-const me = (req, res) => {
-  const user = usuariosTemporales.find(u => u.email === req.user.email);
+export const me = (req: Request, res: Response) => {
+  // Usamos (req as any) de forma temporal para que no chille por la propiedad .user que añade el middleware de autenticación
+  const user = usuariosTemporales.find(u => u.email === (req as any).user?.email);
   if (!user) {
     return res.status(404).json({ message: "Usuario no encontrado" });
   }
 
-  res.json({
+  return res.json({
     email: user.email,
     role: user.role
   });
-};
-
-module.exports = {
-  register,
-  login,
-  me
 };
