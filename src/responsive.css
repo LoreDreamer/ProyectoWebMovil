@@ -1218,3 +1218,120 @@ img {
     width: 100% !important;
   }
 }
+
+/* ================================= */
+/* ADMIN PANELS RESPONSIVE */
+/* ================================= */
+
+@media (max-width: 767px) {
+
+  .activity-admin-panel,
+  .alerts-admin-panel,
+  .education-admin-panel,
+  .protocols-admin-panel,
+  .questionnaires-admin-panel {
+    gap: 18px !important;
+  }
+
+  .panel-form-section,
+  .panel-list-section {
+    padding: 16px !important;
+    border-radius: 18px !important;
+  }
+
+  .panel-section-header {
+    flex-direction: column !important;
+    gap: 12px !important;
+    align-items: stretch !important;
+  }
+
+  .panel-section-header h2 {
+    font-size: 1.15rem !important;
+  }
+
+  .panel-section-header p {
+    font-size: 0.85rem !important;
+  }
+
+  /* ITEMS */
+  .activity-item,
+  .module-item,
+  .protocol-item,
+  .questionnaire-item {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 14px !important;
+  }
+
+  /* ACTIONS */
+  .activity-actions,
+  .module-actions,
+  .protocol-actions,
+  .questionnaire-actions,
+  .card-actions {
+    width: 100% !important;
+    flex-direction: column !important;
+  }
+
+  .activity-actions ion-button,
+  .module-actions ion-button,
+  .protocol-actions ion-button,
+  .questionnaire-actions ion-button,
+  .card-actions ion-button {
+    width: 100% !important;
+    margin: 0 !important;
+  }
+
+  /* FORM */
+  .form-row {
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+
+  .custom-input,
+  .custom-textarea,
+  .custom-select {
+    font-size: 0.92rem !important;
+    padding: 10px 12px !important;
+  }
+
+  .btn-submit {
+    width: 100% !important;
+    padding: 14px 18px !important;
+  }
+
+  /* ALERT CARDS */
+  .alerts-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .alert-card {
+    border-radius: 18px !important;
+  }
+
+  .card-image-wrap {
+    height: 180px !important;
+  }
+
+  .alert-detail-card .card-image-wrap {
+    height: 220px !important;
+  }
+
+  /* DROPZONE */
+  .file-drop-zone {
+    padding: 16px 12px !important;
+  }
+
+  .file-drop-content {
+    font-size: 0.82rem !important;
+  }
+
+  /* META */
+  .activity-meta,
+  .module-meta,
+  .protocol-meta,
+  .questionnaire-meta {
+    flex-direction: column !important;
+    gap: 6px !important;
+  }
+}

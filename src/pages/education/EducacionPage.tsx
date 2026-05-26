@@ -1,5 +1,6 @@
 import { IonContent, IonPage } from '@ionic/react';
-import { Navbar, EducationCard, Advice, Footer } from '../../components';
+import { Navbar, EducationCard, Advice, Footer, EducationPanel } from '../../components';
+import { useAuth } from '../../context/AuthContext';
 import img_01 from '../../assets/questions/img_01.jpg';
 import vpn from '../../assets/education/vpn.jpg';
 import pishing from '../../assets/education/pishing.png';
@@ -7,6 +8,9 @@ import huella from '../../assets/education/huella.png';
 import './EducationPage.css';
 
 export const EducationPage: React.FC = () => {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
+
   return (
     <IonPage>
       <Navbar />
@@ -19,6 +23,12 @@ export const EducationPage: React.FC = () => {
           </header>
 
           <Advice />
+
+          {isAdmin && (
+            <section className="admin-section" style={{ marginBottom: 24 }}>
+              <EducationPanel />
+            </section>
+          )}
 
           <section className="modules-section">
             <h2>MÓDULOS EDUCATIVOS DISPONIBLES</h2>

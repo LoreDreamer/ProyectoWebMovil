@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
 import { IonContent, IonPage, IonIcon } from '@ionic/react';
-import { Navbar, Footer } from '../../components';
+import { Navbar, Footer, ProtocolsPanel } from '../../components';
+import { useAuth } from '../../context/AuthContext';
 import { useEffect, useState } from 'react';
 import { folderOutline, calendarOutline, clipboardOutline } from 'ionicons/icons';
 import './ProtocolsPage.css';
@@ -14,7 +15,8 @@ type Protocolo = {
 };
 
 export const ProtocolsPage: React.FC = () => {
-
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
   const [protocolos, setProtocolos] = useState<Protocolo[]>([]);
 
   const cargarProtocolos = () => {
@@ -55,6 +57,12 @@ export const ProtocolsPage: React.FC = () => {
               <p>Documentación oficial publicada por el equipo TIC.</p>
             </div>
           </header>
+
+          {isAdmin && (
+            <section style={{ marginBottom: 24 }}>
+              <ProtocolsPanel />
+            </section>
+          )}
 
           <section className="protocolos-grid">
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import { IonContent, IonPage } from '@ionic/react';
-import { Navbar, QuestionnaireCard, Footer } from '../../components';
+import { Navbar, QuestionnaireCard, Footer, QuestionnairesPanel } from '../../components';
+import { useAuth } from '../../context/AuthContext';
 import './QuestionnairePage.css';
 
 // Importa tus imágenes aquí
@@ -31,12 +32,21 @@ const disponiblesData = [
 ];
 
 export const QuestionnairePage: React.FC = () => {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
+
   return (
     <IonPage>
       <Navbar />
       <IonContent fullscreen className="cuestionarios-content">
         <div className="cuestionarios-shell">
           
+          {isAdmin && (
+            <section style={{ marginBottom: 24 }}>
+              <QuestionnairesPanel />
+            </section>
+          )}
+
           <header>
             <h1 className="resumen-title">Resumen de cuestionarios</h1>
             <p className="resumen-subtitle">Evalúa tus conocimientos en distintos ámbitos de la ciberseguridad municipal.</p>

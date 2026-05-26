@@ -16,3 +16,8 @@ export { EducationCard } from './education/EducationCard';
 export { UserRow } from './admin/UserRow';
 export { AdminFormBox } from './admin/AdminFormBox';
 export { StatCardAdmin } from './admin/StatCardAdmin';
+export { EducationPanel } from './adminPanel/educationPanel';
+export { ProtocolsPanel } from './adminPanel/protocolsPanel';
+export { AlertsPanel } from './adminPanel/alertsPanel';
+export { QuestionnairesPanel } from './adminPanel/questionnairesPanel';
+export { ActivityPanel } from './adminPanel/activityPanel';

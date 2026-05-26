@@ -1,0 +1,220 @@
+.questionnaires-admin-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.panel-form-section,
+.panel-list-section {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.panel-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.panel-section-header h2 {
+  margin: 0 0 4px 0;
+  color: #333;
+}
+
+.panel-section-header p {
+  margin: 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.questionnaires-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.questionnaire-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background: #fafafa;
+}
+
+.questionnaire-info h4 {
+  margin: 0 0 8px 0;
+  color: #222;
+}
+
+.questionnaire-info p {
+  margin: 0 0 8px 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.questionnaire-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 0.8rem;
+  color: #888;
+}
+
+.file-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #e9ecef;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.file-drop-zone {
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+  cursor: pointer;
+  background: #f8f9fa;
+}
+
+.file-drop-zone:hover {
+  border-color: #007bff;
+  background: #e9f2ff;
+}
+
+.file-drop-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.risk-badge {
+  padding: 2px 8px;
+  border-radius: 4px;
+  color: white;
+  font-weight: 500;
+}
+
+.questionnaire-actions {
+   display: flex;
+   gap: 8px;
+}
+
+.delete-btn {
+   color: #dc3545;
+   background: transparent;
+   border: none;
+   padding: 8px 16px;
+   border-radius: 6px;
+   font-weight: 500;
+   cursor: pointer;
+   transition: all 0.2s ease;
+   display: flex;
+   align-items: center;
+   gap: 4px;
+}
+
+.delete-btn:hover {
+   background: rgba(220, 53, 69, 0.1);
+   color: #c82333;
+   transform: translateY(-1px);
+}
+
+.delete-btn:active {
+   transform: translateY(0);
+}
+
+.cancel-edit-btn {
+   margin-left: auto;
+   background: transparent;
+   border: none;
+   padding: 8px 16px;
+   border-radius: 6px;
+   color: #6c757d;
+   font-weight: 500;
+   cursor: pointer;
+   transition: all 0.2s ease;
+   display: flex;
+   align-items: center;
+   gap: 4px;
+}
+
+.cancel-edit-btn:hover {
+   background: #f8f9fa;
+   color: #495057;
+   transform: translateY(-1px);
+}
+
+.cancel-edit-btn:active {
+   transform: translateY(0);
+}
+
+.btn-submit {
+   background: linear-gradient(135deg, #007bff, #0056b3);
+   color: white;
+   border: none;
+   padding: 12px 28px;
+   border-radius: 8px;
+   font-weight: 600;
+   cursor: pointer;
+   transition: all 0.3s ease;
+   box-shadow: 0 4px 6px rgba(0, 123, 255, 0.3);
+   letter-spacing: 0.5px;
+   font-size: 0.95rem;
+}
+
+.btn-submit:hover {
+   background: linear-gradient(135deg, #0056b3, #004085);
+   transform: translateY(-2px);
+   box-shadow: 0 6px 8px rgba(0, 123, 255, 0.4);
+}
+
+.btn-submit:active {
+   transform: translateY(0);
+   box-shadow: 0 3px 4px rgba(0, 123, 255, 0.3);
+}
+
+.btn-submit:disabled {
+   background: linear-gradient(135deg, #cccccc, #bbbbbb);
+   color: #666666;
+   cursor: not-allowed;
+   transform: none;
+   box-shadow: none;
+}
+
+/* Input styles */
+.custom-input,
+.custom-textarea,
+.custom-select {
+   width: 100%;
+   padding: 12px 16px;
+   border: 2px solid #e0e0e0;
+   border-radius: 8px;
+   font-size: 0.95rem;
+   background: white;
+   color: #333;
+   transition: all 0.3s ease;
+   box-sizing: border-box;
+}
+
+.custom-input:focus,
+.custom-textarea:focus,
+.custom-select:focus {
+   outline: none;
+   border-color: #007bff;
+   box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+}
+
+.custom-input::placeholder,
+.custom-textarea::placeholder {
+   color: #aaa;
+}

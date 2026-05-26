@@ -6,7 +6,7 @@ import {
   mailOutline,
   checkmarkCircleOutline
 } from 'ionicons/icons';
-import { StatCardAdmin, Navbar, UserRow, AdminFormBox, Footer } from '../../components';
+import { StatCardAdmin, Navbar, UserRow, Footer, ActivityPanel } from '../../components';
 import './AdminPage.css';
 
 export const AdminPage: React.FC = () => {
@@ -35,21 +35,11 @@ export const AdminPage: React.FC = () => {
             <StatCardAdmin icon={mailOutline} title="Denuncias Recibidas" value="27" label="+3 Sin Atender" />
             <StatCardAdmin icon={checkmarkCircleOutline} title="Protocolos Publicados" value="27" label="2 Nuevos" />
           </div>
-
           <UserRow usuarios={usuariosEjemplo} />
 
-          <div className="forms-container-grid">
-            <AdminFormBox
-              type="actividad"
-              title="Publicar Actividad"
-              subtitle="Comunica un evento, capacitación o noticia."
-            />
-            <AdminFormBox
-              type="protocolo"
-              title="Publicar Protocolo"
-              subtitle="Publica nuevos documentos."
-            />
-          </div>
+            <div className="forms-container-grid">
+              <ActivityPanel />
+            </div>
 
         </div>
         <Footer />
