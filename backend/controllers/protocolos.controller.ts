@@ -1,4 +1,15 @@
-let protocolos = [
+import { Request, Response } from 'express';
+
+// Definimos la estructura exacta de un Protocolo
+interface Protocolo {
+  id: number;
+  titulo: string;
+  descripcion: string;
+  fecha: string;
+  categoria: string;
+}
+
+let protocolos: Protocolo[] = [
   {
     id: 1,
     titulo: "Protocolo de teletrabajo seguro",
@@ -23,28 +34,29 @@ let protocolos = [
 ];
 
 // GET
-const getProtocolos = (req, res) => {
-  res.json(protocolos);
+export const getProtocolos = (req: Request, res: Response) => {
+  return res.json(protocolos);
 };
 
 // POST
-const createProtocolo = (req, res) => {
+export const createProtocolo = (req: Request, res: Response) => {
   const { titulo, descripcion, categoria = "General" } = req.body;
 
-  const nuevo = {
+  // Validamos campos mínimos obligatorios por seguridad
+  if (!titulo || !descripcion) {
+    return res.status(400).json({ error: "Título y descripción son obligatorios" });
+  }
+
+  const nuevo: Protocolo = {
     id: protocolos.length + 1,
     titulo,
     descripcion,
     categoria,
-    fecha: new Date().toLocaleDateString()
+    fecha: new Date().toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' }) 
+    // Usamos 'es-CL' o un formato manual para mantener el estilo "dd mmm aaaa" que traías
   };
 
   protocolos.push(nuevo);
 
-  res.status(201).json(nuevo);
-};
-
-module.exports = {
-  getProtocolos,
-  createProtocolo
+  return res.status(201).json(nuevo);
 };

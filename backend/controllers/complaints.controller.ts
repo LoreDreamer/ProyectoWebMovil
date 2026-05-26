@@ -1,4 +1,19 @@
-let listaDenuncias = [
+import { Request, Response } from 'express';
+
+// Definimos la estructura exacta de una Denuncia
+interface Denuncia {
+  id: number;
+  nombre: string;
+  correo: string;
+  tipoIncidente: string;
+  fechaIncidente: string;
+  descripcion: string;
+  archivoAdjunto: string;
+  rutaArchivo: string | null;
+  fechaRegistro: string;
+}
+
+let listaDenuncias: Denuncia[] = [
   {
     id: 1,
     nombre: "Juan Pérez",
@@ -12,15 +27,15 @@ let listaDenuncias = [
   }
 ];
 
-const obtenerDenuncias = (req, res) => {
+export const obtenerDenuncias = (req: Request, res: Response) => {
   try {
-    res.status(200).json(listaDenuncias);
+    return res.status(200).json(listaDenuncias);
   } catch (error) {
-    res.status(500).json({ error: "Error al obtener las denuncias" });
+    return res.status(500).json({ error: "Error al obtener las denuncias" });
   }
 };
 
-const crearDenuncia = (req, res) => {
+export const crearDenuncia = (req: Request, res: Response) => {
   try {
     // Al usar multer, los textos llegan en req.body
     const { nombre, correo, tipoIncidente, fechaIncidente, descripcion } = req.body;
@@ -29,15 +44,15 @@ const crearDenuncia = (req, res) => {
       return res.status(400).json({ error: "Faltan campos obligatorios" });
     }
 
-    // 🌟 Estructura de guardado real y opcional
-    const nuevaDenuncia = {
+    // Estructura de guardado real y opcional
+    const nuevaDenuncia: Denuncia = {
       id: listaDenuncias.length + 1,
       nombre,
       correo,
       tipoIncidente,
       fechaIncidente,
       descripcion,
-      // Si el usuario subió un archivo, guardamos su nombre original y su ruta en el servidor
+      // req.file viene tipado gracias a los tipos globales de multer en node
       archivoAdjunto: req.file ? req.file.originalname : "Ninguno",
       rutaArchivo: req.file ? `/uploads/${req.file.filename}` : null,
       fechaRegistro: new Date().toISOString().split('T')[0]
@@ -46,14 +61,9 @@ const crearDenuncia = (req, res) => {
     listaDenuncias.push(nuevaDenuncia);
     console.log("📥 ¡Denuncia con archivo físico guardada con éxito!:", nuevaDenuncia);
 
-    res.status(201).json(nuevaDenuncia);
+    return res.status(201).json(nuevaDenuncia);
   } catch (error) {
     console.error("Error interno en el controlador:", error);
-    res.status(500).json({ error: "Error interno al guardar la denuncia" });
+    return res.status(500).json({ error: "Error interno al guardar la denuncia" });
   }
-};
-
-module.exports = {
-  obtenerDenuncias,
-  crearDenuncia
 };
