@@ -21,17 +21,29 @@ interface AlertImage {
   id: string;
   name: string;
   previewUrl: string;
+  url?: string;
+  path?: string;
+  type?: string;
+  size?: number | null;
   order: number;
+  file?: File;
 }
 
 interface Alert {
-  id: number;
+  id: string;
   title: string;
+  titulo?: string;
   description: string;
+  resumen?: string;
+  cuerpo?: string;
   image: string;
+  imagen_url?: string;
   coverName?: string;
+  imagen_nombre?: string;
   images?: AlertImage[];
+  imagenes?: AlertImage[];
   createdAt: string;
+  fecha?: string;
   publicado_por?: string;
   autorNombre?: string;
   autorCorreo?: string;
@@ -50,6 +62,7 @@ export const AlertsPanel: React.FC = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
 
+  const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState('');
   const [coverName, setCoverName] = useState('');
   const [removeCover, setRemoveCover] = useState(false);
@@ -59,8 +72,37 @@ export const AlertsPanel: React.FC = () => {
 
   const coverInputRef = useRef<HTMLInputElement | null>(null);
   const alertImagesInputRef = useRef<HTMLInputElement | null>(null);
+  const alertImagesRef = useRef<AlertImage[]>([]);
+  const coverFileRef = useRef<File | null>(null);
+  const coverPreviewRef = useRef('');
 
   const isAdmin = user?.role === 'admin';
+
+  useEffect(() => {
+    alertImagesRef.current = alertImages;
+  }, [alertImages]);
+
+  useEffect(() => {
+    coverFileRef.current = coverFile;
+    coverPreviewRef.current = coverPreview;
+  }, [coverFile, coverPreview]);
+
+  useEffect(() => {
+    return () => {
+      alertImagesRef.current.forEach((image) => {
+        if (image.file && image.previewUrl.startsWith('blob:')) {
+          URL.revokeObjectURL(image.previewUrl);
+        }
+      });
+
+      if (
+        coverFileRef.current &&
+        coverPreviewRef.current.startsWith('blob:')
+      ) {
+        URL.revokeObjectURL(coverPreviewRef.current);
+      }
+    };
+  }, []);
 
   const getAuthHeaders = (): Record<string, string> | undefined => {
     if (!token) return undefined;
@@ -70,28 +112,22 @@ export const AlertsPanel: React.FC = () => {
     };
   };
 
-  const getJsonHeaders = (): Record<string, string> => {
-    if (!token) {
-      return {
-        'Content-Type': 'application/json'
-      };
+  const buildFileUrl = (url?: string) => {
+    if (!url) return '';
+
+    if (
+      url.startsWith('http') ||
+      url.startsWith('blob:') ||
+      url.startsWith('data:')
+    ) {
+      return url;
     }
 
-    return {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`
-    };
-  };
+    if (url.startsWith('/')) {
+      return `${API_URL}${url}`;
+    }
 
-  const readImageAsDataUrl = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = () => reject(new Error('No se pudo leer la imagen'));
-
-      reader.readAsDataURL(file);
-    });
+    return `${API_URL}/${url}`;
   };
 
   const normalizeImageOrder = (images: AlertImage[]) => {
@@ -111,6 +147,36 @@ export const AlertsPanel: React.FC = () => {
     }
   };
 
+  const clearLocalPreviewUrls = () => {
+    alertImages.forEach((image) => {
+      if (image.file && image.previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(image.previewUrl);
+      }
+    });
+
+    if (coverFile && coverPreview.startsWith('blob:')) {
+      URL.revokeObjectURL(coverPreview);
+    }
+  };
+
+  const resetForm = () => {
+    clearLocalPreviewUrls();
+
+    setTitle('');
+    setDescription('');
+
+    setCoverFile(null);
+    setCoverPreview('');
+    setCoverName('');
+    setRemoveCover(false);
+
+    setAlertImages([]);
+    setEditingAlert(null);
+    setViewItem(null);
+
+    resetInputs();
+  };
+
   const loadAlerts = async () => {
     try {
       const response = await fetch(`${API_URL}/api/alerts`, {
@@ -128,7 +194,33 @@ export const AlertsPanel: React.FC = () => {
         Array.isArray(data)
           ? data.map((alert: Alert) => ({
               ...alert,
-              images: normalizeImageOrder(alert.images || [])
+              id: String(alert.id),
+              title: alert.title || alert.titulo || '',
+              description:
+                alert.description ||
+                alert.cuerpo ||
+                alert.resumen ||
+                '',
+              image: alert.image || alert.imagen_url || '',
+              coverName:
+                alert.coverName ||
+                alert.imagen_nombre ||
+                '',
+              images: normalizeImageOrder(
+                (alert.images || alert.imagenes || []).map((image, index) => ({
+                  ...image,
+                  id: image.id || `${index + 1}-${image.previewUrl || image.url}`,
+                  name: image.name || `imagen-${index + 1}`,
+                  previewUrl: buildFileUrl(
+                    image.previewUrl || image.url || image.path || ''
+                  ),
+                  url: image.url || image.previewUrl || image.path || '',
+                  path: image.path || image.url || image.previewUrl || '',
+                  type: image.type || '',
+                  size: image.size || null,
+                  order: index + 1
+                }))
+              )
             }))
           : []
       );
@@ -155,22 +247,7 @@ export const AlertsPanel: React.FC = () => {
     (alert.autorNombre || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const resetForm = () => {
-    setTitle('');
-    setDescription('');
-
-    setCoverPreview('');
-    setCoverName('');
-    setRemoveCover(false);
-
-    setAlertImages([]);
-    setEditingAlert(null);
-    setViewItem(null);
-
-    resetInputs();
-  };
-
-  const handleCoverUpload = async (file?: File) => {
+  const handleCoverUpload = (file?: File) => {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
@@ -178,21 +255,26 @@ export const AlertsPanel: React.FC = () => {
       return;
     }
 
-    try {
-      const previewUrl = await readImageAsDataUrl(file);
-
-      setCoverPreview(previewUrl);
-      setCoverName(file.name);
-      setRemoveCover(false);
-    } catch (error) {
-      console.error('Error al cargar portada:', error);
-      alert('No se pudo cargar la portada.');
+    if (coverFile && coverPreview.startsWith('blob:')) {
+      URL.revokeObjectURL(coverPreview);
     }
+
+    const previewUrl = URL.createObjectURL(file);
+
+    setCoverFile(file);
+    setCoverPreview(previewUrl);
+    setCoverName(file.name);
+    setRemoveCover(false);
   };
 
   const handleRemoveCover = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
 
+    if (coverFile && coverPreview.startsWith('blob:')) {
+      URL.revokeObjectURL(coverPreview);
+    }
+
+    setCoverFile(null);
     setCoverPreview('');
     setCoverName('');
 
@@ -207,7 +289,7 @@ export const AlertsPanel: React.FC = () => {
     }
   };
 
-  const handleAlertImagesUpload = async (filesList?: FileList | null) => {
+  const handleAlertImagesUpload = (filesList?: FileList | null) => {
     const files = Array.from(filesList || []);
 
     if (files.length === 0) return;
@@ -231,30 +313,26 @@ export const AlertsPanel: React.FC = () => {
     }
 
     if (onlyImages.length > availableSlots) {
-      alert(`Solo puedes agregar ${availableSlots} imagen(es) más. El límite total es ${MAX_ALERT_IMAGES}.`);
+      alert(
+        `Solo puedes agregar ${availableSlots} imagen(es) más. El límite total es ${MAX_ALERT_IMAGES}.`
+      );
     }
 
     const filesToAdd = onlyImages.slice(0, availableSlots);
 
-    try {
-      const newImages = await Promise.all(
-        filesToAdd.map(async (file, index) => {
-          const previewUrl = await readImageAsDataUrl(file);
+    const newImages: AlertImage[] = filesToAdd.map((file, index) => ({
+      id: `${Date.now()}-${index}-${file.name}`,
+      name: file.name,
+      previewUrl: URL.createObjectURL(file),
+      url: '',
+      path: '',
+      type: file.type,
+      size: file.size,
+      order: alertImages.length + index + 1,
+      file
+    }));
 
-          return {
-            id: `${Date.now()}-${index}-${file.name}`,
-            name: file.name,
-            previewUrl,
-            order: alertImages.length + index + 1
-          };
-        })
-      );
-
-      setAlertImages((prev) => normalizeImageOrder([...prev, ...newImages]));
-    } catch (error) {
-      console.error('Error al cargar imágenes de alerta:', error);
-      alert('No se pudieron cargar una o más imágenes.');
-    }
+    setAlertImages((prev) => normalizeImageOrder([...prev, ...newImages]));
 
     if (alertImagesInputRef.current) {
       alertImagesInputRef.current.value = '';
@@ -262,9 +340,20 @@ export const AlertsPanel: React.FC = () => {
   };
 
   const removeAlertImage = (imageId: string) => {
-    setAlertImages((prev) =>
-      normalizeImageOrder(prev.filter((image) => image.id !== imageId))
-    );
+    setAlertImages((prev) => {
+      const imageToRemove = prev.find((image) => image.id === imageId);
+
+      if (
+        imageToRemove?.file &&
+        imageToRemove.previewUrl.startsWith('blob:')
+      ) {
+        URL.revokeObjectURL(imageToRemove.previewUrl);
+      }
+
+      return normalizeImageOrder(
+        prev.filter((image) => image.id !== imageId)
+      );
+    });
   };
 
   const moveAlertImage = (imageId: string, direction: 'up' | 'down') => {
@@ -287,6 +376,19 @@ export const AlertsPanel: React.FC = () => {
     });
   };
 
+  const buildImagesPayload = () => {
+    return normalizeImageOrder(alertImages).map((image, index) => ({
+      id: image.id,
+      name: image.name,
+      previewUrl: image.url || image.path || image.previewUrl,
+      url: image.url || image.path || image.previewUrl,
+      path: image.path || image.url || image.previewUrl,
+      type: image.type || '',
+      size: image.size || null,
+      order: index + 1
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -295,21 +397,34 @@ export const AlertsPanel: React.FC = () => {
       return;
     }
 
-    const finalCover = removeCover
-      ? ''
-      : coverPreview || editingAlert?.image || '';
+    if (!token) {
+      alert('Debes iniciar sesión como administrador.');
+      return;
+    }
 
-    const finalCoverName = removeCover
-      ? ''
-      : coverName || editingAlert?.coverName || '';
+    const formData = new FormData();
 
-    const payload = {
-      title: title.trim(),
-      description: description.trim(),
-      image: finalCover,
-      coverName: finalCoverName,
-      images: normalizeImageOrder(alertImages)
-    };
+    formData.append('title', title.trim());
+    formData.append('description', description.trim());
+
+    if (coverFile) {
+      formData.append('portada', coverFile);
+    } else if (editingAlert && !removeCover) {
+      formData.append('image', editingAlert.image || '');
+      formData.append('coverName', coverName || editingAlert.coverName || '');
+    }
+
+    if (editingAlert && removeCover) {
+      formData.append('removeCover', 'true');
+    }
+
+    alertImages.forEach((image) => {
+      if (image.file) {
+        formData.append('imagenes', image.file);
+      }
+    });
+
+    formData.append('images', JSON.stringify(buildImagesPayload()));
 
     try {
       let response: Response;
@@ -317,50 +432,82 @@ export const AlertsPanel: React.FC = () => {
       if (editingAlert) {
         response = await fetch(`${API_URL}/api/alerts/${editingAlert.id}`, {
           method: 'PUT',
-          headers: getJsonHeaders(),
-          body: JSON.stringify(payload)
+          headers: getAuthHeaders(),
+          body: formData
         });
       } else {
         response = await fetch(`${API_URL}/api/alerts`, {
           method: 'POST',
-          headers: getJsonHeaders(),
-          body: JSON.stringify(payload)
+          headers: getAuthHeaders(),
+          body: formData
         });
       }
 
       if (!response.ok) {
-        throw new Error('Error al guardar la alerta');
+        const errorData = await response.json().catch(() => null);
+
+        throw new Error(
+          errorData?.message || 'Error al guardar la alerta'
+        );
       }
 
       resetForm();
       await loadAlerts();
       window.dispatchEvent(new Event('alerts-updated'));
 
-      alert(editingAlert ? 'Alerta actualizada con éxito' : 'Alerta creada con éxito');
-    } catch (error) {
+      alert(
+        editingAlert
+          ? 'Alerta actualizada con éxito'
+          : 'Alerta creada con éxito'
+      );
+    } catch (error: any) {
       console.error('Error al guardar alerta:', error);
-      alert('Error al guardar la alerta');
+      alert(error.message || 'Error al guardar la alerta');
     }
   };
 
   const handleEdit = (alert: Alert) => {
+    clearLocalPreviewUrls();
+    resetInputs();
+
     setEditingAlert(alert);
 
     setTitle(alert.title);
     setDescription(alert.description);
 
-    setCoverPreview(alert.image || '');
+    setCoverFile(null);
+    setCoverPreview(buildFileUrl(alert.image || ''));
     setCoverName(alert.coverName || '');
     setRemoveCover(false);
 
-    setAlertImages(normalizeImageOrder(alert.images || []));
-    setViewItem(null);
+    setAlertImages(
+      normalizeImageOrder(
+        (alert.images || []).map((image, index) => ({
+          ...image,
+          id: image.id || `${index + 1}-${image.previewUrl}`,
+          name: image.name || `imagen-${index + 1}`,
+          previewUrl: buildFileUrl(
+            image.previewUrl || image.url || image.path || ''
+          ),
+          url: image.url || image.previewUrl || image.path || '',
+          path: image.path || image.url || image.previewUrl || '',
+          type: image.type || '',
+          size: image.size || null,
+          order: index + 1
+        }))
+      )
+    );
 
-    resetInputs();
+    setViewItem(null);
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     if (!window.confirm('¿Eliminar esta alerta?')) return;
+
+    if (!token) {
+      alert('Debes iniciar sesión como administrador.');
+      return;
+    }
 
     try {
       const response = await fetch(`${API_URL}/api/alerts/${id}`, {
@@ -369,7 +516,11 @@ export const AlertsPanel: React.FC = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Error al eliminar la alerta');
+        const errorData = await response.json().catch(() => null);
+
+        throw new Error(
+          errorData?.message || 'Error al eliminar la alerta'
+        );
       }
 
       await loadAlerts();
@@ -380,9 +531,9 @@ export const AlertsPanel: React.FC = () => {
       }
 
       alert('Alerta eliminada');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error al eliminar alerta:', error);
-      alert('Error al eliminar');
+      alert(error.message || 'Error al eliminar');
     }
   };
 
@@ -404,7 +555,8 @@ export const AlertsPanel: React.FC = () => {
             <div className="header-text-container">
               <h2>{editingAlert ? 'Editar Alerta' : 'Nueva Alerta'}</h2>
               <p>
-                La alerta quedará publicada automáticamente por {user?.nombre_completo || 'el administrador'}.
+                La alerta quedará publicada automáticamente por{' '}
+                {user?.nombre_completo || 'el administrador'}.
               </p>
             </div>
 
@@ -447,7 +599,9 @@ export const AlertsPanel: React.FC = () => {
               <label>Portada</label>
 
               <div
-                className={`file-drop-zone attachment-zone ${removeCover ? 'attachment-zone-removed' : ''}`}
+                className={`file-drop-zone attachment-zone ${
+                  removeCover ? 'attachment-zone-removed' : ''
+                }`}
                 onClick={() => coverInputRef.current?.click()}
                 onDrop={(e) => {
                   e.preventDefault();
@@ -489,13 +643,15 @@ export const AlertsPanel: React.FC = () => {
 
               {!removeCover && coverPreview && (
                 <div className="image-preview-box">
-                  <img src={coverPreview} alt="Vista previa de portada" />
+                  <img src={buildFileUrl(coverPreview)} alt="Vista previa de portada" />
                 </div>
               )}
             </div>
 
             <div className="form-group">
-              <label>Imágenes de la alerta ({alertImages.length}/{MAX_ALERT_IMAGES})</label>
+              <label>
+                Imágenes de la alerta ({alertImages.length}/{MAX_ALERT_IMAGES})
+              </label>
 
               {alertImages.length < MAX_ALERT_IMAGES ? (
                 <div
@@ -511,7 +667,8 @@ export const AlertsPanel: React.FC = () => {
                     <IonIcon icon={cloudUploadOutline} />
 
                     <span>
-                      Puedes agregar {MAX_ALERT_IMAGES - alertImages.length} imagen(es) más
+                      Puedes agregar {MAX_ALERT_IMAGES - alertImages.length}{' '}
+                      imagen(es) más
                     </span>
                   </div>
 
@@ -526,7 +683,8 @@ export const AlertsPanel: React.FC = () => {
                 </div>
               ) : (
                 <div className="images-limit-message">
-                  Ya alcanzaste el límite de 10 imágenes. Elimina una imagen para poder adjuntar otra.
+                  Ya alcanzaste el límite de 10 imágenes. Elimina una imagen
+                  para poder adjuntar otra.
                 </div>
               )}
 
@@ -535,7 +693,10 @@ export const AlertsPanel: React.FC = () => {
                   {alertImages.map((image, index) => (
                     <div key={image.id} className="ordered-image-item">
                       <div className="ordered-image-preview-wrap">
-                        <img src={image.previewUrl} alt={`Imagen ${index + 1}`} />
+                        <img
+                          src={buildFileUrl(image.previewUrl)}
+                          alt={`Imagen ${index + 1}`}
+                        />
 
                         <span className="ordered-image-number">
                           {index + 1}
@@ -622,7 +783,7 @@ export const AlertsPanel: React.FC = () => {
               <article key={alert.id} className="alert-card">
                 <div className="card-image-wrap">
                   {alert.image ? (
-                    <img src={alert.image} alt={alert.title} />
+                    <img src={buildFileUrl(alert.image)} alt={alert.title} />
                   ) : (
                     <div className="alert-image-placeholder">
                       Sin portada
@@ -635,7 +796,10 @@ export const AlertsPanel: React.FC = () => {
 
                 <div className="card-meta">
                   <span>{alert.createdAt}</span>
-                  <span>Publicado por: {alert.autorNombre || 'Municipalidad'}</span>
+                  <span>
+                    Publicado por:{' '}
+                    {alert.autorNombre || 'Municipalidad'}
+                  </span>
                   <span>{alert.images?.length || 0} imagen(es)</span>
                 </div>
 
@@ -680,7 +844,7 @@ export const AlertsPanel: React.FC = () => {
             <div className="alert-detail-card">
               <div className="card-image-wrap">
                 {viewItem.image ? (
-                  <img src={viewItem.image} alt={viewItem.title} />
+                  <img src={buildFileUrl(viewItem.image)} alt={viewItem.title} />
                 ) : (
                   <div className="alert-image-placeholder">
                     Sin portada
@@ -693,7 +857,10 @@ export const AlertsPanel: React.FC = () => {
 
               <div className="card-meta">
                 <span>{viewItem.createdAt}</span>
-                <span>Publicado por: {viewItem.autorNombre || 'Municipalidad'}</span>
+                <span>
+                  Publicado por:{' '}
+                  {viewItem.autorNombre || 'Municipalidad'}
+                </span>
                 <span>{viewItem.images?.length || 0} imagen(es)</span>
               </div>
 
@@ -701,7 +868,10 @@ export const AlertsPanel: React.FC = () => {
                 <div className="alert-detail-gallery">
                   {viewItem.images.map((image, index) => (
                     <div key={image.id} className="alert-detail-gallery-item">
-                      <img src={image.previewUrl} alt={`Imagen ${index + 1}`} />
+                      <img
+                        src={buildFileUrl(image.previewUrl)}
+                        alt={`Imagen ${index + 1}`}
+                      />
                       <span>{index + 1}</span>
                     </div>
                   ))}

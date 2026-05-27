@@ -2,6 +2,14 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { JWT_SECRET } from '../config/jwt.config';
 
+interface TokenPayload {
+  id: string;
+  email: string;
+  role: 'admin' | 'user';
+  iat?: number;
+  exp?: number;
+}
+
 export const authenticateToken = (
   req: Request,
   res: Response,
@@ -16,16 +24,21 @@ export const authenticateToken = (
     });
   }
 
-  jwt.verify(token, JWT_SECRET, (err, user) => {
-    if (err) {
-      return res.status(403).json({
-        message: 'Token inválido'
-      });
-    }
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET) as TokenPayload;
 
-    (req as any).user = user;
+    (req as any).user = {
+      id: decoded.id,
+      email: decoded.email,
+      role: decoded.role
+    };
+
     next();
-  });
+  } catch (error) {
+    return res.status(403).json({
+      message: 'Token inválido o expirado'
+    });
+  }
 };
 
 export const requireAdmin = (

@@ -493,6 +493,66 @@ img {
 }
 
 @media (max-width: 767px) {
+
+  .activities-dashboard-section {
+    margin: 0 0 24px !important;
+    padding: 18px !important;
+    border-radius: 20px !important;
+  }
+
+  .activities-dashboard-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+
+  .activities-dashboard-header h2 {
+    font-size: 1.2rem !important;
+    line-height: 1.2 !important;
+  }
+
+  .activities-dashboard-header p {
+    font-size: 0.9rem !important;
+    line-height: 1.45 !important;
+  }
+
+  .activities-counter {
+    width: fit-content !important;
+    font-size: 0.78rem !important;
+  }
+
+  .activities-dashboard-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .activity-dashboard-card {
+    padding: 14px !important;
+    border-radius: 16px !important;
+  }
+
+  .activity-dashboard-icon {
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 12px !important;
+  }
+
+  .activity-dashboard-icon ion-icon {
+    font-size: 22px !important;
+  }
+
+  .activity-dashboard-info h3 {
+    font-size: 0.95rem !important;
+  }
+
+  .activity-dashboard-info p {
+    font-size: 0.82rem !important;
+  }
+
+  .activity-dashboard-info span {
+    font-size: 0.72rem !important;
+  }
+  
   .inicio-content-page .central-container {
     padding: 22px 16px !important;
   }
@@ -741,6 +801,38 @@ img {
     font-size: 0.82rem !important;
   }
 
+  .complaints-files-list {
+    gap: 8px !important;
+  }
+
+  .complaints-file-item {
+    grid-template-columns: 46px 1fr !important;
+    gap: 9px !important;
+    padding: 8px !important;
+  }
+
+  .complaints-file-preview {
+    width: 46px !important;
+    height: 46px !important;
+    border-radius: 9px !important;
+  }
+
+  .complaints-file-info strong {
+    font-size: 0.78rem !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+  }
+
+  .complaints-file-info span {
+    font-size: 0.72rem !important;
+  }
+
+  .complaints-file-item-remove {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    padding: 8px 10px !important;
+  }
+
   .complaints-form-footer {
     flex-direction: column !important;
     align-items: stretch !important;
@@ -889,6 +981,53 @@ img {
 /* =============================== */
 
 @media (max-width: 767px) {
+
+  .protocolo-card-header {
+    margin-bottom: 18px !important;
+  }
+
+  .badge-pdf {
+    padding: 7px 12px !important;
+    font-size: 0.72rem !important;
+  }
+
+  .protocolo-card-meta {
+    gap: 10px !important;
+  }
+
+  .meta-item {
+    width: 100% !important;
+    font-size: 0.84rem !important;
+  }
+
+  .protocolo-card-body h2 {
+    font-size: 1.2rem !important;
+  }
+
+  .protocolo-card-body p {
+    font-size: 0.9rem !important;
+  }
+
+  .protocolo-files-preview {
+    gap: 8px !important;
+    margin-bottom: 18px !important;
+  }
+
+  .protocolo-file-chip {
+    padding: 9px 10px !important;
+    font-size: 0.78rem !important;
+  }
+
+  .protocolo-card-actions {
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+
+  .btn-view-pdf,
+  .btn-download {
+    width: 100% !important;
+  }
+
   .protocolos-shell {
     min-height: auto !important;
     padding: 22px 16px !important;
@@ -1122,6 +1261,47 @@ img {
 /* =============================== */
 
 @media (max-width: 767px) {
+
+  .protocol-file-item {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    padding: 12px !important;
+  }
+
+  .protocol-file-main {
+    width: 100% !important;
+  }
+
+  .protocol-file-info strong {
+    white-space: normal !important;
+    word-break: break-word !important;
+    font-size: 0.82rem !important;
+  }
+
+  .protocol-file-info span {
+    font-size: 0.72rem !important;
+  }
+
+  .protocol-file-actions {
+    width: 100% !important;
+    flex-direction: column !important;
+  }
+
+  .protocol-file-actions ion-button {
+    width: 100% !important;
+    margin: 0 !important;
+  }
+
+  .protocol-file-remove-position {
+    position: static !important;
+    transform: none !important;
+    align-self: flex-end !important;
+  }
+
+  .protocol-file-remove-position:hover {
+    transform: none !important;
+  }
+
   .activity-admin-panel,
   .alerts-admin-panel,
   .education-admin-panel,

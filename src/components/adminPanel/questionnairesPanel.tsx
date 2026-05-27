@@ -19,67 +19,134 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import './questionnairesPanel.css';
 
-interface Questionnaire {
-  id: number;
-  title: string;
-  description: string;
-  risk: 'BAJO' | 'MEDIO' | 'ALTO';
-  createdAt: string;
-  fileUrl?: string;
-  fileName?: string;
-  coverUrl?: string;
-  coverName?: string;
-}
+type RiskValue = 'BAJO' | 'MEDIO' | 'ALTO';
 
-interface ModuleImage {
+interface QuestionnaireImage {
   id: string;
-  file: File;
+  file?: File;
   previewUrl: string;
+  url?: string;
+  path?: string;
   name: string;
+  type?: string;
+  size?: number | null;
   order: number;
 }
 
+interface Questionnaire {
+  id: string;
+
+  title: string;
+  titulo?: string;
+
+  description: string;
+  resumen?: string;
+
+  category?: string;
+
+  risk: RiskValue;
+  riesgo?: string;
+  difficulty?: string;
+
+  questionsCount?: number;
+  questions_count?: number;
+  puntajeMaximo?: number;
+  puntaje_maximo?: number;
+
+  createdAt?: string | null;
+
+  fileUrl?: string;
+  fileName?: string;
+  archivo_url?: string;
+  archivo_nombre?: string;
+  archivo_tipo?: string;
+
+  coverUrl?: string;
+  coverName?: string;
+  cover_img?: string;
+
+  images?: QuestionnaireImage[];
+  imagenes?: string[];
+
+  publicado_por?: string | null;
+}
+
 const API_URL = 'http://localhost:3000';
-const MAX_MODULE_IMAGES = 10;
+const MAX_QUESTIONNAIRE_IMAGES = 10;
+
+const normalizeRiskToUpper = (value?: string): RiskValue => {
+  const normalized = String(value || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+
+  if (normalized === 'alto') return 'ALTO';
+  if (normalized === 'bajo') return 'BAJO';
+
+  return 'MEDIO';
+};
 
 export const QuestionnairesPanel: React.FC = () => {
   const { user, token } = useAuth();
 
   const [questionnaires, setQuestionnaires] = useState<Questionnaire[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [editingQuestionnaire, setEditingQuestionnaire] = useState<Questionnaire | null>(null);
+  const [editingQuestionnaire, setEditingQuestionnaire] =
+    useState<Questionnaire | null>(null);
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [risk, setRisk] = useState<'BAJO' | 'MEDIO' | 'ALTO'>('MEDIO');
+  const [category, setCategory] = useState('General');
+  const [risk, setRisk] = useState<RiskValue>('MEDIO');
+  const [questionsCount, setQuestionsCount] = useState('10');
 
   const [archivo, setArchivo] = useState<File | null>(null);
   const [archivoNombre, setArchivoNombre] = useState('');
   const [removeFile, setRemoveFile] = useState(false);
 
   const [portada, setPortada] = useState<File | null>(null);
-  const [portadaNombre, setPortadaNombre] = useState('');
   const [portadaPreview, setPortadaPreview] = useState('');
+  const [portadaNombre, setPortadaNombre] = useState('');
   const [removeCover, setRemoveCover] = useState(false);
 
-  const [moduleImages, setModuleImages] = useState<ModuleImage[]>([]);
+  const [questionnaireImages, setQuestionnaireImages] = useState<
+    QuestionnaireImage[]
+  >([]);
 
   const portadaInputRef = useRef<HTMLInputElement | null>(null);
   const archivoInputRef = useRef<HTMLInputElement | null>(null);
-  const moduleImagesInputRef = useRef<HTMLInputElement | null>(null);
-  const moduleImagesRef = useRef<ModuleImage[]>([]);
+  const questionnaireImagesInputRef = useRef<HTMLInputElement | null>(null);
+
+  const questionnaireImagesRef = useRef<QuestionnaireImage[]>([]);
+  const portadaRef = useRef<File | null>(null);
+  const portadaPreviewRef = useRef('');
 
   const isAdmin = user?.role === 'admin';
 
   useEffect(() => {
-    moduleImagesRef.current = moduleImages;
-  }, [moduleImages]);
+    questionnaireImagesRef.current = questionnaireImages;
+  }, [questionnaireImages]);
+
+  useEffect(() => {
+    portadaRef.current = portada;
+    portadaPreviewRef.current = portadaPreview;
+  }, [portada, portadaPreview]);
 
   useEffect(() => {
     return () => {
-      moduleImagesRef.current.forEach((img) => {
-        URL.revokeObjectURL(img.previewUrl);
+      questionnaireImagesRef.current.forEach((img) => {
+        if (img.file && img.previewUrl.startsWith('blob:')) {
+          URL.revokeObjectURL(img.previewUrl);
+        }
       });
+
+      if (
+        portadaRef.current &&
+        portadaPreviewRef.current.startsWith('blob:')
+      ) {
+        URL.revokeObjectURL(portadaPreviewRef.current);
+      }
     };
   }, []);
 
@@ -94,43 +161,138 @@ export const QuestionnairesPanel: React.FC = () => {
   const buildFileUrl = (url?: string) => {
     if (!url) return '';
 
-    if (url.startsWith('http')) return url;
+    if (
+      url.startsWith('http') ||
+      url.startsWith('blob:') ||
+      url.startsWith('data:')
+    ) {
+      return url;
+    }
+
     if (url.startsWith('/')) return `${API_URL}${url}`;
 
     return `${API_URL}/${url}`;
   };
 
-  const readImageAsDataUrl = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
+  const normalizeImageOrder = (images: QuestionnaireImage[]) => {
+    return images.map((image, index) => ({
+      ...image,
+      order: index + 1
+    }));
+  };
 
-      reader.onload = () => {
-        resolve(reader.result as string);
-      };
+  const resetInputs = () => {
+    if (portadaInputRef.current) {
+      portadaInputRef.current.value = '';
+    }
 
-      reader.onerror = () => {
-        reject(new Error('No se pudo leer la imagen'));
-      };
+    if (archivoInputRef.current) {
+      archivoInputRef.current.value = '';
+    }
 
-      reader.readAsDataURL(file);
+    if (questionnaireImagesInputRef.current) {
+      questionnaireImagesInputRef.current.value = '';
+    }
+  };
+
+  const clearLocalPreviewUrls = () => {
+    questionnaireImages.forEach((img) => {
+      if (img.file && img.previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(img.previewUrl);
+      }
     });
+
+    if (portada && portadaPreview.startsWith('blob:')) {
+      URL.revokeObjectURL(portadaPreview);
+    }
+  };
+
+  const resetForm = () => {
+    clearLocalPreviewUrls();
+
+    setTitle('');
+    setDescription('');
+    setCategory('General');
+    setRisk('MEDIO');
+    setQuestionsCount('10');
+
+    setArchivo(null);
+    setArchivoNombre('');
+    setRemoveFile(false);
+
+    setPortada(null);
+    setPortadaPreview('');
+    setPortadaNombre('');
+    setRemoveCover(false);
+
+    setQuestionnaireImages([]);
+    setEditingQuestionnaire(null);
+
+    resetInputs();
+  };
+
+  const normalizeQuestionnaireFromApi = (
+    questionnaire: Questionnaire
+  ): Questionnaire => {
+    const normalizedImages = normalizeImageOrder(
+      (questionnaire.images || []).map((img, index) => ({
+        ...img,
+        id: img.id || `${index + 1}-${img.previewUrl || img.url || img.path}`,
+        name: img.name || `imagen-${index + 1}`,
+        previewUrl: buildFileUrl(img.previewUrl || img.url || img.path || ''),
+        url: img.url || img.previewUrl || img.path || '',
+        path: img.path || img.url || img.previewUrl || '',
+        type: img.type || '',
+        size: img.size || null,
+        order: index + 1
+      }))
+    );
+
+    const score =
+      questionnaire.puntajeMaximo ||
+      questionnaire.puntaje_maximo ||
+      questionnaire.questionsCount ||
+      questionnaire.questions_count ||
+      10;
+
+    return {
+      ...questionnaire,
+      id: String(questionnaire.id),
+      title: questionnaire.title || questionnaire.titulo || '',
+      description: questionnaire.description || questionnaire.resumen || '',
+      category: questionnaire.category || 'General',
+      risk: normalizeRiskToUpper(
+        questionnaire.risk ||
+          questionnaire.riesgo ||
+          questionnaire.difficulty
+      ),
+      questionsCount: score,
+      questions_count: score,
+      puntajeMaximo: score,
+      puntaje_maximo: score,
+      coverUrl: questionnaire.coverUrl || questionnaire.cover_img || '',
+      coverName: questionnaire.coverName || '',
+      fileUrl: questionnaire.fileUrl || questionnaire.archivo_url || '',
+      fileName: questionnaire.fileName || questionnaire.archivo_nombre || '',
+      images: normalizedImages
+    };
   };
 
   const loadQuestionnaires = async () => {
-    if (!isAdmin) return;
-
     try {
-      const response = await fetch(`${API_URL}/api/questionnaires`, {
-        method: 'GET',
-        headers: getAuthHeaders()
-      });
+      const response = await fetch(`${API_URL}/api/questionnaires`);
 
       if (!response.ok) {
         throw new Error('No se pudieron cargar los cuestionarios');
       }
 
       const data = await response.json();
-      setQuestionnaires(data);
+
+      setQuestionnaires(
+        Array.isArray(data)
+          ? data.map((item) => normalizeQuestionnaireFromApi(item))
+          : []
+      );
     } catch (error) {
       console.error('Error al cargar cuestionarios:', error);
       setQuestionnaires([]);
@@ -152,88 +314,42 @@ export const QuestionnairesPanel: React.FC = () => {
 
   const filteredQuestionnaires = questionnaires.filter((q) =>
     q.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    q.description.toLowerCase().includes(searchTerm.toLowerCase())
+    q.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (q.category || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    q.risk.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const normalizeImageOrder = (images: ModuleImage[]) => {
-    return images.map((img, index) => ({
-      ...img,
-      order: index + 1
-    }));
-  };
-
-  const resetInputs = () => {
-    if (portadaInputRef.current) {
-      portadaInputRef.current.value = '';
-    }
-
-    if (archivoInputRef.current) {
-      archivoInputRef.current.value = '';
-    }
-
-    if (moduleImagesInputRef.current) {
-      moduleImagesInputRef.current.value = '';
-    }
-  };
-
-  const clearModuleImages = () => {
-    moduleImages.forEach((img) => {
-      URL.revokeObjectURL(img.previewUrl);
-    });
-
-    setModuleImages([]);
-  };
-
-  const resetForm = () => {
-    setTitle('');
-    setDescription('');
-    setRisk('MEDIO');
-
-    setArchivo(null);
-    setArchivoNombre('');
-    setRemoveFile(false);
-
-    setPortada(null);
-    setPortadaNombre('');
-    setPortadaPreview('');
-    setRemoveCover(false);
-
-    setEditingQuestionnaire(null);
-    clearModuleImages();
-    resetInputs();
-  };
-
-  const handleFileChange = async (
-    e: React.ChangeEvent<HTMLInputElement>,
-    type: 'portada' | 'archivo'
-  ) => {
-    const file = e.target.files?.[0];
-
+  const handlePortadaChange = (file?: File) => {
     if (!file) return;
 
-    if (type === 'portada') {
-      if (!file.type.startsWith('image/')) {
-        alert('Solo puedes adjuntar imágenes como portada.');
+    if (!file.type.startsWith('image/')) {
+      alert('La portada debe ser una imagen.');
+      return;
+    }
 
-        if (portadaInputRef.current) {
-          portadaInputRef.current.value = '';
-        }
+    if (portada && portadaPreview.startsWith('blob:')) {
+      URL.revokeObjectURL(portadaPreview);
+    }
 
-        return;
-      }
+    const previewUrl = URL.createObjectURL(file);
 
-      try {
-        const previewUrl = await readImageAsDataUrl(file);
+    setPortada(file);
+    setPortadaNombre(file.name);
+    setPortadaPreview(previewUrl);
+    setRemoveCover(false);
+  };
 
-        setPortada(file);
-        setPortadaNombre(file.name);
-        setPortadaPreview(previewUrl);
-        setRemoveCover(false);
-      } catch (error) {
-        console.error('Error al cargar portada:', error);
-        alert('No se pudo cargar la portada.');
-      }
+  const handleArchivoChange = (file?: File) => {
+    if (!file) return;
 
+    const allowedTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      alert('El archivo debe ser PDF, DOC o DOCX.');
       return;
     }
 
@@ -245,11 +361,15 @@ export const QuestionnairesPanel: React.FC = () => {
   const handleRemovePortada = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
 
-    setPortada(null);
-    setPortadaNombre('');
-    setPortadaPreview('');
+    if (portada && portadaPreview.startsWith('blob:')) {
+      URL.revokeObjectURL(portadaPreview);
+    }
 
-    if (editingQuestionnaire?.coverName || editingQuestionnaire?.coverUrl) {
+    setPortada(null);
+    setPortadaPreview('');
+    setPortadaNombre('');
+
+    if (editingQuestionnaire?.coverUrl) {
       setRemoveCover(true);
     } else {
       setRemoveCover(false);
@@ -266,7 +386,7 @@ export const QuestionnairesPanel: React.FC = () => {
     setArchivo(null);
     setArchivoNombre('');
 
-    if (editingQuestionnaire?.fileName) {
+    if (editingQuestionnaire?.fileUrl) {
       setRemoveFile(true);
     } else {
       setRemoveFile(false);
@@ -277,8 +397,8 @@ export const QuestionnairesPanel: React.FC = () => {
     }
   };
 
-  const handleModuleImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
+  const handleQuestionnaireImagesUpload = (filesList?: FileList | null) => {
+    const files = Array.from(filesList || []);
 
     if (files.length === 0) return;
 
@@ -288,44 +408,51 @@ export const QuestionnairesPanel: React.FC = () => {
       alert('Solo puedes adjuntar imágenes.');
     }
 
-    const availableSlots = MAX_MODULE_IMAGES - moduleImages.length;
+    const availableSlots =
+      MAX_QUESTIONNAIRE_IMAGES - questionnaireImages.length;
 
     if (availableSlots <= 0) {
-      alert(`Solo puedes adjuntar un máximo de ${MAX_MODULE_IMAGES} imágenes.`);
+      alert(
+        `Solo puedes adjuntar un máximo de ${MAX_QUESTIONNAIRE_IMAGES} imágenes.`
+      );
 
-      if (moduleImagesInputRef.current) {
-        moduleImagesInputRef.current.value = '';
+      if (questionnaireImagesInputRef.current) {
+        questionnaireImagesInputRef.current.value = '';
       }
 
       return;
     }
 
     if (onlyImages.length > availableSlots) {
-      alert(`Solo puedes agregar ${availableSlots} imagen(es) más. El límite total es ${MAX_MODULE_IMAGES}.`);
+      alert(`Solo puedes agregar ${availableSlots} imagen(es) más.`);
     }
 
     const filesToAdd = onlyImages.slice(0, availableSlots);
 
-    const newImages: ModuleImage[] = filesToAdd.map((file, index) => ({
+    const newImages: QuestionnaireImage[] = filesToAdd.map((file, index) => ({
       id: `${Date.now()}-${index}-${file.name}`,
       file,
       previewUrl: URL.createObjectURL(file),
       name: file.name,
-      order: moduleImages.length + index + 1
+      type: file.type,
+      size: file.size,
+      order: questionnaireImages.length + index + 1
     }));
 
-    setModuleImages((prev) => normalizeImageOrder([...prev, ...newImages]));
+    setQuestionnaireImages((prev) =>
+      normalizeImageOrder([...prev, ...newImages])
+    );
 
-    if (moduleImagesInputRef.current) {
-      moduleImagesInputRef.current.value = '';
+    if (questionnaireImagesInputRef.current) {
+      questionnaireImagesInputRef.current.value = '';
     }
   };
 
-  const removeModuleImage = (imageId: string) => {
-    setModuleImages((prev) => {
+  const removeQuestionnaireImage = (imageId: string) => {
+    setQuestionnaireImages((prev) => {
       const imageToRemove = prev.find((img) => img.id === imageId);
 
-      if (imageToRemove) {
+      if (imageToRemove?.file && imageToRemove.previewUrl.startsWith('blob:')) {
         URL.revokeObjectURL(imageToRemove.previewUrl);
       }
 
@@ -333,13 +460,18 @@ export const QuestionnairesPanel: React.FC = () => {
     });
   };
 
-  const moveModuleImage = (imageId: string, direction: 'up' | 'down') => {
-    setModuleImages((prev) => {
+  const moveQuestionnaireImage = (
+    imageId: string,
+    direction: 'up' | 'down'
+  ) => {
+    setQuestionnaireImages((prev) => {
       const currentIndex = prev.findIndex((img) => img.id === imageId);
 
       if (currentIndex === -1) return prev;
 
-      const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+      const newIndex = direction === 'up'
+        ? currentIndex - 1
+        : currentIndex + 1;
 
       if (newIndex < 0 || newIndex >= prev.length) return prev;
 
@@ -353,11 +485,36 @@ export const QuestionnairesPanel: React.FC = () => {
     });
   };
 
+  const buildImagesPayload = () => {
+    return normalizeImageOrder(questionnaireImages).map((img, index) => ({
+      id: img.id,
+      name: img.name,
+      previewUrl: img.url || img.path || img.previewUrl,
+      url: img.url || img.path || img.previewUrl,
+      path: img.path || img.url || img.previewUrl,
+      type: img.type || '',
+      size: img.size || null,
+      order: index + 1
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!title.trim() || !description.trim()) {
-      alert('Completa título y descripción');
+      alert('Completa título y descripción.');
+      return;
+    }
+
+    if (!token) {
+      alert('Debes iniciar sesión como administrador.');
+      return;
+    }
+
+    const score = Number(questionsCount);
+
+    if (!Number.isFinite(score) || score <= 0) {
+      alert('El puntaje máximo debe ser un número mayor a 0.');
       return;
     }
 
@@ -365,7 +522,13 @@ export const QuestionnairesPanel: React.FC = () => {
 
     formData.append('title', title.trim());
     formData.append('description', description.trim());
+    formData.append('category', category.trim() || 'General');
     formData.append('risk', risk);
+    formData.append('difficulty', risk);
+    formData.append('questionsCount', String(Math.round(score)));
+    formData.append('questions_count', String(Math.round(score)));
+    formData.append('puntajeMaximo', String(Math.round(score)));
+    formData.append('puntaje_maximo', String(Math.round(score)));
 
     if (archivo) {
       formData.append('archivo', archivo);
@@ -383,29 +546,39 @@ export const QuestionnairesPanel: React.FC = () => {
       formData.append('removeFile', 'true');
     }
 
-    moduleImages.forEach((img) => {
-      formData.append('imagenes', img.file);
+    questionnaireImages.forEach((img) => {
+      if (img.file) {
+        formData.append('imagenes', img.file);
+      }
     });
 
-    formData.append(
-      'imagenesOrden',
-      JSON.stringify(
-        moduleImages.map((img, index) => ({
-          order: index + 1,
-          name: img.name
-        }))
-      )
-    );
+    const orderedImages = buildImagesPayload();
+
+    formData.append('images', JSON.stringify(orderedImages));
+    formData.append('imagenesOrden', JSON.stringify(orderedImages));
+
+    if (editingQuestionnaire && !removeCover && !portada) {
+      formData.append('coverUrl', editingQuestionnaire.coverUrl || '');
+      formData.append('coverName', editingQuestionnaire.coverName || '');
+    }
+
+    if (editingQuestionnaire && !removeFile && !archivo) {
+      formData.append('fileName', editingQuestionnaire.fileName || '');
+      formData.append('fileUrl', editingQuestionnaire.fileUrl || '');
+    }
 
     try {
       let response: Response;
 
       if (editingQuestionnaire) {
-        response = await fetch(`${API_URL}/api/questionnaires/${editingQuestionnaire.id}`, {
-          method: 'PUT',
-          headers: getAuthHeaders(),
-          body: formData
-        });
+        response = await fetch(
+          `${API_URL}/api/questionnaires/${editingQuestionnaire.id}`,
+          {
+            method: 'PUT',
+            headers: getAuthHeaders(),
+            body: formData
+          }
+        );
       } else {
         response = await fetch(`${API_URL}/api/questionnaires`, {
           method: 'POST',
@@ -415,41 +588,74 @@ export const QuestionnairesPanel: React.FC = () => {
       }
 
       if (!response.ok) {
-        throw new Error('Error al guardar el cuestionario');
+        const errorData = await response.json().catch(() => null);
+
+        throw new Error(
+          errorData?.message || 'Error al guardar el cuestionario'
+        );
       }
 
       resetForm();
       await loadQuestionnaires();
       window.dispatchEvent(new Event('questionnaires-updated'));
 
-      alert(editingQuestionnaire ? 'Cuestionario actualizado' : 'Cuestionario creado');
-    } catch (error) {
+      alert(
+        editingQuestionnaire
+          ? 'Cuestionario actualizado correctamente.'
+          : 'Cuestionario creado correctamente.'
+      );
+    } catch (error: any) {
       console.error('Error al guardar cuestionario:', error);
-      alert('Error al guardar el cuestionario');
+      alert(error.message || 'Error al guardar el cuestionario.');
     }
   };
 
   const handleEdit = (questionnaire: Questionnaire) => {
-    setEditingQuestionnaire(questionnaire);
-    setTitle(questionnaire.title);
-    setDescription(questionnaire.description);
-    setRisk(questionnaire.risk);
+    clearLocalPreviewUrls();
+    resetInputs();
+
+    const normalizedQuestionnaire =
+      normalizeQuestionnaireFromApi(questionnaire);
+
+    setEditingQuestionnaire(normalizedQuestionnaire);
+
+    setTitle(normalizedQuestionnaire.title);
+    setDescription(normalizedQuestionnaire.description);
+    setCategory(normalizedQuestionnaire.category || 'General');
+    setRisk(normalizedQuestionnaire.risk);
+    setQuestionsCount(
+      String(
+        normalizedQuestionnaire.puntajeMaximo ||
+          normalizedQuestionnaire.puntaje_maximo ||
+          normalizedQuestionnaire.questionsCount ||
+          normalizedQuestionnaire.questions_count ||
+          10
+      )
+    );
 
     setArchivo(null);
-    setArchivoNombre(questionnaire.fileName || '');
+    setArchivoNombre(normalizedQuestionnaire.fileName || '');
     setRemoveFile(false);
 
     setPortada(null);
-    setPortadaNombre(questionnaire.coverName || '');
-    setPortadaPreview(buildFileUrl(questionnaire.coverUrl));
+    setPortadaPreview(
+      normalizedQuestionnaire.coverUrl
+        ? buildFileUrl(normalizedQuestionnaire.coverUrl)
+        : ''
+    );
+    setPortadaNombre(normalizedQuestionnaire.coverName || '');
     setRemoveCover(false);
 
-    clearModuleImages();
-    resetInputs();
+    setQuestionnaireImages(normalizedQuestionnaire.images || []);
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     if (!window.confirm('¿Eliminar este cuestionario?')) return;
+
+    if (!token) {
+      alert('Debes iniciar sesión como administrador.');
+      return;
+    }
 
     try {
       const response = await fetch(`${API_URL}/api/questionnaires/${id}`, {
@@ -458,16 +664,24 @@ export const QuestionnairesPanel: React.FC = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Error al eliminar el cuestionario');
+        const errorData = await response.json().catch(() => null);
+
+        throw new Error(
+          errorData?.message || 'Error al eliminar el cuestionario'
+        );
       }
 
       await loadQuestionnaires();
       window.dispatchEvent(new Event('questionnaires-updated'));
 
-      alert('Cuestionario eliminado');
-    } catch (error) {
+      if (editingQuestionnaire?.id === id) {
+        resetForm();
+      }
+
+      alert('Cuestionario eliminado correctamente.');
+    } catch (error: any) {
       console.error('Error al eliminar cuestionario:', error);
-      alert('Error al eliminar');
+      alert(error.message || 'Error al eliminar el cuestionario.');
     }
   };
 
@@ -496,8 +710,16 @@ export const QuestionnairesPanel: React.FC = () => {
             </div>
 
             <div className="header-text-container">
-              <h2>{editingQuestionnaire ? 'Editar Cuestionario' : 'Nuevo Cuestionario'}</h2>
-              <p>Crea un cuestionario de evaluación con portada e imágenes ordenadas.</p>
+              <h2>
+                {editingQuestionnaire
+                  ? 'Editar Cuestionario'
+                  : 'Nuevo Cuestionario'}
+              </h2>
+
+              <p>
+                Crea cuestionarios de evaluación con portada, archivo e imágenes
+                ordenadas.
+              </p>
             </div>
 
             {editingQuestionnaire && (
@@ -512,51 +734,86 @@ export const QuestionnairesPanel: React.FC = () => {
           </div>
 
           <form className="admin-form-body" onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label>Título</label>
+            <div className="form-row">
+              <div className="form-group half">
+                <label>Título</label>
 
-              <IonInput
-                placeholder="Título del cuestionario"
-                value={title}
-                onIonChange={(e) => setTitle(e.detail.value || '')}
-                className="custom-input"
-              />
+                <IonInput
+                  placeholder="Ej: Phishing y correo"
+                  value={title}
+                  onIonChange={(e) => setTitle(String(e.detail.value || ''))}
+                  className="custom-input"
+                />
+              </div>
+
+              <div className="form-group half">
+                <label>Riesgo</label>
+
+                <IonSelect
+                  value={risk}
+                  onIonChange={(e) => setRisk(e.detail.value as RiskValue)}
+                  interface="popover"
+                  className="custom-select"
+                >
+                  <IonSelectOption value="BAJO">Bajo</IonSelectOption>
+                  <IonSelectOption value="MEDIO">Medio</IonSelectOption>
+                  <IonSelectOption value="ALTO">Alto</IonSelectOption>
+                </IonSelect>
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group half">
+                <label>Categoría visible</label>
+
+                <IonInput
+                  placeholder="Ej: General"
+                  value={category}
+                  onIonChange={(e) => setCategory(String(e.detail.value || ''))}
+                  className="custom-input"
+                />
+              </div>
+
+              <div className="form-group half">
+                <label>Puntaje máximo</label>
+
+                <IonInput
+                  type="number"
+                  min="1"
+                  placeholder="Ej: 100"
+                  value={questionsCount}
+                  onIonChange={(e) =>
+                    setQuestionsCount(String(e.detail.value || ''))
+                  }
+                  className="custom-input"
+                />
+              </div>
             </div>
 
             <div className="form-group">
               <label>Descripción</label>
 
               <IonTextarea
-                placeholder="Descripción del cuestionario"
-                rows={3}
+                placeholder="Describe el objetivo del cuestionario."
+                rows={4}
                 value={description}
-                onIonChange={(e) => setDescription(e.detail.value || '')}
+                onIonChange={(e) => setDescription(String(e.detail.value || ''))}
                 className="custom-textarea"
               />
-            </div>
-
-            <div className="form-group">
-              <label>Nivel de Riesgo</label>
-
-              <IonSelect
-                value={risk}
-                onIonChange={(e) => setRisk(e.detail.value)}
-                className="custom-select"
-              >
-                <IonSelectOption value="BAJO">Bajo</IonSelectOption>
-                <IonSelectOption value="MEDIO">Medio</IonSelectOption>
-                <IonSelectOption value="ALTO">Alto</IonSelectOption>
-              </IonSelect>
             </div>
 
             <div className="form-group">
               <label>Portada</label>
 
               <div
-                className={`file-drop-zone attachment-zone ${removeCover ? 'attachment-zone-removed' : ''}`}
+                className={`file-drop-zone attachment-zone ${
+                  removeCover ? 'attachment-zone-removed' : ''
+                }`}
                 onClick={() => portadaInputRef.current?.click()}
               >
-                {(portadaPreview || portadaNombre || (!removeCover && (editingQuestionnaire?.coverName || editingQuestionnaire?.coverUrl))) && (
+                {(portadaPreview ||
+                  portadaNombre ||
+                  (!removeCover && editingQuestionnaire?.coverUrl)) && (
                   <button
                     type="button"
                     className="attachment-remove-x"
@@ -584,60 +841,69 @@ export const QuestionnairesPanel: React.FC = () => {
                   type="file"
                   accept="image/*"
                   style={{ display: 'none' }}
-                  onChange={(e) => handleFileChange(e, 'portada')}
+                  onChange={(e) => handlePortadaChange(e.target.files?.[0])}
                 />
               </div>
 
-              {!removeCover && portadaPreview && (
-                <div className="image-preview-box">
-                  <img
-                    src={portadaPreview}
-                    alt="Vista previa de portada"
-                    onError={(e) => {
-                      e.currentTarget.src = 'https://via.placeholder.com/600x250?text=Sin+Portada';
-                    }}
-                  />
+              {portadaPreview && !removeCover && (
+                <div className="image-preview-list">
+                  <div className="image-preview-item">
+                    <img
+                      src={buildFileUrl(portadaPreview)}
+                      alt="Vista previa de portada"
+                    />
+                  </div>
                 </div>
               )}
             </div>
 
             <div className="form-group">
-              <label>Imágenes del módulo ({moduleImages.length}/{MAX_MODULE_IMAGES})</label>
+              <label>
+                Imágenes adicionales ({questionnaireImages.length}/
+                {MAX_QUESTIONNAIRE_IMAGES})
+              </label>
 
-              {moduleImages.length < MAX_MODULE_IMAGES ? (
+              {questionnaireImages.length < MAX_QUESTIONNAIRE_IMAGES ? (
                 <div
                   className="file-drop-zone"
-                  onClick={() => moduleImagesInputRef.current?.click()}
+                  onClick={() => questionnaireImagesInputRef.current?.click()}
                 >
                   <div className="file-drop-content">
                     <IonIcon icon={cloudUploadOutline} />
 
                     <span>
-                      Puedes agregar {MAX_MODULE_IMAGES - moduleImages.length} imagen(es) más
+                      Puedes agregar{' '}
+                      {MAX_QUESTIONNAIRE_IMAGES - questionnaireImages.length}{' '}
+                      imagen(es) más
                     </span>
                   </div>
 
                   <input
-                    ref={moduleImagesInputRef}
+                    ref={questionnaireImagesInputRef}
                     type="file"
                     accept="image/*"
                     multiple
                     style={{ display: 'none' }}
-                    onChange={handleModuleImagesChange}
+                    onChange={(e) =>
+                      handleQuestionnaireImagesUpload(e.target.files)
+                    }
                   />
                 </div>
               ) : (
                 <div className="images-limit-message">
-                  Ya alcanzaste el límite de 10 imágenes. Elimina una imagen para poder adjuntar otra.
+                  Ya alcanzaste el límite de 10 imágenes.
                 </div>
               )}
 
-              {moduleImages.length > 0 && (
+              {questionnaireImages.length > 0 && (
                 <div className="ordered-images-list">
-                  {moduleImages.map((img, index) => (
+                  {questionnaireImages.map((img, index) => (
                     <div key={img.id} className="ordered-image-item">
                       <div className="ordered-image-preview-wrap">
-                        <img src={img.previewUrl} alt={`Imagen ${index + 1}`} />
+                        <img
+                          src={buildFileUrl(img.previewUrl)}
+                          alt={`Imagen ${index + 1}`}
+                        />
 
                         <span className="ordered-image-number">
                           {index + 1}
@@ -656,7 +922,7 @@ export const QuestionnairesPanel: React.FC = () => {
                           disabled={index === 0}
                           onClick={(e) => {
                             e.stopPropagation();
-                            moveModuleImage(img.id, 'up');
+                            moveQuestionnaireImage(img.id, 'up');
                           }}
                         >
                           Subir
@@ -665,10 +931,10 @@ export const QuestionnairesPanel: React.FC = () => {
                         <IonButton
                           fill="clear"
                           size="small"
-                          disabled={index === moduleImages.length - 1}
+                          disabled={index === questionnaireImages.length - 1}
                           onClick={(e) => {
                             e.stopPropagation();
-                            moveModuleImage(img.id, 'down');
+                            moveQuestionnaireImage(img.id, 'down');
                           }}
                         >
                           Bajar
@@ -680,7 +946,7 @@ export const QuestionnairesPanel: React.FC = () => {
                           color="danger"
                           onClick={(e) => {
                             e.stopPropagation();
-                            removeModuleImage(img.id);
+                            removeQuestionnaireImage(img.id);
                           }}
                         >
                           Eliminar
@@ -693,13 +959,16 @@ export const QuestionnairesPanel: React.FC = () => {
             </div>
 
             <div className="form-group">
-              <label>Archivo</label>
+              <label>Archivo adjunto</label>
 
               <div
-                className={`file-drop-zone attachment-zone ${removeFile ? 'attachment-zone-removed' : ''}`}
+                className={`file-drop-zone attachment-zone ${
+                  removeFile ? 'attachment-zone-removed' : ''
+                }`}
                 onClick={() => archivoInputRef.current?.click()}
               >
-                {(archivoNombre || (!removeFile && editingQuestionnaire?.fileName)) && (
+                {(archivoNombre ||
+                  (!removeFile && editingQuestionnaire?.fileName)) && (
                   <button
                     type="button"
                     className="attachment-remove-x"
@@ -711,30 +980,32 @@ export const QuestionnairesPanel: React.FC = () => {
                 )}
 
                 <div className="file-drop-content">
-                  <IonIcon icon={cloudUploadOutline} />
+                  <IonIcon icon={documentOutline} />
 
                   <span>
                     {removeFile
                       ? 'Archivo eliminado'
                       : archivoNombre ||
                         editingQuestionnaire?.fileName ||
-                        'Seleccionar archivo'}
+                        'Seleccionar archivo PDF, DOC o DOCX'}
                   </span>
                 </div>
 
                 <input
                   ref={archivoInputRef}
                   type="file"
-                  accept=".pdf,.doc,.docx"
+                  accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                   style={{ display: 'none' }}
-                  onChange={(e) => handleFileChange(e, 'archivo')}
+                  onChange={(e) => handleArchivoChange(e.target.files?.[0])}
                 />
               </div>
             </div>
 
             <div className="form-footer">
               <button type="submit" className="btn-submit">
-                {editingQuestionnaire ? 'Guardar Cambios' : 'Crear Cuestionario'}
+                {editingQuestionnaire
+                  ? 'Guardar Cambios'
+                  : 'Crear Cuestionario'}
               </button>
             </div>
           </form>
@@ -760,18 +1031,14 @@ export const QuestionnairesPanel: React.FC = () => {
           {filteredQuestionnaires.length === 0 ? (
             <p>No hay cuestionarios disponibles.</p>
           ) : (
-            filteredQuestionnaires.map((q) => (
-              <div key={q.id} className="questionnaire-item">
+            filteredQuestionnaires.map((questionnaire) => (
+              <div key={questionnaire.id} className="questionnaire-item">
                 <div className="questionnaire-info">
                   <div className="questionnaire-cover">
-                    {q.coverUrl ? (
+                    {questionnaire.coverUrl ? (
                       <img
-                        src={buildFileUrl(q.coverUrl)}
-                        alt={`Portada de ${q.title}`}
-                        onError={(e) => {
-                          e.currentTarget.src =
-                            'https://via.placeholder.com/150?text=Sin+Portada';
-                        }}
+                        src={buildFileUrl(questionnaire.coverUrl)}
+                        alt={questionnaire.title}
                       />
                     ) : (
                       <div className="questionnaire-cover-placeholder">
@@ -781,25 +1048,41 @@ export const QuestionnairesPanel: React.FC = () => {
                   </div>
 
                   <div>
-                    <h4>{q.title}</h4>
-                    <p>{q.description}</p>
+                    <h4>{questionnaire.title}</h4>
+                    <p>{questionnaire.description}</p>
 
                     <div className="questionnaire-meta">
                       <span
-                        className="risk-badge"
-                        style={{ backgroundColor: getRiskColor(q.risk) }}
-                      >
-                        {q.risk}
+                        className="risk-dot"
+                        style={{
+                          backgroundColor: getRiskColor(questionnaire.risk)
+                        }}
+                      />
+
+                      <span>Riesgo {questionnaire.risk}</span>
+
+                      <span>
+                        Puntaje máximo:{' '}
+                        {questionnaire.puntajeMaximo ||
+                          questionnaire.puntaje_maximo ||
+                          questionnaire.questionsCount ||
+                          questionnaire.questions_count ||
+                          10}
                       </span>
 
-                      <span>{q.createdAt}</span>
-
-                      {q.fileName && (
-                        <span className="file-indicator">
-                          <IonIcon icon={documentOutline} />
-                          {q.fileName}
+                      {questionnaire.fileName && (
+                        <span>
+                          <IonIcon icon={documentOutline} />{' '}
+                          {questionnaire.fileName}
                         </span>
                       )}
+
+                      {questionnaire.images &&
+                        questionnaire.images.length > 0 && (
+                          <span>
+                            {questionnaire.images.length} imagen(es)
+                          </span>
+                        )}
                     </div>
                   </div>
                 </div>
@@ -808,18 +1091,20 @@ export const QuestionnairesPanel: React.FC = () => {
                   <IonButton
                     fill="clear"
                     size="small"
-                    onClick={() => handleEdit(q)}
+                    onClick={() => handleEdit(questionnaire)}
                   >
                     <IonIcon icon={createOutline} />
+                    Editar
                   </IonButton>
 
                   <IonButton
                     fill="clear"
                     size="small"
-                    onClick={() => handleDelete(q.id)}
+                    onClick={() => handleDelete(questionnaire.id)}
                     className="delete-btn"
                   >
                     <IonIcon icon={trashOutline} />
+                    Eliminar
                   </IonButton>
                 </div>
               </div>

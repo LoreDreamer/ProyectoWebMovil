@@ -1,11 +1,12 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   IonIcon,
   IonButton,
   IonInput,
   IonTextarea,
   IonSelect,
-  IonSelectOption
+  IonSelectOption,
+  IonSearchbar
 } from '@ionic/react';
 import {
   addOutline,
@@ -18,87 +19,218 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import './educationPanel.css';
 
-interface OrderedModuleImage {
+type DifficultyValue = 'facil' | 'medio' | 'dificil';
+type EducationTypeValue = 'Phishing' | 'Seguridad' | 'VPNs' | 'Privacidad';
+
+interface ModuleImage {
   id: string;
-  name: string;
+  file?: File;
   previewUrl: string;
+  url?: string;
+  path?: string;
+  name: string;
   order: number;
 }
 
 interface EducationModule {
-  id: number;
+  id: string;
+
   title: string;
+  titulo?: string;
+
   description: string;
-  tag: string;
-  time: string;
+  resumen?: string;
+
+  body?: string;
+  cuerpo?: string;
+  content?: string;
+
+  category: string;
+  tipo_educacion?: string;
+
+  duration?: string;
+
   level: string;
+  nivel?: DifficultyValue;
+
   image: string;
-  imageName: string;
-  fileName: string;
-  moduleImages: OrderedModuleImage[];
+  cover_img?: string;
+  coverName?: string;
+
+  fileName?: string;
+  fileUrl?: string;
+  archivo_nombre?: string;
+  archivo_url?: string;
+  archivo_tipo?: string;
+
+  images?: ModuleImage[];
+  imagenes?: string[];
+
+  createdAt?: string | null;
 }
 
+const API_URL = 'http://localhost:3000';
 const MAX_MODULE_IMAGES = 10;
 
+const EDUCATION_TYPES: EducationTypeValue[] = [
+  'Phishing',
+  'Seguridad',
+  'VPNs',
+  'Privacidad'
+];
+
+const DIFFICULTY_OPTIONS: Array<{
+  value: DifficultyValue;
+  label: string;
+}> = [
+  { value: 'facil', label: 'Básico' },
+  { value: 'medio', label: 'Intermedio' },
+  { value: 'dificil', label: 'Avanzado' }
+];
+
+const normalizeDifficultyValue = (value?: string): DifficultyValue => {
+  const normalized = String(value || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+
+  if (
+    normalized === 'facil' ||
+    normalized === 'basico' ||
+    normalized === 'basica'
+  ) {
+    return 'facil';
+  }
+
+  if (
+    normalized === 'dificil' ||
+    normalized === 'avanzado' ||
+    normalized === 'avanzada'
+  ) {
+    return 'dificil';
+  }
+
+  return 'medio';
+};
+
+const getDifficultyLabel = (value?: string) => {
+  const difficulty = normalizeDifficultyValue(value);
+
+  if (difficulty === 'facil') return 'Básico';
+  if (difficulty === 'dificil') return 'Avanzado';
+
+  return 'Intermedio';
+};
+
+const normalizeEducationType = (value?: string): EducationTypeValue => {
+  const normalized = String(value || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+
+  if (normalized.includes('phish') || normalized.includes('phis')) {
+    return 'Phishing';
+  }
+
+  if (normalized.includes('vpn')) {
+    return 'VPNs';
+  }
+
+  if (normalized.includes('privacidad')) {
+    return 'Privacidad';
+  }
+
+  return 'Seguridad';
+};
+
 export const EducationPanel: React.FC = () => {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
 
-  const [modules, setModules] = useState<EducationModule[]>([
-    {
-      id: 1,
-      title: '¿Qué es el phishing?',
-      description: 'Aprende a reconocer correos y mensajes fraudulentos.',
-      tag: 'Phishing',
-      time: '12 min',
-      level: 'Básico',
-      image: '',
-      imageName: '',
-      fileName: '',
-      moduleImages: []
-    }
-  ]);
-
+  const [modules, setModules] = useState<EducationModule[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const [editingModule, setEditingModule] = useState<EducationModule | null>(null);
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [tag, setTag] = useState('Phishing');
-  const [time, setTime] = useState('10 min');
-  const [level, setLevel] = useState('Básico');
+  const [body, setBody] = useState('');
+  const [category, setCategory] = useState<EducationTypeValue>('Phishing');
+  const [duration, setDuration] = useState('10 min');
+  const [level, setLevel] = useState<DifficultyValue>('facil');
 
-  const [coverPreview, setCoverPreview] = useState('');
-  const [coverName, setCoverName] = useState('');
+  const [portada, setPortada] = useState<File | null>(null);
+  const [portadaPreview, setPortadaPreview] = useState('');
+  const [portadaNombre, setPortadaNombre] = useState('');
   const [removeCover, setRemoveCover] = useState(false);
 
-  const [attachedFile, setAttachedFile] = useState<File | null>(null);
-  const [attachedFileName, setAttachedFileName] = useState('');
-  const [removeAttachedFile, setRemoveAttachedFile] = useState(false);
+  const [archivo, setArchivo] = useState<File | null>(null);
+  const [archivoNombre, setArchivoNombre] = useState('');
+  const [removeFile, setRemoveFile] = useState(false);
 
-  const [moduleImages, setModuleImages] = useState<OrderedModuleImage[]>([]);
+  const [moduleImages, setModuleImages] = useState<ModuleImage[]>([]);
 
-  const coverInputRef = useRef<HTMLInputElement | null>(null);
-  const attachedFileInputRef = useRef<HTMLInputElement | null>(null);
+  const portadaInputRef = useRef<HTMLInputElement | null>(null);
+  const archivoInputRef = useRef<HTMLInputElement | null>(null);
   const moduleImagesInputRef = useRef<HTMLInputElement | null>(null);
+
+  const moduleImagesRef = useRef<ModuleImage[]>([]);
+  const portadaRef = useRef<File | null>(null);
+  const portadaPreviewRef = useRef('');
 
   const isAdmin = user?.role === 'admin';
 
-  const readImageAsDataUrl = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
+  useEffect(() => {
+    moduleImagesRef.current = moduleImages;
+  }, [moduleImages]);
 
-      reader.onload = () => {
-        resolve(reader.result as string);
-      };
+  useEffect(() => {
+    portadaRef.current = portada;
+    portadaPreviewRef.current = portadaPreview;
+  }, [portada, portadaPreview]);
 
-      reader.onerror = () => {
-        reject(new Error('No se pudo leer la imagen'));
-      };
+  useEffect(() => {
+    return () => {
+      moduleImagesRef.current.forEach((img) => {
+        if (img.file && img.previewUrl.startsWith('blob:')) {
+          URL.revokeObjectURL(img.previewUrl);
+        }
+      });
 
-      reader.readAsDataURL(file);
-    });
+      if (
+        portadaRef.current &&
+        portadaPreviewRef.current.startsWith('blob:')
+      ) {
+        URL.revokeObjectURL(portadaPreviewRef.current);
+      }
+    };
+  }, []);
+
+  const getAuthHeaders = (): Record<string, string> | undefined => {
+    if (!token) return undefined;
+
+    return {
+      Authorization: `Bearer ${token}`
+    };
   };
 
-  const normalizeImageOrder = (images: OrderedModuleImage[]) => {
+  const buildFileUrl = (url?: string) => {
+    if (!url) return '';
+
+    if (
+      url.startsWith('http') ||
+      url.startsWith('blob:') ||
+      url.startsWith('data:')
+    ) {
+      return url;
+    }
+
+    if (url.startsWith('/')) return `${API_URL}${url}`;
+
+    return `${API_URL}/${url}`;
+  };
+
+  const normalizeImageOrder = (images: ModuleImage[]) => {
     return images.map((image, index) => ({
       ...image,
       order: index + 1
@@ -106,12 +238,12 @@ export const EducationPanel: React.FC = () => {
   };
 
   const resetInputs = () => {
-    if (coverInputRef.current) {
-      coverInputRef.current.value = '';
+    if (portadaInputRef.current) {
+      portadaInputRef.current.value = '';
     }
 
-    if (attachedFileInputRef.current) {
-      attachedFileInputRef.current.value = '';
+    if (archivoInputRef.current) {
+      archivoInputRef.current.value = '';
     }
 
     if (moduleImagesInputRef.current) {
@@ -119,20 +251,36 @@ export const EducationPanel: React.FC = () => {
     }
   };
 
+  const clearLocalPreviewUrls = () => {
+    moduleImages.forEach((img) => {
+      if (img.file && img.previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(img.previewUrl);
+      }
+    });
+
+    if (portada && portadaPreview.startsWith('blob:')) {
+      URL.revokeObjectURL(portadaPreview);
+    }
+  };
+
   const resetForm = () => {
+    clearLocalPreviewUrls();
+
     setTitle('');
     setDescription('');
-    setTag('Phishing');
-    setTime('10 min');
-    setLevel('Básico');
+    setBody('');
+    setCategory('Phishing');
+    setDuration('10 min');
+    setLevel('facil');
 
-    setCoverPreview('');
-    setCoverName('');
+    setPortada(null);
+    setPortadaPreview('');
+    setPortadaNombre('');
     setRemoveCover(false);
 
-    setAttachedFile(null);
-    setAttachedFileName('');
-    setRemoveAttachedFile(false);
+    setArchivo(null);
+    setArchivoNombre('');
+    setRemoveFile(false);
 
     setModuleImages([]);
     setEditingModule(null);
@@ -140,36 +288,126 @@ export const EducationPanel: React.FC = () => {
     resetInputs();
   };
 
-  const handleCoverUpload = async (file?: File) => {
-    if (!file) return;
+  const normalizeModuleFromApi = (module: EducationModule): EducationModule => {
+    const normalizedImages = normalizeImageOrder(
+      (module.images || []).map((img, index) => ({
+        ...img,
+        id: img.id || `${index + 1}-${img.previewUrl || img.url || img.path}`,
+        name: img.name || `imagen-${index + 1}`,
+        previewUrl: buildFileUrl(img.previewUrl || img.url || img.path || ''),
+        url: img.url || img.previewUrl || img.path || '',
+        path: img.path || img.url || img.previewUrl || '',
+        order: index + 1
+      }))
+    );
 
-    if (!file.type.startsWith('image/')) {
-      alert('Solo puedes adjuntar imágenes como portada.');
+    return {
+      ...module,
+      id: String(module.id),
+      title: module.title || module.titulo || '',
+      description: module.description || module.resumen || '',
+      body: module.body || module.cuerpo || module.content || '',
+      category: module.category || module.tipo_educacion || 'Seguridad',
+      duration: module.duration || '10 min',
+      level: module.level || getDifficultyLabel(module.nivel),
+      image: module.image || module.cover_img || '',
+      coverName: module.coverName || '',
+      fileName: module.fileName || module.archivo_nombre || '',
+      fileUrl: module.fileUrl || module.archivo_url || '',
+      images: normalizedImages
+    };
+  };
 
-      if (coverInputRef.current) {
-        coverInputRef.current.value = '';
+  const loadModules = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/education`);
+
+      if (!response.ok) {
+        throw new Error('No se pudieron cargar los módulos educativos');
       }
 
-      return;
-    }
+      const data = await response.json();
 
-    try {
-      const previewUrl = await readImageAsDataUrl(file);
-
-      setCoverPreview(previewUrl);
-      setCoverName(file.name);
-      setRemoveCover(false);
+      setModules(
+        Array.isArray(data)
+          ? data.map((module) => normalizeModuleFromApi(module))
+          : []
+      );
     } catch (error) {
-      console.error('Error al cargar portada:', error);
-      alert('No se pudo cargar la portada.');
+      console.error('Error al cargar módulos educativos:', error);
+      setModules([]);
     }
   };
 
-  const handleRemoveCover = (e: React.MouseEvent<HTMLButtonElement>) => {
+  useEffect(() => {
+    if (!isAdmin) return;
+
+    loadModules();
+
+    const handler = () => loadModules();
+    window.addEventListener('education-updated', handler);
+
+    return () => {
+      window.removeEventListener('education-updated', handler);
+    };
+  }, [isAdmin, token]);
+
+  const filteredModules = modules.filter((module) =>
+    module.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    module.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    module.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    getDifficultyLabel(module.nivel || module.level)
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase())
+  );
+
+  const handlePortadaChange = (file?: File) => {
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('La portada debe ser una imagen.');
+      return;
+    }
+
+    if (portada && portadaPreview.startsWith('blob:')) {
+      URL.revokeObjectURL(portadaPreview);
+    }
+
+    setPortada(file);
+    setPortadaNombre(file.name);
+    setPortadaPreview(URL.createObjectURL(file));
+    setRemoveCover(false);
+  };
+
+  const handleArchivoChange = (file?: File) => {
+    if (!file) return;
+
+    const allowedTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      alert('El archivo debe ser PDF, DOC o DOCX.');
+      return;
+    }
+
+    setArchivo(file);
+    setArchivoNombre(file.name);
+    setRemoveFile(false);
+  };
+
+  const handleRemovePortada = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
 
-    setCoverPreview('');
-    setCoverName('');
+    if (portada && portadaPreview.startsWith('blob:')) {
+      URL.revokeObjectURL(portadaPreview);
+    }
+
+    setPortada(null);
+    setPortadaPreview('');
+    setPortadaNombre('');
 
     if (editingModule?.image) {
       setRemoveCover(true);
@@ -177,37 +415,29 @@ export const EducationPanel: React.FC = () => {
       setRemoveCover(false);
     }
 
-    if (coverInputRef.current) {
-      coverInputRef.current.value = '';
+    if (portadaInputRef.current) {
+      portadaInputRef.current.value = '';
     }
   };
 
-  const handleAttachedFileUpload = (file?: File) => {
-    if (!file) return;
-
-    setAttachedFile(file);
-    setAttachedFileName(file.name);
-    setRemoveAttachedFile(false);
-  };
-
-  const handleRemoveAttachedFile = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleRemoveArchivo = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
 
-    setAttachedFile(null);
-    setAttachedFileName('');
+    setArchivo(null);
+    setArchivoNombre('');
 
-    if (editingModule?.fileName) {
-      setRemoveAttachedFile(true);
+    if (editingModule?.fileUrl) {
+      setRemoveFile(true);
     } else {
-      setRemoveAttachedFile(false);
+      setRemoveFile(false);
     }
 
-    if (attachedFileInputRef.current) {
-      attachedFileInputRef.current.value = '';
+    if (archivoInputRef.current) {
+      archivoInputRef.current.value = '';
     }
   };
 
-  const handleModuleImagesUpload = async (filesList?: FileList | null) => {
+  const handleModuleImagesUpload = (filesList?: FileList | null) => {
     const files = Array.from(filesList || []);
 
     if (files.length === 0) return;
@@ -231,30 +461,20 @@ export const EducationPanel: React.FC = () => {
     }
 
     if (onlyImages.length > availableSlots) {
-      alert(`Solo puedes agregar ${availableSlots} imagen(es) más. El límite total es ${MAX_MODULE_IMAGES}.`);
+      alert(`Solo puedes agregar ${availableSlots} imagen(es) más.`);
     }
 
     const filesToAdd = onlyImages.slice(0, availableSlots);
 
-    try {
-      const newImages = await Promise.all(
-        filesToAdd.map(async (file, index) => {
-          const previewUrl = await readImageAsDataUrl(file);
+    const newImages: ModuleImage[] = filesToAdd.map((file, index) => ({
+      id: `${Date.now()}-${index}-${file.name}`,
+      file,
+      previewUrl: URL.createObjectURL(file),
+      name: file.name,
+      order: moduleImages.length + index + 1
+    }));
 
-          return {
-            id: `${Date.now()}-${index}-${file.name}`,
-            name: file.name,
-            previewUrl,
-            order: moduleImages.length + index + 1
-          };
-        })
-      );
-
-      setModuleImages((prev) => normalizeImageOrder([...prev, ...newImages]));
-    } catch (error) {
-      console.error('Error al cargar imágenes del módulo:', error);
-      alert('No se pudieron cargar una o más imágenes.');
-    }
+    setModuleImages((prev) => normalizeImageOrder([...prev, ...newImages]));
 
     if (moduleImagesInputRef.current) {
       moduleImagesInputRef.current.value = '';
@@ -262,18 +482,26 @@ export const EducationPanel: React.FC = () => {
   };
 
   const removeModuleImage = (imageId: string) => {
-    setModuleImages((prev) =>
-      normalizeImageOrder(prev.filter((image) => image.id !== imageId))
-    );
+    setModuleImages((prev) => {
+      const imageToRemove = prev.find((img) => img.id === imageId);
+
+      if (imageToRemove?.file && imageToRemove.previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(imageToRemove.previewUrl);
+      }
+
+      return normalizeImageOrder(prev.filter((img) => img.id !== imageId));
+    });
   };
 
   const moveModuleImage = (imageId: string, direction: 'up' | 'down') => {
     setModuleImages((prev) => {
-      const currentIndex = prev.findIndex((image) => image.id === imageId);
+      const currentIndex = prev.findIndex((img) => img.id === imageId);
 
       if (currentIndex === -1) return prev;
 
-      const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+      const newIndex = direction === 'up'
+        ? currentIndex - 1
+        : currentIndex + 1;
 
       if (newIndex < 0 || newIndex >= prev.length) return prev;
 
@@ -287,92 +515,178 @@ export const EducationPanel: React.FC = () => {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const buildImagesPayload = () => {
+    return normalizeImageOrder(moduleImages).map((img, index) => ({
+      id: img.id,
+      name: img.name,
+      previewUrl: img.url || img.path || img.previewUrl,
+      url: img.url || img.path || img.previewUrl,
+      path: img.path || img.url || img.previewUrl,
+      order: index + 1
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!title.trim() || !description.trim()) {
-      alert('Completa título y descripción');
+      alert('Completa título y descripción.');
       return;
     }
 
-    const finalCover = removeCover
-      ? ''
-      : coverPreview || editingModule?.image || '';
-
-    const finalCoverName = removeCover
-      ? ''
-      : coverName || editingModule?.imageName || '';
-
-    const finalFileName = removeAttachedFile
-      ? ''
-      : attachedFileName || editingModule?.fileName || '';
-
-    if (editingModule) {
-      const updatedModules = modules.map((module) =>
-        module.id === editingModule.id
-          ? {
-              ...module,
-              title: title.trim(),
-              description: description.trim(),
-              tag,
-              time: time.trim(),
-              level,
-              image: finalCover,
-              imageName: finalCoverName,
-              fileName: finalFileName,
-              moduleImages: normalizeImageOrder(moduleImages)
-            }
-          : module
-      );
-
-      setModules(updatedModules);
-      alert('Módulo actualizado con éxito');
-    } else {
-      const newModule: EducationModule = {
-        id: Date.now(),
-        title: title.trim(),
-        description: description.trim(),
-        tag,
-        time: time.trim(),
-        level,
-        image: finalCover,
-        imageName: finalCoverName,
-        fileName: finalFileName,
-        moduleImages: normalizeImageOrder(moduleImages)
-      };
-
-      setModules([newModule, ...modules]);
-      alert('Módulo creado con éxito');
+    if (!token) {
+      alert('Debes iniciar sesión como administrador.');
+      return;
     }
 
-    resetForm();
+    const formData = new FormData();
+
+    formData.append('title', title.trim());
+    formData.append('description', description.trim());
+    formData.append('body', body.trim() || description.trim());
+    formData.append('category', category);
+    formData.append('duration', duration);
+    formData.append('level', level);
+
+    if (portada) {
+      formData.append('portada', portada);
+    }
+
+    if (archivo) {
+      formData.append('archivo', archivo);
+    }
+
+    if (editingModule && removeCover) {
+      formData.append('removeCover', 'true');
+    }
+
+    if (editingModule && removeFile) {
+      formData.append('removeFile', 'true');
+    }
+
+    moduleImages.forEach((img) => {
+      if (img.file) {
+        formData.append('imagenes', img.file);
+      }
+    });
+
+    formData.append('images', JSON.stringify(buildImagesPayload()));
+
+    if (editingModule && !removeCover && !portada) {
+      formData.append('image', editingModule.image || '');
+      formData.append('coverName', editingModule.coverName || '');
+    }
+
+    if (editingModule && !removeFile && !archivo) {
+      formData.append('fileName', editingModule.fileName || '');
+      formData.append('fileUrl', editingModule.fileUrl || '');
+    }
+
+    try {
+      let response: Response;
+
+      if (editingModule) {
+        response = await fetch(`${API_URL}/api/education/${editingModule.id}`, {
+          method: 'PUT',
+          headers: getAuthHeaders(),
+          body: formData
+        });
+      } else {
+        response = await fetch(`${API_URL}/api/education`, {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          body: formData
+        });
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+
+        throw new Error(
+          errorData?.message || 'Error al guardar módulo educativo'
+        );
+      }
+
+      resetForm();
+      await loadModules();
+      window.dispatchEvent(new Event('education-updated'));
+
+      alert(
+        editingModule
+          ? 'Módulo actualizado correctamente.'
+          : 'Módulo creado correctamente.'
+      );
+    } catch (error: any) {
+      console.error('Error al guardar módulo educativo:', error);
+      alert(error.message || 'Error al guardar módulo educativo.');
+    }
   };
 
   const handleEdit = (module: EducationModule) => {
-    setEditingModule(module);
+    clearLocalPreviewUrls();
+    resetInputs();
 
-    setTitle(module.title);
-    setDescription(module.description);
-    setTag(module.tag);
-    setTime(module.time);
-    setLevel(module.level);
+    const normalizedModule = normalizeModuleFromApi(module);
 
-    setCoverPreview(module.image || '');
-    setCoverName(module.imageName || '');
+    setEditingModule(normalizedModule);
+
+    setTitle(normalizedModule.title);
+    setDescription(normalizedModule.description);
+    setBody(
+      normalizedModule.body ||
+      normalizedModule.cuerpo ||
+      normalizedModule.content ||
+      normalizedModule.description
+    );
+    setCategory(normalizeEducationType(normalizedModule.category));
+    setDuration(normalizedModule.duration || '10 min');
+    setLevel(
+      normalizeDifficultyValue(normalizedModule.nivel || normalizedModule.level)
+    );
+
+    setPortada(null);
+    setPortadaPreview(
+      normalizedModule.image ? buildFileUrl(normalizedModule.image) : ''
+    );
+    setPortadaNombre(normalizedModule.coverName || '');
     setRemoveCover(false);
 
-    setAttachedFile(null);
-    setAttachedFileName(module.fileName || '');
-    setRemoveAttachedFile(false);
+    setArchivo(null);
+    setArchivoNombre(normalizedModule.fileName || '');
+    setRemoveFile(false);
 
-    setModuleImages(normalizeImageOrder(module.moduleImages || []));
-
-    resetInputs();
+    setModuleImages(normalizedModule.images || []);
   };
 
-  const handleDelete = (id: number) => {
-    if (window.confirm('¿Eliminar este módulo?')) {
-      setModules(modules.filter((module) => module.id !== id));
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('¿Eliminar este módulo educativo?')) return;
+
+    if (!token) {
+      alert('Debes iniciar sesión como administrador.');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/api/education/${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+
+        throw new Error(
+          errorData?.message || 'Error al eliminar módulo educativo'
+        );
+      }
+
+      await loadModules();
+      window.dispatchEvent(new Event('education-updated'));
+
+      alert('Módulo eliminado correctamente.');
+    } catch (error: any) {
+      console.error('Error al eliminar módulo educativo:', error);
+      alert(error.message || 'Error al eliminar módulo educativo.');
     }
   };
 
@@ -388,8 +702,15 @@ export const EducationPanel: React.FC = () => {
             </div>
 
             <div className="header-text-container">
-              <h2>{editingModule ? 'Editar Módulo' : 'Nuevo Módulo Educativo'}</h2>
-              <p>Completa los datos del módulo, su portada, archivo e imágenes internas.</p>
+              <h2>
+                {editingModule
+                  ? 'Editar módulo educativo'
+                  : 'Crear módulo educativo'}
+              </h2>
+
+              <p>
+                Publica contenido educativo institucional para la comunidad.
+              </p>
             </div>
 
             {editingModule && (
@@ -404,22 +725,75 @@ export const EducationPanel: React.FC = () => {
           </div>
 
           <form className="admin-form-body" onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label>Título</label>
+            <div className="form-row">
+              <div className="form-group half">
+                <label>Título</label>
 
-              <IonInput
-                placeholder="Título del módulo"
-                value={title}
-                onIonChange={(e) => setTitle(e.detail.value || '')}
-                className="custom-input"
-              />
+                <IonInput
+                  placeholder="Ej: ¿Qué es el phishing?"
+                  value={title}
+                  onIonChange={(e) => setTitle(e.detail.value || '')}
+                  className="custom-input"
+                />
+              </div>
+
+              <div className="form-group half">
+                <label>Tipo de educación</label>
+
+                <IonSelect
+                  value={category}
+                  onIonChange={(e) =>
+                    setCategory(e.detail.value as EducationTypeValue)
+                  }
+                  interface="popover"
+                  className="custom-select"
+                >
+                  {EDUCATION_TYPES.map((item) => (
+                    <IonSelectOption key={item} value={item}>
+                      {item}
+                    </IonSelectOption>
+                  ))}
+                </IonSelect>
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group half">
+                <label>Nivel</label>
+
+                <IonSelect
+                  value={level}
+                  onIonChange={(e) =>
+                    setLevel(e.detail.value as DifficultyValue)
+                  }
+                  interface="popover"
+                  className="custom-select"
+                >
+                  {DIFFICULTY_OPTIONS.map((item) => (
+                    <IonSelectOption key={item.value} value={item.value}>
+                      {item.label}
+                    </IonSelectOption>
+                  ))}
+                </IonSelect>
+              </div>
+
+              <div className="form-group half">
+                <label>Duración visible</label>
+
+                <IonInput
+                  placeholder="Ej: 10 min"
+                  value={duration}
+                  onIonChange={(e) => setDuration(e.detail.value || '')}
+                  className="custom-input"
+                />
+              </div>
             </div>
 
             <div className="form-group">
-              <label>Descripción</label>
+              <label>Resumen</label>
 
               <IonTextarea
-                placeholder="Descripción del módulo"
+                placeholder="Resumen breve del módulo educativo."
                 rows={3}
                 value={description}
                 onIonChange={(e) => setDescription(e.detail.value || '')}
@@ -427,66 +801,35 @@ export const EducationPanel: React.FC = () => {
               />
             </div>
 
-            <div className="form-row">
-              <div className="form-group half">
-                <label>Tag/Categoría</label>
-
-                <IonSelect
-                  value={tag}
-                  onIonChange={(e) => setTag(e.detail.value)}
-                  className="custom-select"
-                >
-                  <IonSelectOption value="Phishing">Phishing</IonSelectOption>
-                  <IonSelectOption value="Redes">Redes</IonSelectOption>
-                  <IonSelectOption value="Privacidad">Privacidad</IonSelectOption>
-                  <IonSelectOption value="Seguridad">Seguridad</IonSelectOption>
-                </IonSelect>
-              </div>
-
-              <div className="form-group half">
-                <label>Duración</label>
-
-                <IonInput
-                  placeholder="10 min"
-                  value={time}
-                  onIonChange={(e) => setTime(e.detail.value || '')}
-                  className="custom-input"
-                />
-              </div>
-            </div>
-
             <div className="form-group">
-              <label>Nivel</label>
+              <label>Contenido</label>
 
-              <IonSelect
-                value={level}
-                onIonChange={(e) => setLevel(e.detail.value)}
-                className="custom-select"
-              >
-                <IonSelectOption value="Básico">Básico</IonSelectOption>
-                <IonSelectOption value="Intermedio">Intermedio</IonSelectOption>
-                <IonSelectOption value="Avanzado">Avanzado</IonSelectOption>
-              </IonSelect>
+              <IonTextarea
+                placeholder="Contenido completo del módulo. Si lo dejas vacío, se usará el resumen."
+                rows={5}
+                value={body}
+                onIonChange={(e) => setBody(e.detail.value || '')}
+                className="custom-textarea"
+              />
             </div>
 
             <div className="form-group">
               <label>Portada</label>
 
               <div
-                className={`file-drop-zone attachment-zone ${removeCover ? 'attachment-zone-removed' : ''}`}
-                onClick={() => coverInputRef.current?.click()}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  handleCoverUpload(e.dataTransfer.files[0]);
-                }}
-                onDragOver={(e) => e.preventDefault()}
+                className={`file-drop-zone attachment-zone ${
+                  removeCover ? 'attachment-zone-removed' : ''
+                }`}
+                onClick={() => portadaInputRef.current?.click()}
               >
-                {(coverPreview || (!removeCover && editingModule?.image)) && (
+                {(portadaPreview ||
+                  portadaNombre ||
+                  (!removeCover && editingModule?.image)) && (
                   <button
                     type="button"
                     className="attachment-remove-x"
                     aria-label="Quitar portada"
-                    onClick={handleRemoveCover}
+                    onClick={handleRemovePortada}
                   >
                     ×
                   </button>
@@ -498,91 +841,49 @@ export const EducationPanel: React.FC = () => {
                   <span>
                     {removeCover
                       ? 'Portada eliminada'
-                      : coverName ||
-                        editingModule?.imageName ||
+                      : portadaNombre ||
+                        editingModule?.coverName ||
                         'Seleccionar imagen de portada'}
                   </span>
                 </div>
 
                 <input
-                  ref={coverInputRef}
+                  ref={portadaInputRef}
                   type="file"
                   accept="image/*"
                   style={{ display: 'none' }}
-                  onChange={(e) => handleCoverUpload(e.target.files?.[0])}
+                  onChange={(e) => handlePortadaChange(e.target.files?.[0])}
                 />
               </div>
 
-              {!removeCover && coverPreview && (
-                <div className="image-preview-box">
-                  <img src={coverPreview} alt="Vista previa de portada" />
+              {portadaPreview && !removeCover && (
+                <div className="image-preview-list">
+                  <div className="image-preview-item">
+                    <img
+                      src={buildFileUrl(portadaPreview)}
+                      alt="Vista previa de portada"
+                    />
+                  </div>
                 </div>
               )}
             </div>
 
             <div className="form-group">
-              <label>Archivo adjunto</label>
-
-              <div
-                className={`file-drop-zone attachment-zone ${removeAttachedFile ? 'attachment-zone-removed' : ''}`}
-                onClick={() => attachedFileInputRef.current?.click()}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  handleAttachedFileUpload(e.dataTransfer.files[0]);
-                }}
-                onDragOver={(e) => e.preventDefault()}
-              >
-                {(attachedFileName || (!removeAttachedFile && editingModule?.fileName)) && (
-                  <button
-                    type="button"
-                    className="attachment-remove-x"
-                    aria-label="Quitar archivo adjunto"
-                    onClick={handleRemoveAttachedFile}
-                  >
-                    ×
-                  </button>
-                )}
-
-                <div className="file-drop-content">
-                  <IonIcon icon={cloudUploadOutline} />
-
-                  <span>
-                    {removeAttachedFile
-                      ? 'Archivo eliminado'
-                      : attachedFileName ||
-                        editingModule?.fileName ||
-                        'Adjuntar PDF, DOC o DOCX'}
-                  </span>
-                </div>
-
-                <input
-                  ref={attachedFileInputRef}
-                  type="file"
-                  accept=".pdf,.doc,.docx"
-                  style={{ display: 'none' }}
-                  onChange={(e) => handleAttachedFileUpload(e.target.files?.[0])}
-                />
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label>Imágenes internas del módulo ({moduleImages.length}/{MAX_MODULE_IMAGES})</label>
+              <label>
+                Imágenes adicionales ({moduleImages.length}/{MAX_MODULE_IMAGES})
+              </label>
 
               {moduleImages.length < MAX_MODULE_IMAGES ? (
                 <div
                   className="file-drop-zone"
                   onClick={() => moduleImagesInputRef.current?.click()}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    handleModuleImagesUpload(e.dataTransfer.files);
-                  }}
-                  onDragOver={(e) => e.preventDefault()}
                 >
                   <div className="file-drop-content">
                     <IonIcon icon={cloudUploadOutline} />
 
                     <span>
-                      Puedes agregar {MAX_MODULE_IMAGES - moduleImages.length} imagen(es) más
+                      Puedes agregar {MAX_MODULE_IMAGES - moduleImages.length}{' '}
+                      imagen(es) más
                     </span>
                   </div>
 
@@ -592,21 +893,26 @@ export const EducationPanel: React.FC = () => {
                     accept="image/*"
                     multiple
                     style={{ display: 'none' }}
-                    onChange={(e) => handleModuleImagesUpload(e.target.files)}
+                    onChange={(e) =>
+                      handleModuleImagesUpload(e.target.files)
+                    }
                   />
                 </div>
               ) : (
                 <div className="images-limit-message">
-                  Ya alcanzaste el límite de 10 imágenes. Elimina una imagen para poder adjuntar otra.
+                  Ya alcanzaste el límite de 10 imágenes.
                 </div>
               )}
 
               {moduleImages.length > 0 && (
                 <div className="ordered-images-list">
-                  {moduleImages.map((image, index) => (
-                    <div key={image.id} className="ordered-image-item">
+                  {moduleImages.map((img, index) => (
+                    <div key={img.id} className="ordered-image-item">
                       <div className="ordered-image-preview-wrap">
-                        <img src={image.previewUrl} alt={`Imagen ${index + 1}`} />
+                        <img
+                          src={buildFileUrl(img.previewUrl)}
+                          alt={`Imagen ${index + 1}`}
+                        />
 
                         <span className="ordered-image-number">
                           {index + 1}
@@ -614,7 +920,7 @@ export const EducationPanel: React.FC = () => {
                       </div>
 
                       <div className="ordered-image-info">
-                        <strong>{image.name}</strong>
+                        <strong>{img.name}</strong>
                         <span>Orden {index + 1}</span>
                       </div>
 
@@ -625,7 +931,7 @@ export const EducationPanel: React.FC = () => {
                           disabled={index === 0}
                           onClick={(e) => {
                             e.stopPropagation();
-                            moveModuleImage(image.id, 'up');
+                            moveModuleImage(img.id, 'up');
                           }}
                         >
                           Subir
@@ -637,7 +943,7 @@ export const EducationPanel: React.FC = () => {
                           disabled={index === moduleImages.length - 1}
                           onClick={(e) => {
                             e.stopPropagation();
-                            moveModuleImage(image.id, 'down');
+                            moveModuleImage(img.id, 'down');
                           }}
                         >
                           Bajar
@@ -649,7 +955,7 @@ export const EducationPanel: React.FC = () => {
                           color="danger"
                           onClick={(e) => {
                             e.stopPropagation();
-                            removeModuleImage(image.id);
+                            removeModuleImage(img.id);
                           }}
                         >
                           Eliminar
@@ -659,6 +965,49 @@ export const EducationPanel: React.FC = () => {
                   ))}
                 </div>
               )}
+            </div>
+
+            <div className="form-group">
+              <label>Archivo adjunto</label>
+
+              <div
+                className={`file-drop-zone attachment-zone ${
+                  removeFile ? 'attachment-zone-removed' : ''
+                }`}
+                onClick={() => archivoInputRef.current?.click()}
+              >
+                {(archivoNombre ||
+                  (!removeFile && editingModule?.fileName)) && (
+                  <button
+                    type="button"
+                    className="attachment-remove-x"
+                    aria-label="Quitar archivo"
+                    onClick={handleRemoveArchivo}
+                  >
+                    ×
+                  </button>
+                )}
+
+                <div className="file-drop-content">
+                  <IonIcon icon={documentOutline} />
+
+                  <span>
+                    {removeFile
+                      ? 'Archivo eliminado'
+                      : archivoNombre ||
+                        editingModule?.fileName ||
+                        'Seleccionar archivo PDF, DOC o DOCX'}
+                  </span>
+                </div>
+
+                <input
+                  ref={archivoInputRef}
+                  type="file"
+                  accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                  style={{ display: 'none' }}
+                  onChange={(e) => handleArchivoChange(e.target.files?.[0])}
+                />
+              </div>
             </div>
 
             <div className="form-footer">
@@ -673,24 +1022,34 @@ export const EducationPanel: React.FC = () => {
       <section className="panel-list-section">
         <div className="panel-section-header">
           <div>
-            <h2>Módulos Existentes ({modules.length})</h2>
-            <p>Administra los módulos educativos disponibles.</p>
+            <h2>Módulos educativos ({modules.length})</h2>
+            <p>Busca, edita o elimina módulos existentes.</p>
           </div>
+
+          <IonSearchbar
+            value={searchTerm}
+            placeholder="Buscar módulo..."
+            onIonChange={(e) => setSearchTerm(e.detail.value || '')}
+            mode="ios"
+          />
         </div>
 
         <div className="modules-list">
-          {modules.length === 0 ? (
+          {filteredModules.length === 0 ? (
             <p>No hay módulos disponibles.</p>
           ) : (
-            modules.map((module) => (
+            filteredModules.map((module) => (
               <div key={module.id} className="module-item">
                 <div className="module-main">
                   <div className="module-thumb">
                     {module.image ? (
-                      <img src={module.image} alt={`Imagen de ${module.title}`} />
+                      <img
+                        src={buildFileUrl(module.image)}
+                        alt={module.title}
+                      />
                     ) : (
                       <div className="module-thumb-placeholder">
-                        Sin imagen
+                        Sin portada
                       </div>
                     )}
                   </div>
@@ -700,18 +1059,19 @@ export const EducationPanel: React.FC = () => {
                     <p>{module.description}</p>
 
                     <div className="module-meta">
-                      <span className="module-tag">{module.tag}</span>
-                      <span>{module.time}</span>
-                      <span>{module.level}</span>
+                      <span className="module-tag">{module.category}</span>
+                      <span>{module.duration || '10 min'}</span>
+                      <span>{getDifficultyLabel(module.nivel || module.level)}</span>
 
                       {module.fileName && (
                         <span className="file-indicator">
-                          <IonIcon icon={documentOutline} />
-                          {module.fileName}
+                          <IonIcon icon={documentOutline} /> {module.fileName}
                         </span>
                       )}
 
-                      <span>{module.moduleImages.length} imagen(es)</span>
+                      {module.images && module.images.length > 0 && (
+                        <span>{module.images.length} imagen(es)</span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -723,6 +1083,7 @@ export const EducationPanel: React.FC = () => {
                     onClick={() => handleEdit(module)}
                   >
                     <IonIcon icon={createOutline} />
+                    Editar
                   </IonButton>
 
                   <IonButton
@@ -732,6 +1093,7 @@ export const EducationPanel: React.FC = () => {
                     className="delete-btn"
                   >
                     <IonIcon icon={trashOutline} />
+                    Eliminar
                   </IonButton>
                 </div>
               </div>

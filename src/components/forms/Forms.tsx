@@ -52,7 +52,7 @@ export const LoginForm: React.FC = () => {
         return;
       }
 
-      await login(data.token);
+      await login(data.token, data.user);
 
       const userRole = data.user?.role || data.role;
 
@@ -167,24 +167,25 @@ export const RegisterForm: React.FC = () => {
       const response = await fetch('http://localhost:3000/api/auth/register', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email,
-          password,
-          nombre_completo: usuario,
-          nombreCompleto: usuario,
-          usuario,
-          rut,
+          nombre_completo: usuario.trim(),
+          name: usuario.trim(),
+          rut: rut.trim(),
           region: selectedRegion?.name || region,
-          comuna
-        })
+          comuna: comuna,
+          email: email.trim(),
+          correo: email.trim(),
+          password: password,
+        }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        alert(data.message || 'Error al registrarse');
+        console.error('Error register backend:', data);
+        alert(data.message || data.error || 'Error al registrar usuario.');
         return;
       }
 

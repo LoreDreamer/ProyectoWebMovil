@@ -1,214 +1,374 @@
 import { Request, Response } from 'express';
+import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { supabase } from '../config/supabase';
 import { JWT_SECRET } from '../config/jwt.config';
 
-export type UserRole = 'admin' | 'user';
+const USERS_TABLE = process.env.SUPABASE_USERS_TABLE || 'usuario';
 
-export interface Usuario {
-  id: string;
-  email: string;
-  password?: string;
-  role: UserRole;
-  nombre_completo: string;
-  rut: string;
-  region: string;
-  comuna: string;
-  estado: 'ACTIVO' | 'INACTIVO';
-  created_at: string;
-}
+type UserRole = 'admin' | 'user';
 
-export const usuariosTemporales: Usuario[] = [
-  {
-    id: '11111111-1111-4111-8111-111111111111',
-    email: 'admin@inicio',
-    password: '1234',
-    role: 'admin',
-    nombre_completo: 'Camila Rojas Fernández',
-    rut: '18.456.789-2',
-    region: 'Región de Valparaíso',
-    comuna: 'Santo Domingo',
-    estado: 'ACTIVO',
-    created_at: '2026-03-12T09:30:00.000Z'
-  },
-  {
-    id: '22222222-2222-4222-8222-222222222222',
-    email: 'user@inicio',
-    password: '1234',
-    role: 'user',
-    nombre_completo: 'Martín Herrera Soto',
-    rut: '20.345.678-5',
-    region: 'Región Metropolitana',
-    comuna: 'Puente Alto',
-    estado: 'ACTIVO',
-    created_at: '2026-04-02T11:20:00.000Z'
-  },
-  {
-    id: '33333333-3333-4333-8333-333333333333',
-    email: 'isidora.munoz@santodomingo.cl',
-    password: '1234',
-    role: 'admin',
-    nombre_completo: 'Isidora Muñoz Tapia',
-    rut: '17.987.654-1',
-    region: 'Región de Valparaíso',
-    comuna: 'San Antonio',
-    estado: 'ACTIVO',
-    created_at: '2026-02-18T15:45:00.000Z'
-  },
-  {
-    id: '44444444-4444-4444-8444-444444444444',
-    email: 'benjamin.valdes@santodomingo.cl',
-    password: '1234',
-    role: 'user',
-    nombre_completo: 'Benjamín Valdés Araya',
-    rut: '21.234.567-8',
-    region: 'Región de O’Higgins',
-    comuna: 'Rancagua',
-    estado: 'INACTIVO',
-    created_at: '2026-01-21T10:10:00.000Z'
-  },
-  {
-    id: '55555555-5555-4555-8555-555555555555',
-    email: 'fernanda.silva@santodomingo.cl',
-    password: '1234',
-    role: 'user',
-    nombre_completo: 'Fernanda Silva Morales',
-    rut: '19.876.543-4',
-    region: 'Región del Biobío',
-    comuna: 'Concepción',
-    estado: 'ACTIVO',
-    created_at: '2026-05-03T08:15:00.000Z'
-  }
-];
+const normalizeRole = (role?: string | null): UserRole => {
+  const normalizedRole = String(role || '').toLowerCase().trim();
 
-const generarIdTemporal = () => {
-  return `${Date.now()}-${Math.round(Math.random() * 1000000)}`;
-};
-
-export const getUsuarioById = (id?: string) => {
-  if (!id) return undefined;
-  return usuariosTemporales.find((usuario) => usuario.id === id);
-};
-
-export const getUsuarioByEmail = (email?: string) => {
-  if (!email) return undefined;
-  return usuariosTemporales.find((usuario) => usuario.email === email);
-};
-
-const publicUserResponse = (usuario: Usuario) => ({
-  id: usuario.id,
-  email: usuario.email,
-  role: usuario.role,
-  nombre_completo: usuario.nombre_completo,
-  rut: usuario.rut,
-  region: usuario.region,
-  comuna: usuario.comuna,
-  estado: usuario.estado,
-  created_at: usuario.created_at
-});
-
-export const register = (req: Request, res: Response) => {
-  const {
-    email,
-    password,
-    nombre_completo,
-    nombreCompleto,
-    usuario,
-    name,
-    rut,
-    region,
-    comuna
-  } = req.body;
-
-  if (!email || !password) {
-    return res.status(400).json({
-      message: 'Correo y contraseña son obligatorios.'
-    });
+  if (normalizedRole === 'admin') {
+    return 'admin';
   }
 
-  const existe = usuariosTemporales.find((u) => u.email === email);
+  return 'user';
+};
 
-  if (existe) {
-    return res.status(400).json({
-      message: 'El correo ya está registrado.'
-    });
-  }
+const normalizeStatus = (estatus?: string | null) => {
+  return String(estatus || '').toLowerCase().trim();
+};
 
-  const nombreFinal =
-    nombre_completo ||
-    nombreCompleto ||
-    usuario ||
-    name ||
-    'Usuario Registrado';
+const normalizeUser = (user: any) => {
+  if (!user) return null;
 
-  const nuevoUsuario: Usuario = {
-    id: generarIdTemporal(),
-    email,
-    password,
-    role: 'user',
-    nombre_completo: nombreFinal,
-    rut: rut || '12.345.678-9',
-    region: region || 'Región de Valparaíso',
-    comuna: comuna || 'Santo Domingo',
-    estado: 'ACTIVO',
-    created_at: new Date().toISOString()
+  const role = normalizeRole(user.tipo_usuario || user.role);
+  const estatus = normalizeStatus(user.estatus || user.estado || 'activo');
+
+  return {
+    id: user.id,
+    rut: user.rut || '',
+    nombre_completo: user.nombre_completo || '',
+    name: user.nombre_completo || '',
+    region: user.region || '',
+    comuna: user.comuna || '',
+    correo: user.correo || '',
+    email: user.correo || '',
+    estatus,
+    estado: estatus,
+    tipo_usuario: role,
+    role,
+    created_at: user.created_at || null
   };
-
-  usuariosTemporales.push(nuevoUsuario);
-
-  console.log(`Usuario registrado temporalmente: ${email}`);
-
-  return res.status(201).json({
-    message: 'Usuario registrado con éxito.',
-    user: publicUserResponse(nuevoUsuario)
-  });
 };
 
-export const login = (req: Request, res: Response) => {
-  const { email, password } = req.body;
+export const getUsuarioById = async (id: string) => {
+  const { data, error } = await supabase
+    .from(USERS_TABLE)
+    .select('*')
+    .eq('id', id)
+    .single();
 
-  const usuarioEncontrado = usuariosTemporales.find(
-    (u) => u.email === email && u.password === password
-  );
+  if (error || !data) return null;
 
-  if (!usuarioEncontrado) {
-    return res.status(401).json({
-      message: 'Correo o contraseña incorrectos.'
+  return normalizeUser(data);
+};
+
+export const getUsuarioByEmail = async (email: string) => {
+  const { data, error } = await supabase
+    .from(USERS_TABLE)
+    .select('*')
+    .eq('correo', email)
+    .single();
+
+  if (error || !data) return null;
+
+  return normalizeUser(data);
+};
+
+export const register = async (req: Request, res: Response) => {
+  try {
+    const {
+      rut,
+      nombre_completo,
+      name,
+      usuario,
+      region,
+      comuna,
+      correo,
+      email,
+      password
+    } = req.body;
+
+    const finalCorreo = String(correo || email || '').trim().toLowerCase();
+    const finalNombre = String(nombre_completo || name || usuario || '').trim();
+    const finalRut = String(rut || '').trim();
+    const finalRegion = String(region || '').trim();
+    const finalComuna = String(comuna || '').trim();
+
+    if (
+      !finalCorreo ||
+      !password ||
+      !finalNombre ||
+      !finalRut ||
+      !finalRegion ||
+      !finalComuna
+    ) {
+      return res.status(400).json({
+        ok: false,
+        message: 'Faltan datos obligatorios para registrar usuario.'
+      });
+    }
+
+    const { data: existingEmail, error: emailError } = await supabase
+      .from(USERS_TABLE)
+      .select('id, correo')
+      .eq('correo', finalCorreo)
+      .maybeSingle();
+
+    if (emailError) {
+      console.error('Error verificando correo:', emailError);
+
+      return res.status(500).json({
+        ok: false,
+        message: 'Error al verificar el correo.',
+        error: emailError.message
+      });
+    }
+
+    if (existingEmail) {
+      return res.status(409).json({
+        ok: false,
+        message: 'Ya existe un usuario registrado con ese correo.'
+      });
+    }
+
+    const { data: existingRut, error: rutError } = await supabase
+      .from(USERS_TABLE)
+      .select('id, rut')
+      .eq('rut', finalRut)
+      .maybeSingle();
+
+    if (rutError) {
+      console.error('Error verificando RUT:', rutError);
+
+      return res.status(500).json({
+        ok: false,
+        message: 'Error al verificar el RUT.',
+        error: rutError.message
+      });
+    }
+
+    if (existingRut) {
+      return res.status(409).json({
+        ok: false,
+        message: 'Ya existe un usuario registrado con ese RUT.'
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(String(password), 10);
+
+    const payload = {
+      rut: finalRut,
+      nombre_completo: finalNombre,
+      region: finalRegion,
+      comuna: finalComuna,
+      correo: finalCorreo,
+      password: hashedPassword,
+      estatus: 'activo',
+      tipo_usuario: 'user',
+      created_at: new Date().toISOString()
+    };
+
+    const { data, error } = await supabase
+      .from(USERS_TABLE)
+      .insert(payload)
+      .select('*')
+      .single();
+
+    if (error) {
+      console.error('Error Supabase register:', error);
+
+      return res.status(500).json({
+        ok: false,
+        message: 'Error al registrar usuario.',
+        error: error.message,
+        details: error.details,
+        hint: error.hint
+      });
+    }
+
+    const normalizedUser = normalizeUser(data);
+
+    if (!normalizedUser) {
+      return res.status(500).json({
+        ok: false,
+        message: 'No se pudo procesar la información del usuario.'
+      });
+    }
+
+    const token = jwt.sign(
+      {
+        id: normalizedUser.id,
+        email: normalizedUser.email,
+        role: normalizedUser.role
+      },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    return res.status(201).json({
+      ok: true,
+      message: 'Usuario registrado correctamente.',
+      token,
+      user: normalizedUser
+    });
+  } catch (error: any) {
+    console.error('Error register:', error);
+
+    return res.status(500).json({
+      ok: false,
+      message: 'Error al registrar usuario.',
+      error: error.message || 'Error desconocido'
     });
   }
-
-  const token = jwt.sign(
-    {
-      id: usuarioEncontrado.id,
-      email: usuarioEncontrado.email,
-      role: usuarioEncontrado.role
-    },
-    JWT_SECRET,
-    { expiresIn: '2h' }
-  );
-
-  return res.json({
-    message: 'Inicio de sesión exitoso.',
-    token,
-    user: publicUserResponse(usuarioEncontrado)
-  });
 };
 
-export const me = (req: Request, res: Response) => {
-  const tokenUser = (req as any).user;
+export const login = async (req: Request, res: Response) => {
+  try {
+    const { correo, email, password } = req.body;
 
-  const usuarioEncontrado =
-    getUsuarioById(tokenUser?.id) ||
-    getUsuarioByEmail(tokenUser?.email);
+    const finalCorreo = String(correo || email || '').trim().toLowerCase();
 
-  if (!usuarioEncontrado) {
-    return res.status(404).json({
-      message: 'Usuario no encontrado.'
+    if (!finalCorreo || !password) {
+      return res.status(400).json({
+        ok: false,
+        message: 'Correo y contraseña son obligatorios.'
+      });
+    }
+
+    const { data, error } = await supabase
+      .from(USERS_TABLE)
+      .select('*')
+      .eq('correo', finalCorreo)
+      .single();
+
+    if (error || !data) {
+      return res.status(401).json({
+        ok: false,
+        message: 'Credenciales incorrectas.'
+      });
+    }
+
+    const userStatus = normalizeStatus(data.estatus);
+
+    if (userStatus !== 'activo') {
+      return res.status(403).json({
+        ok: false,
+        message: 'Usuario inactivo.'
+      });
+    }
+
+    let passwordOk = false;
+    const storedPassword = String(data.password || '');
+
+    if (storedPassword.startsWith('$2a$') || storedPassword.startsWith('$2b$')) {
+      passwordOk = await bcrypt.compare(String(password), storedPassword);
+    } else {
+      passwordOk = storedPassword === String(password);
+    }
+
+    if (!passwordOk) {
+      return res.status(401).json({
+        ok: false,
+        message: 'Credenciales incorrectas.'
+      });
+    }
+
+    const normalizedUser = normalizeUser(data);
+
+    if (!normalizedUser) {
+      return res.status(500).json({
+        ok: false,
+        message: 'No se pudo procesar la información del usuario.'
+      });
+    }
+
+    const token = jwt.sign(
+      {
+        id: normalizedUser.id,
+        email: normalizedUser.email,
+        role: normalizedUser.role
+      },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    return res.json({
+      ok: true,
+      message: 'Login correcto.',
+      token,
+      user: normalizedUser
+    });
+  } catch (error: any) {
+    console.error('Error login:', error);
+
+    return res.status(500).json({
+      ok: false,
+      message: 'Error interno al iniciar sesión.',
+      error: error.message || 'Error desconocido'
     });
   }
-
-  return res.json(publicUserResponse(usuarioEncontrado));
 };
 
-export const getUsers = (req: Request, res: Response) => {
-  return res.json(usuariosTemporales.map(publicUserResponse));
+export const me = async (req: Request, res: Response) => {
+  try {
+    const authUser = (req as any).user;
+
+    if (!authUser?.id) {
+      return res.status(401).json({
+        ok: false,
+        message: 'No autorizado.'
+      });
+    }
+
+    const user = await getUsuarioById(authUser.id);
+
+    if (!user) {
+      return res.status(404).json({
+        ok: false,
+        message: 'Usuario no encontrado.'
+      });
+    }
+
+    return res.json({
+      ok: true,
+      user
+    });
+  } catch (error: any) {
+    console.error('Error me:', error);
+
+    return res.status(500).json({
+      ok: false,
+      message: 'Error al obtener usuario actual.',
+      error: error.message || 'Error desconocido'
+    });
+  }
+};
+
+export const getUsers = async (_req: Request, res: Response) => {
+  try {
+    const { data, error } = await supabase
+      .from(USERS_TABLE)
+      .select(
+        'id, rut, nombre_completo, region, comuna, correo, estatus, created_at, tipo_usuario'
+      )
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error getUsers:', error);
+
+      return res.status(500).json({
+        ok: false,
+        message: 'Error al obtener usuarios.',
+        error: error.message
+      });
+    }
+
+    return res.json({
+      ok: true,
+      users: (data || []).map(normalizeUser).filter(Boolean)
+    });
+  } catch (error: any) {
+    console.error('Error getUsers:', error);
+
+    return res.status(500).json({
+      ok: false,
+      message: 'Error interno al obtener usuarios.',
+      error: error.message || 'Error desconocido'
+    });
+  }
 };

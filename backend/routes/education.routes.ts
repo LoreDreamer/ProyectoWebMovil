@@ -4,11 +4,11 @@ import path from 'path';
 import fs from 'fs';
 
 import {
-  getAlerts,
-  createAlert,
-  updateAlert,
-  deleteAlert
-} from '../controllers/alerts.controller';
+  getEducationModules,
+  createEducationModule,
+  updateEducationModule,
+  deleteEducationModule
+} from '../controllers/education.controller';
 
 import {
   authenticateToken,
@@ -56,33 +56,47 @@ const fileFilter = (
     'image/webp'
   ];
 
-  if (!allowedImageTypes.includes(file.mimetype)) {
-    return cb(
-      new Error(
-        'Solo se permiten imágenes PNG, JPG, JPEG o WEBP para las alertas.'
-      )
-    );
+  const allowedDocumentTypes = [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  ];
+
+  if (file.fieldname === 'portada' || file.fieldname === 'imagenes') {
+    if (!allowedImageTypes.includes(file.mimetype)) {
+      return cb(new Error('La portada e imágenes adicionales deben ser PNG, JPG, JPEG o WEBP.'));
+    }
+
+    return cb(null, true);
   }
 
-  return cb(null, true);
+  if (file.fieldname === 'archivo') {
+    if (!allowedDocumentTypes.includes(file.mimetype)) {
+      return cb(new Error('El archivo adjunto debe ser PDF, DOC o DOCX.'));
+    }
+
+    return cb(null, true);
+  }
+
+  return cb(new Error('Campo de archivo no permitido.'));
 };
 
 const upload = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: 8 * 1024 * 1024,
+    fileSize: 10 * 1024 * 1024,
     files: 12
   }
 });
 
-const uploadAlertFiles = upload.fields([
+const uploadEducationFiles = upload.fields([
   {
     name: 'portada',
     maxCount: 1
   },
   {
-    name: 'imagen',
+    name: 'archivo',
     maxCount: 1
   },
   {
@@ -91,29 +105,29 @@ const uploadAlertFiles = upload.fields([
   }
 ]);
 
-router.get('/', getAlerts);
+router.get('/', getEducationModules);
 
 router.post(
   '/',
   authenticateToken,
   requireAdmin,
-  uploadAlertFiles,
-  createAlert
+  uploadEducationFiles,
+  createEducationModule
 );
 
 router.put(
   '/:id',
   authenticateToken,
   requireAdmin,
-  uploadAlertFiles,
-  updateAlert
+  uploadEducationFiles,
+  updateEducationModule
 );
 
 router.delete(
   '/:id',
   authenticateToken,
   requireAdmin,
-  deleteAlert
+  deleteEducationModule
 );
 
 export default router;

@@ -8,24 +8,63 @@ import {
 } from '@ionic/react';
 import {
   addOutline,
+  calendarOutline,
   createOutline,
   trashOutline,
-  closeCircleOutline,
-  calendarOutline
+  closeCircleOutline
 } from 'ionicons/icons';
 import { useAuth } from '../../context/AuthContext';
 import './activityPanel.css';
 
 interface Activity {
-  id: number;
+  id: string;
+
   title: string;
+  titulo?: string;
+
   description: string;
+  descripcion?: string;
+
   date: string;
-  createdAt: string;
+  fecha?: string;
+
+  createdAt?: string | null;
+  publicado_por?: string | null;
+  host?: string | null;
 }
 
+const API_URL = 'http://localhost:3000';
+
+const formatDateForInput = (date?: string | null) => {
+  if (!date) return '';
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return date;
+  }
+
+  const parsedDate = new Date(date);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return '';
+  }
+
+  return parsedDate.toISOString().split('T')[0];
+};
+
+const formatDateForView = (date?: string | null) => {
+  if (!date) return 'Sin fecha';
+
+  const inputDate = formatDateForInput(date);
+
+  if (!inputDate) return 'Sin fecha';
+
+  const [year, month, day] = inputDate.split('-');
+
+  return `${day}-${month}-${year}`;
+};
+
 export const ActivityPanel: React.FC = () => {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
 
   const [activities, setActivities] = useState<Activity[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -35,19 +74,56 @@ export const ActivityPanel: React.FC = () => {
   const [description, setDescription] = useState('');
   const [date, setDate] = useState('');
 
-  const [viewItem, setViewItem] = useState<Activity | null>(null);
-
   const isAdmin = user?.role === 'admin';
 
-  const loadActivities = () => {
-    try {
-      const storedActivities = localStorage.getItem('activities');
+  const getAuthHeaders = () => {
+    return {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`
+    };
+  };
 
-      if (storedActivities) {
-        setActivities(JSON.parse(storedActivities));
-      } else {
-        setActivities([]);
+  const normalizeActivityFromApi = (activity: Activity): Activity => {
+    const normalizedTitle = activity.title || activity.titulo || '';
+    const normalizedDescription =
+      activity.description || activity.descripcion || '';
+    const normalizedDate = activity.date || activity.fecha || '';
+
+    return {
+      ...activity,
+      id: String(activity.id),
+      title: normalizedTitle,
+      titulo: normalizedTitle,
+      description: normalizedDescription,
+      descripcion: normalizedDescription,
+      date: formatDateForInput(normalizedDate),
+      fecha: activity.fecha || normalizedDate,
+      publicado_por: activity.publicado_por || activity.host || null
+    };
+  };
+
+  const resetForm = () => {
+    setTitle('');
+    setDescription('');
+    setDate('');
+    setEditingActivity(null);
+  };
+
+  const loadActivities = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/activities`);
+
+      if (!response.ok) {
+        throw new Error('No se pudieron cargar las actividades');
       }
+
+      const data = await response.json();
+
+      setActivities(
+        Array.isArray(data)
+          ? data.map((activity) => normalizeActivityFromApi(activity))
+          : []
+      );
     } catch (error) {
       console.error('Error al cargar actividades:', error);
       setActivities([]);
@@ -65,110 +141,131 @@ export const ActivityPanel: React.FC = () => {
     return () => {
       window.removeEventListener('activities-updated', handler);
     };
-  }, [isAdmin]);
+  }, [isAdmin, token]);
 
-  const filteredActivities = activities.filter((activity) =>
-    activity.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    activity.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredActivities = activities.filter((activity) => {
+    const normalizedSearch = searchTerm.toLowerCase();
 
-  const resetForm = () => {
-    setTitle('');
-    setDescription('');
-    setDate('');
-    setEditingActivity(null);
-  };
+    return (
+      activity.title.toLowerCase().includes(normalizedSearch) ||
+      activity.description.toLowerCase().includes(normalizedSearch) ||
+      activity.date.toLowerCase().includes(normalizedSearch) ||
+      formatDateForView(activity.date).toLowerCase().includes(normalizedSearch)
+    );
+  });
 
-  const saveActivities = (updatedActivities: Activity[]) => {
-    setActivities(updatedActivities);
-    localStorage.setItem('activities', JSON.stringify(updatedActivities));
-    window.dispatchEvent(new Event('activities-updated'));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!title.trim() || !description.trim() || !date.trim()) {
-      alert('Por favor completa todos los campos');
+      alert('Completa título, descripción y fecha.');
       return;
     }
 
+    if (!token) {
+      alert('Debes iniciar sesión como administrador.');
+      return;
+    }
+
+    const payload = {
+      title: title.trim(),
+      titulo: title.trim(),
+      description: description.trim(),
+      descripcion: description.trim(),
+      date,
+      fecha: date
+    };
+
     try {
+      let response: Response;
+
       if (editingActivity) {
-        const updatedActivities = activities.map((activity) =>
-          activity.id === editingActivity.id
-            ? {
-                ...activity,
-                title: title.trim(),
-                description: description.trim(),
-                date
-              }
-            : activity
+        response = await fetch(
+          `${API_URL}/api/activities/${editingActivity.id}`,
+          {
+            method: 'PUT',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(payload)
+          }
         );
-
-        saveActivities(updatedActivities);
-        alert('Actividad actualizada con éxito');
       } else {
-        const newActivity: Activity = {
-          id: Date.now(),
-          title: title.trim(),
-          description: description.trim(),
-          date,
-          createdAt: new Date().toISOString()
-        };
+        response = await fetch(`${API_URL}/api/activities`, {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          body: JSON.stringify(payload)
+        });
+      }
 
-        saveActivities([newActivity, ...activities]);
-        alert('Actividad publicada con éxito');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+
+        throw new Error(
+          errorData?.message ||
+            errorData?.error ||
+            'Error al guardar actividad'
+        );
       }
 
       resetForm();
-      setViewItem(null);
-    } catch (error) {
+      await loadActivities();
+      window.dispatchEvent(new Event('activities-updated'));
+
+      alert(
+        editingActivity
+          ? 'Actividad actualizada correctamente.'
+          : 'Actividad creada correctamente.'
+      );
+    } catch (error: any) {
       console.error('Error al guardar actividad:', error);
-      alert('Error al guardar la actividad');
+      alert(error.message || 'Error al guardar actividad.');
     }
   };
 
   const handleEdit = (activity: Activity) => {
-    setEditingActivity(activity);
-    setTitle(activity.title);
-    setDescription(activity.description);
-    setDate(activity.date);
-    setViewItem(null);
+    const normalizedActivity = normalizeActivityFromApi(activity);
+
+    setEditingActivity(normalizedActivity);
+    setTitle(normalizedActivity.title);
+    setDescription(normalizedActivity.description);
+    setDate(normalizedActivity.date);
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = async (id: string) => {
     if (!window.confirm('¿Eliminar esta actividad?')) return;
 
-    try {
-      const updatedActivities = activities.filter((activity) => activity.id !== id);
-      saveActivities(updatedActivities);
+    if (!token) {
+      alert('Debes iniciar sesión como administrador.');
+      return;
+    }
 
-      if (viewItem?.id === id) {
-        setViewItem(null);
+    try {
+      const response = await fetch(`${API_URL}/api/activities/${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+
+        throw new Error(
+          errorData?.message ||
+            errorData?.error ||
+            'Error al eliminar actividad'
+        );
       }
 
-      alert('Actividad eliminada');
-    } catch (error) {
+      await loadActivities();
+      window.dispatchEvent(new Event('activities-updated'));
+
+      if (editingActivity?.id === id) {
+        resetForm();
+      }
+
+      alert('Actividad eliminada correctamente.');
+    } catch (error: any) {
       console.error('Error al eliminar actividad:', error);
-      alert('Error al eliminar');
+      alert(error.message || 'Error al eliminar actividad.');
     }
-  };
-
-  const handleView = (activity: Activity) => {
-    setViewItem(activity);
-  };
-
-  const formatDate = (value: string) => {
-    if (!value) return 'Sin fecha';
-
-    const dateValue = new Date(value);
-
-    if (Number.isNaN(dateValue.getTime())) {
-      return value;
-    }
-
-    return dateValue.toLocaleDateString();
   };
 
   if (!isAdmin) return null;
@@ -179,12 +276,16 @@ export const ActivityPanel: React.FC = () => {
         <div className="admin-form-card">
           <div className="form-header-inline">
             <div className="icon-square">
-              <IonIcon icon={addOutline} />
+              <IonIcon icon={calendarOutline} />
             </div>
 
             <div className="header-text-container">
               <h2>{editingActivity ? 'Editar Actividad' : 'Nueva Actividad'}</h2>
-              <p>Programa una nueva actividad o capacitación.</p>
+
+              <p>
+                Publica actividades educativas o municipales visibles para los
+                usuarios.
+              </p>
             </div>
 
             {editingActivity && (
@@ -205,7 +306,7 @@ export const ActivityPanel: React.FC = () => {
               <IonInput
                 placeholder="Título de la actividad"
                 value={title}
-                onIonChange={(e) => setTitle(e.detail.value || '')}
+                onIonChange={(e) => setTitle(String(e.detail.value || ''))}
                 className="custom-input"
               />
             </div>
@@ -214,10 +315,12 @@ export const ActivityPanel: React.FC = () => {
               <label>Descripción</label>
 
               <IonTextarea
-                placeholder="Descripción detallada"
+                placeholder="Descripción de la actividad"
                 rows={4}
                 value={description}
-                onIonChange={(e) => setDescription(e.detail.value || '')}
+                onIonChange={(e) =>
+                  setDescription(String(e.detail.value || ''))
+                }
                 className="custom-textarea"
               />
             </div>
@@ -225,17 +328,18 @@ export const ActivityPanel: React.FC = () => {
             <div className="form-group">
               <label>Fecha</label>
 
-              <input
+              <IonInput
                 type="date"
-                className="custom-input"
                 value={date}
-                onChange={(e) => setDate(e.target.value)}
+                onIonChange={(e) => setDate(String(e.detail.value || ''))}
+                className="custom-input"
               />
             </div>
 
             <div className="form-footer">
               <button type="submit" className="btn-submit">
-                {editingActivity ? 'Guardar Cambios' : 'Publicar Actividad'}
+                <IonIcon icon={addOutline} />
+                {editingActivity ? 'Guardar Cambios' : 'Crear Actividad'}
               </button>
             </div>
           </form>
@@ -245,7 +349,7 @@ export const ActivityPanel: React.FC = () => {
       <section className="panel-list-section">
         <div className="panel-section-header">
           <div>
-            <h2>Actividades Programadas ({activities.length})</h2>
+            <h2>Actividades publicadas ({activities.length})</h2>
             <p>Busca, edita o elimina las actividades existentes.</p>
           </div>
 
@@ -262,28 +366,18 @@ export const ActivityPanel: React.FC = () => {
             <p>No hay actividades disponibles.</p>
           ) : (
             filteredActivities.map((activity) => (
-              <div key={activity.id} className="activity-item">
+              <article key={activity.id} className="activity-item">
                 <div className="activity-info">
                   <h4>{activity.title}</h4>
+
                   <p>{activity.description}</p>
 
                   <div className="activity-meta">
-                    <span>📅 {formatDate(activity.date)}</span>
-                    <span>📌 Creado: {formatDate(activity.createdAt)}</span>
+                    <span>{formatDateForView(activity.date)}</span>
                   </div>
                 </div>
 
                 <div className="activity-actions">
-                  <IonButton
-                    fill="clear"
-                    size="small"
-                    className="activity-action-button"
-                    onClick={() => handleView(activity)}
-                  >
-                    <IonIcon icon={calendarOutline} />
-                    Ver
-                  </IonButton>
-
                   <IonButton
                     fill="clear"
                     size="small"
@@ -304,26 +398,10 @@ export const ActivityPanel: React.FC = () => {
                     Eliminar
                   </IonButton>
                 </div>
-              </div>
+              </article>
             ))
           )}
         </div>
-
-        {viewItem && (
-          <div className="activity-detail-panel">
-            <h3>Detalles de la Actividad</h3>
-
-            <div className="activity-detail-card">
-              <h2>{viewItem.title}</h2>
-              <p>{viewItem.description}</p>
-
-              <div className="activity-meta">
-                <span>📅 Fecha: {formatDate(viewItem.date)}</span>
-                <span>📌 Creado: {formatDate(viewItem.createdAt)}</span>
-              </div>
-            </div>
-          </div>
-        )}
       </section>
     </div>
   );
