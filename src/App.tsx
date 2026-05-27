@@ -44,6 +44,7 @@ import '@ionic/react/css/structure.css';
 import '@ionic/react/css/typography.css';
 
 import './global.css';
+import './components/adminPanel/adminPanels.css';
 import './theme/variables.css';
 import './responsive.css';
 

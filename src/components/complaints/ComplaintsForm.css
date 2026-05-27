@@ -1,128 +1,327 @@
+/* =============================== */
+/* CONTENEDOR GENERAL */
+/* =============================== */
+
 .complaints-form-container {
-  width: 88%; 
-  /* Subimos de 760px a 785px para ese 'par de píxeles' extra de ancho */
-  max-width: 785px; 
-  max-height: 96vh; 
-  margin: 1vh auto; 
+  width: 88%;
+  max-width: 785px;
+  margin: 1vh auto;
+
   background-color: #ffffff;
-  /* Un poco más de aire interno (de 15px/35px a 20px/40px) */
-  padding: 20px 40px 28px 40px; 
-  border-radius: 35px; 
+  border-radius: 35px;
+  padding: 22px 40px 28px;
+
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  box-sizing: border-box;
+
   display: flex;
   flex-direction: column;
+
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  color: #4a5d45;
+  color: #333333;
 }
 
-/* Encabezado */
-.form-header {
+/* =============================== */
+/* HEADER */
+/* =============================== */
+
+.complaints-form-header {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
+
   border-bottom: 2px solid #f0f0f0;
-  padding-bottom: 8px; /* +2px */
-  margin-bottom: 12px; /* +2px */
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+}
+
+.complaints-icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #e3f2fd;
+  color: #0d47a1;
+
+  font-size: 1.5rem;
   flex-shrink: 0;
 }
 
-.icon-placeholder {
-  font-size: 26px; /* Subimos un poco */
-  background: #e3f2fd;
-  padding: 8px;
-  border-radius: 12px;
-}
-
-.header-text h1 {
-  font-size: 1.3rem; /* +0.05rem */
+.complaints-header-text h1 {
   margin: 0;
-  color: #333;
+  color: #222222;
+
+  font-size: 1.35rem;
+  line-height: 1.2;
+  font-weight: 800;
   text-transform: uppercase;
 }
 
-.header-text p {
-  font-size: 0.88rem;
-  margin: 0;
-  color: #666;
+.complaints-header-text p {
+  margin: 3px 0 0;
+  color: #666666;
+  font-size: 0.9rem;
 }
 
-/* Grupos de campos */
-.form-group {
-  margin-bottom: 1vh; 
+/* =============================== */
+/* FORMULARIO */
+/* =============================== */
+
+.complaints-denuncia-form {
   display: flex;
   flex-direction: column;
+  gap: 12px;
 }
 
-.form-group label {
-  font-weight: 600;
-  margin-bottom: 3px;
-  font-size: 0.92rem; /* Un pelín más grande */
+.complaints-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
 }
 
-.form-group input, 
-.form-group select, 
-.form-group textarea {
-  background-color: #f4f4f4;
+.complaints-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.complaints-field label {
+  color: #344054;
+  font-size: 0.9rem;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+/* =============================== */
+/* INPUTS */
+/* =============================== */
+
+.complaints-field input,
+.complaints-field select,
+.complaints-field textarea {
+  width: 100%;
+  min-height: 42px;
+
+  background-color: #f4f5f8;
+  color: #333333;
+
   border: 1px solid transparent;
-  padding: 10px 16px; /* Recuperamos un poco de grosor */
-  border-radius: 9px;
-  font-size: 0.98rem; 
+  border-radius: 11px;
+
+  padding: 10px 14px;
+
+  font-size: 0.95rem;
+  line-height: 1.25;
+
+  outline: none;
   transition: all 0.2s ease;
 }
 
-/* Grilla (Tipo y Fecha) */
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 15px; /* Un poco más de espacio entre columnas */
+.complaints-field textarea {
+  min-height: 96px;
+  resize: vertical;
 }
 
-/* Textarea compacto pero usable */
-textarea {
-  height: 50px; /* De 45px a 50px */
-  resize: none;
+.complaints-field input:focus,
+.complaints-field select:focus,
+.complaints-field textarea:focus {
+  background: #ffffff;
+  border-color: rgba(0, 106, 168, 0.45);
+  box-shadow: 0 0 0 3px rgba(0, 106, 168, 0.12);
 }
 
-/* Zona de archivos */
-.file-drop-zone {
+.complaints-field input:disabled {
+  color: #6b7280;
+  background: #eef0f3;
+  cursor: not-allowed;
+}
+
+/* =============================== */
+/* ADJUNTO */
+/* =============================== */
+
+.complaints-file-zone {
+  position: relative;
+
   border: 2px dashed #cbd5e0;
-  border-radius: 12px;
-  padding: 10px;
+  border-radius: 14px;
+
+  padding: 16px 46px 16px 16px;
+  min-height: 76px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
   text-align: center;
   background-color: #f8fafc;
+
   cursor: pointer;
-  font-size: 0.88rem;
+  transition: all 0.2s ease;
 }
 
-/* Footer */
-.form-footer {
+.complaints-file-zone:hover {
+  border-color: #007bff;
+  background: #e9f2ff;
+}
+
+.complaints-file-zone-active {
+  border-color: rgba(13, 71, 161, 0.35);
+  background: #f3f8ff;
+}
+
+.complaints-file-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+
+  color: #555555;
+  font-size: 0.9rem;
+  line-height: 1.25;
+
+  min-width: 0;
+}
+
+.complaints-file-icon {
+  font-size: 1.35rem;
+}
+
+.complaints-file-remove {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(220, 53, 69, 0.08);
+  color: #dc3545;
+  border: 1px solid rgba(220, 53, 69, 0.25);
+
+  font-size: 18px;
+  line-height: 1;
+  font-weight: 700;
+
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.complaints-file-remove:hover {
+  background: rgba(220, 53, 69, 0.16);
+  border-color: rgba(220, 53, 69, 0.45);
+  transform: scale(1.05);
+}
+
+/* =============================== */
+/* FOOTER */
+/* =============================== */
+
+.complaints-form-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: auto; 
-  padding-top: 10px;
-  gap: 15px;
+  gap: 14px;
+
+  margin-top: 8px;
 }
 
-.checkbox-container {
+.complaints-checkbox-container {
+  flex: 1;
+
   display: flex;
+  align-items: flex-start;
   gap: 10px;
-  font-size: 0.78rem; 
+
   background-color: #f8fafc;
-  padding: 8px 12px;
-  border-radius: 8px;
-  align-items: center;
-  max-width: 68%;
+  border-radius: 12px;
+  padding: 10px 12px;
+
+  color: #4b5563;
+  font-size: 0.78rem;
+  line-height: 1.25;
+}
+
+.complaints-checkbox-container input {
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+  flex-shrink: 0;
 }
 
 .btn-send {
+  min-width: 130px;
+  height: 43px;
+
   background: linear-gradient(90deg, #4dd0e1 0%, #0d47a1 100%);
   color: white;
+
   border: none;
-  padding: 10px 30px; 
-  border-radius: 10px;
-  font-weight: bold;
-  font-size: 1.05rem; 
+  border-radius: 12px;
+
+  padding: 10px 28px;
+
+  font-weight: 800;
+  font-size: 1rem;
+
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-send:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(13, 71, 161, 0.2);
+}
+
+.btn-send:active {
+  transform: translateY(0);
+}
+
+/* =============================== */
+/* RESPONSIVE */
+/* =============================== */
+
+@media (max-width: 768px) {
+  .complaints-form-container {
+    width: 94%;
+    padding: 20px 22px 24px;
+    border-radius: 24px;
+  }
+
+  .complaints-row {
+    grid-template-columns: 1fr;
+  }
+
+  .complaints-form-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .btn-send {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .complaints-form-header {
+    align-items: flex-start;
+  }
+
+  .complaints-header-text h1 {
+    font-size: 1.15rem;
+  }
+
+  .complaints-header-text p {
+    font-size: 0.82rem;
+  }
 }

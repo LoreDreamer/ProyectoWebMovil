@@ -3,8 +3,6 @@ import { useHistory } from 'react-router-dom';
 import {
   IonButton,
   IonInput,
-  IonLabel,
-  IonItem,
   IonRouterLink,
   IonSelect,
   IonSelectOption
@@ -42,9 +40,9 @@ export const LoginForm: React.FC = () => {
       const response = await fetch('http://localhost:3000/api/auth/login', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password })
       });
 
       const data = await response.json();
@@ -56,12 +54,13 @@ export const LoginForm: React.FC = () => {
 
       await login(data.token);
 
-      if (data.role === 'admin' || email === 'admin@inicio') {
+      const userRole = data.user?.role || data.role;
+
+      if (userRole === 'admin' || email === 'admin@inicio') {
         history.push('/admin');
       } else {
         history.push('/inicio');
       }
-
     } catch (error) {
       console.error('Error de conexión:', error);
       alert('No se pudo conectar con el servidor Express en el puerto 3000.');
@@ -83,27 +82,29 @@ export const LoginForm: React.FC = () => {
               <p>Accede al sistema con tu correo y contraseña.</p>
             </div>
 
-            <IonItem>
-              <IonLabel position="stacked">Correo electrónico</IonLabel>
+            <div className="auth-field">
+              <label className="auth-label">Correo electrónico</label>
+
               <IonInput
-                className="custom-input"
+                className="auth-input"
                 type="email"
                 value={email}
                 onIonChange={(e) => setEmail(e.detail.value || '')}
                 placeholder="correo@dominio.com"
               />
-            </IonItem>
+            </div>
 
-            <IonItem>
-              <IonLabel position="stacked">Contraseña</IonLabel>
+            <div className="auth-field">
+              <label className="auth-label">Contraseña</label>
+
               <IonInput
-                className="custom-input"
+                className="auth-input"
                 type="password"
                 value={password}
                 onIonChange={(e) => setPassword(e.detail.value || '')}
                 placeholder="Ingresa tu contraseña"
               />
-            </IonItem>
+            </div>
 
             <IonButton expand="block" type="submit" className="submit-button">
               Iniciar sesión
@@ -166,9 +167,18 @@ export const RegisterForm: React.FC = () => {
       const response = await fetch('http://localhost:3000/api/auth/register', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({
+          email,
+          password,
+          nombre_completo: usuario,
+          nombreCompleto: usuario,
+          usuario,
+          rut,
+          region: selectedRegion?.name || region,
+          comuna
+        })
       });
 
       const data = await response.json();
@@ -180,13 +190,12 @@ export const RegisterForm: React.FC = () => {
 
       localStorage.setItem('userName', usuario);
       localStorage.setItem('userRut', rut);
-      localStorage.setItem('userRegion', region);
+      localStorage.setItem('userRegion', selectedRegion?.name || region);
       localStorage.setItem('userComuna', comuna);
 
       alert('¡Usuario registrado con éxito en el servidor! Ahora inicia sesión.');
 
       history.push('/login');
-
     } catch (error) {
       console.error('Error de conexión:', error);
       alert('No se pudo conectar con el servidor Express en el puerto 3000.');
@@ -208,98 +217,107 @@ export const RegisterForm: React.FC = () => {
               <p>Completa tus datos para crear una cuenta.</p>
             </div>
 
-            <IonItem>
-              <IonLabel position="stacked">Usuario</IonLabel>
-              <IonInput
-                className="custom-input"
-                type="text"
-                value={usuario}
-                onIonChange={(e) => setUsuario(e.detail.value || '')}
-                placeholder="Ingresa tu usuario"
-              />
-            </IonItem>
+            <div className="auth-form-grid">
+              <div className="auth-field">
+                <label className="auth-label">Nombre completo</label>
 
-            <IonItem>
-              <IonLabel position="stacked">Rut</IonLabel>
-              <IonInput
-                className="custom-input"
-                type="text"
-                value={rut}
-                onIonChange={(e) => setRut(e.detail.value || '')}
-                placeholder="12.345.678-9"
-              />
-            </IonItem>
+                <IonInput
+                  className="auth-input"
+                  type="text"
+                  value={usuario}
+                  onIonChange={(e) => setUsuario(e.detail.value || '')}
+                  placeholder="Ej: Camila Rojas Fernández"
+                />
+              </div>
 
-            <IonItem className="select-field">
-              <IonLabel position="stacked">Región</IonLabel>
-              <IonSelect
-                className="custom-select"
-                interface="popover"
-                value={region}
-                placeholder="Selecciona una región"
-                onIonChange={(e) => {
-                  setRegion(e.detail.value);
-                  setComuna('');
-                }}
-              >
-                {CHILE_REGIONS.map((item) => (
-                  <IonSelectOption key={item.id} value={item.id}>
-                    {item.name}
-                  </IonSelectOption>
-                ))}
-              </IonSelect>
-            </IonItem>
+              <div className="auth-field">
+                <label className="auth-label">RUT</label>
 
-            <IonItem className="select-field">
-              <IonLabel position="stacked">Comuna</IonLabel>
-              <IonSelect
-                className="custom-select"
-                interface="popover"
-                value={comuna}
-                placeholder="Selecciona una comuna"
-                disabled={!region}
-                onIonChange={(e) => setComuna(e.detail.value)}
-              >
-                {comunas.map((item) => (
-                  <IonSelectOption key={item} value={item}>
-                    {item}
-                  </IonSelectOption>
-                ))}
-              </IonSelect>
-            </IonItem>
+                <IonInput
+                  className="auth-input"
+                  type="text"
+                  value={rut}
+                  onIonChange={(e) => setRut(e.detail.value || '')}
+                  placeholder="12.345.678-9"
+                />
+              </div>
 
-            <IonItem>
-              <IonLabel position="stacked">Correo electrónico</IonLabel>
-              <IonInput
-                className="custom-input"
-                type="email"
-                value={email}
-                onIonChange={(e) => setEmail(e.detail.value || '')}
-                placeholder="correo@dominio.com"
-              />
-            </IonItem>
+              <div className="auth-field">
+                <label className="auth-label">Región</label>
 
-            <IonItem>
-              <IonLabel position="stacked">Contraseña</IonLabel>
-              <IonInput
-                className="custom-input"
-                type="password"
-                value={password}
-                onIonChange={(e) => setPassword(e.detail.value || '')}
-                placeholder="Crea una contraseña"
-              />
-            </IonItem>
+                <IonSelect
+                  className="auth-select"
+                  interface="popover"
+                  value={region}
+                  placeholder="Selecciona una región"
+                  onIonChange={(e) => {
+                    setRegion(e.detail.value);
+                    setComuna('');
+                  }}
+                >
+                  {CHILE_REGIONS.map((item) => (
+                    <IonSelectOption key={item.id} value={item.id}>
+                      {item.name}
+                    </IonSelectOption>
+                  ))}
+                </IonSelect>
+              </div>
 
-            <IonItem>
-              <IonLabel position="stacked">Confirmar contraseña</IonLabel>
-              <IonInput
-                className="custom-input"
-                type="password"
-                value={confirmPassword}
-                onIonChange={(e) => setConfirmPassword(e.detail.value || '')}
-                placeholder="Repite tu contraseña"
-              />
-            </IonItem>
+              <div className="auth-field">
+                <label className="auth-label">Comuna</label>
+
+                <IonSelect
+                  className="auth-select"
+                  interface="popover"
+                  value={comuna}
+                  placeholder="Selecciona una comuna"
+                  disabled={!region}
+                  onIonChange={(e) => setComuna(e.detail.value)}
+                >
+                  {comunas.map((item) => (
+                    <IonSelectOption key={item} value={item}>
+                      {item}
+                    </IonSelectOption>
+                  ))}
+                </IonSelect>
+              </div>
+
+              <div className="auth-field auth-field-full">
+                <label className="auth-label">Correo electrónico</label>
+
+                <IonInput
+                  className="auth-input"
+                  type="email"
+                  value={email}
+                  onIonChange={(e) => setEmail(e.detail.value || '')}
+                  placeholder="correo@dominio.com"
+                />
+              </div>
+
+              <div className="auth-field">
+                <label className="auth-label">Contraseña</label>
+
+                <IonInput
+                  className="auth-input"
+                  type="password"
+                  value={password}
+                  onIonChange={(e) => setPassword(e.detail.value || '')}
+                  placeholder="Crea una contraseña"
+                />
+              </div>
+
+              <div className="auth-field">
+                <label className="auth-label">Confirmar contraseña</label>
+
+                <IonInput
+                  className="auth-input"
+                  type="password"
+                  value={confirmPassword}
+                  onIonChange={(e) => setConfirmPassword(e.detail.value || '')}
+                  placeholder="Repite tu contraseña"
+                />
+              </div>
+            </div>
 
             <IonButton
               type="button"

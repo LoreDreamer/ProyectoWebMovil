@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   IonIcon,
   IonButton,
@@ -17,116 +17,371 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import './alertsPanel.css';
 
+interface AlertImage {
+  id: string;
+  name: string;
+  previewUrl: string;
+  order: number;
+}
+
 interface Alert {
   id: number;
   title: string;
   description: string;
   image: string;
+  coverName?: string;
+  images?: AlertImage[];
   createdAt: string;
+  publicado_por?: string;
+  autorNombre?: string;
+  autorCorreo?: string;
 }
 
+const API_URL = 'http://localhost:3000';
+const MAX_ALERT_IMAGES = 10;
+
 export const AlertsPanel: React.FC = () => {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
+
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [editingAlert, setEditingAlert] = useState<Alert | null>(null);
+
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [imagePreview, setImagePreview] = useState('');
+
+  const [coverPreview, setCoverPreview] = useState('');
+  const [coverName, setCoverName] = useState('');
+  const [removeCover, setRemoveCover] = useState(false);
+
+  const [alertImages, setAlertImages] = useState<AlertImage[]>([]);
   const [viewItem, setViewItem] = useState<Alert | null>(null);
 
-  if (!user || user.role !== 'admin') return null;
+  const coverInputRef = useRef<HTMLInputElement | null>(null);
+  const alertImagesInputRef = useRef<HTMLInputElement | null>(null);
 
-  const loadAlerts = () => {
-    fetch('http://localhost:3000/api/alerts')
-      .then(res => res.json())
-      .then(data => setAlerts(data))
-      .catch(err => console.log(err));
+  const isAdmin = user?.role === 'admin';
+
+  const getAuthHeaders = (): Record<string, string> | undefined => {
+    if (!token) return undefined;
+
+    return {
+      Authorization: `Bearer ${token}`
+    };
+  };
+
+  const getJsonHeaders = (): Record<string, string> => {
+    if (!token) {
+      return {
+        'Content-Type': 'application/json'
+      };
+    }
+
+    return {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`
+    };
+  };
+
+  const readImageAsDataUrl = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(new Error('No se pudo leer la imagen'));
+
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const normalizeImageOrder = (images: AlertImage[]) => {
+    return images.map((image, index) => ({
+      ...image,
+      order: index + 1
+    }));
+  };
+
+  const resetInputs = () => {
+    if (coverInputRef.current) {
+      coverInputRef.current.value = '';
+    }
+
+    if (alertImagesInputRef.current) {
+      alertImagesInputRef.current.value = '';
+    }
+  };
+
+  const loadAlerts = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/alerts`, {
+        method: 'GET',
+        headers: getAuthHeaders()
+      });
+
+      if (!response.ok) {
+        throw new Error('No se pudieron cargar las alertas');
+      }
+
+      const data = await response.json();
+
+      setAlerts(
+        Array.isArray(data)
+          ? data.map((alert: Alert) => ({
+              ...alert,
+              images: normalizeImageOrder(alert.images || [])
+            }))
+          : []
+      );
+    } catch (error) {
+      console.error('Error al cargar alertas:', error);
+      setAlerts([]);
+    }
   };
 
   useEffect(() => {
     loadAlerts();
-    
+
     const handler = () => loadAlerts();
     window.addEventListener('alerts-updated', handler);
-    return () => window.removeEventListener('alerts-updated', handler);
-  }, []);
 
-  const filteredAlerts = alerts.filter(alert =>
+    return () => {
+      window.removeEventListener('alerts-updated', handler);
+    };
+  }, [token]);
+
+  const filteredAlerts = alerts.filter((alert) =>
     alert.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    alert.description.toLowerCase().includes(searchTerm.toLowerCase())
+    alert.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (alert.autorNombre || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const resetForm = () => {
     setTitle('');
     setDescription('');
-    setImagePreview('');
+
+    setCoverPreview('');
+    setCoverName('');
+    setRemoveCover(false);
+
+    setAlertImages([]);
     setEditingAlert(null);
+    setViewItem(null);
+
+    resetInputs();
   };
 
-  const handleImageUpload = (file: File) => {
-    if (file && file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onload = () => setImagePreview(reader.result as string);
-      reader.readAsDataURL(file);
+  const handleCoverUpload = async (file?: File) => {
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Solo puedes adjuntar imágenes.');
+      return;
     }
+
+    try {
+      const previewUrl = await readImageAsDataUrl(file);
+
+      setCoverPreview(previewUrl);
+      setCoverName(file.name);
+      setRemoveCover(false);
+    } catch (error) {
+      console.error('Error al cargar portada:', error);
+      alert('No se pudo cargar la portada.');
+    }
+  };
+
+  const handleRemoveCover = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+
+    setCoverPreview('');
+    setCoverName('');
+
+    if (editingAlert?.image) {
+      setRemoveCover(true);
+    } else {
+      setRemoveCover(false);
+    }
+
+    if (coverInputRef.current) {
+      coverInputRef.current.value = '';
+    }
+  };
+
+  const handleAlertImagesUpload = async (filesList?: FileList | null) => {
+    const files = Array.from(filesList || []);
+
+    if (files.length === 0) return;
+
+    const onlyImages = files.filter((file) => file.type.startsWith('image/'));
+
+    if (onlyImages.length !== files.length) {
+      alert('Solo puedes adjuntar imágenes.');
+    }
+
+    const availableSlots = MAX_ALERT_IMAGES - alertImages.length;
+
+    if (availableSlots <= 0) {
+      alert(`Solo puedes adjuntar un máximo de ${MAX_ALERT_IMAGES} imágenes.`);
+
+      if (alertImagesInputRef.current) {
+        alertImagesInputRef.current.value = '';
+      }
+
+      return;
+    }
+
+    if (onlyImages.length > availableSlots) {
+      alert(`Solo puedes agregar ${availableSlots} imagen(es) más. El límite total es ${MAX_ALERT_IMAGES}.`);
+    }
+
+    const filesToAdd = onlyImages.slice(0, availableSlots);
+
+    try {
+      const newImages = await Promise.all(
+        filesToAdd.map(async (file, index) => {
+          const previewUrl = await readImageAsDataUrl(file);
+
+          return {
+            id: `${Date.now()}-${index}-${file.name}`,
+            name: file.name,
+            previewUrl,
+            order: alertImages.length + index + 1
+          };
+        })
+      );
+
+      setAlertImages((prev) => normalizeImageOrder([...prev, ...newImages]));
+    } catch (error) {
+      console.error('Error al cargar imágenes de alerta:', error);
+      alert('No se pudieron cargar una o más imágenes.');
+    }
+
+    if (alertImagesInputRef.current) {
+      alertImagesInputRef.current.value = '';
+    }
+  };
+
+  const removeAlertImage = (imageId: string) => {
+    setAlertImages((prev) =>
+      normalizeImageOrder(prev.filter((image) => image.id !== imageId))
+    );
+  };
+
+  const moveAlertImage = (imageId: string, direction: 'up' | 'down') => {
+    setAlertImages((prev) => {
+      const currentIndex = prev.findIndex((image) => image.id === imageId);
+
+      if (currentIndex === -1) return prev;
+
+      const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+
+      if (newIndex < 0 || newIndex >= prev.length) return prev;
+
+      const updatedImages = [...prev];
+      const temp = updatedImages[currentIndex];
+
+      updatedImages[currentIndex] = updatedImages[newIndex];
+      updatedImages[newIndex] = temp;
+
+      return normalizeImageOrder(updatedImages);
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !description) {
+
+    if (!title.trim() || !description.trim()) {
       alert('Completa título y descripción');
       return;
     }
 
-    const payload = { title, description, image: imagePreview };
+    const finalCover = removeCover
+      ? ''
+      : coverPreview || editingAlert?.image || '';
+
+    const finalCoverName = removeCover
+      ? ''
+      : coverName || editingAlert?.coverName || '';
+
+    const payload = {
+      title: title.trim(),
+      description: description.trim(),
+      image: finalCover,
+      coverName: finalCoverName,
+      images: normalizeImageOrder(alertImages)
+    };
 
     try {
       let response: Response;
-      
+
       if (editingAlert) {
-        response = await fetch(`http://localhost:3000/api/alerts/${editingAlert.id}`, {
+        response = await fetch(`${API_URL}/api/alerts/${editingAlert.id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getJsonHeaders(),
           body: JSON.stringify(payload)
         });
       } else {
-        response = await fetch('http://localhost:3000/api/alerts', {
+        response = await fetch(`${API_URL}/api/alerts`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getJsonHeaders(),
           body: JSON.stringify(payload)
         });
       }
-      
-      if (!response.ok) throw new Error();
+
+      if (!response.ok) {
+        throw new Error('Error al guardar la alerta');
+      }
 
       resetForm();
-      loadAlerts();
+      await loadAlerts();
       window.dispatchEvent(new Event('alerts-updated'));
-    } catch {
+
+      alert(editingAlert ? 'Alerta actualizada con éxito' : 'Alerta creada con éxito');
+    } catch (error) {
+      console.error('Error al guardar alerta:', error);
       alert('Error al guardar la alerta');
     }
   };
 
   const handleEdit = (alert: Alert) => {
     setEditingAlert(alert);
+
     setTitle(alert.title);
     setDescription(alert.description);
-    setImagePreview(alert.image);
+
+    setCoverPreview(alert.image || '');
+    setCoverName(alert.coverName || '');
+    setRemoveCover(false);
+
+    setAlertImages(normalizeImageOrder(alert.images || []));
     setViewItem(null);
+
+    resetInputs();
   };
 
   const handleDelete = async (id: number) => {
     if (!window.confirm('¿Eliminar esta alerta?')) return;
-    
+
     try {
-      const response = await fetch(`http://localhost:3000/api/alerts/${id}`, {
-        method: 'DELETE'
+      const response = await fetch(`${API_URL}/api/alerts/${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
       });
-      if (!response.ok) throw new Error();
-      loadAlerts();
+
+      if (!response.ok) {
+        throw new Error('Error al eliminar la alerta');
+      }
+
+      await loadAlerts();
       window.dispatchEvent(new Event('alerts-updated'));
-    } catch {
+
+      if (viewItem?.id === id) {
+        setViewItem(null);
+      }
+
+      alert('Alerta eliminada');
+    } catch (error) {
+      console.error('Error al eliminar alerta:', error);
       alert('Error al eliminar');
     }
   };
@@ -134,6 +389,8 @@ export const AlertsPanel: React.FC = () => {
   const handleView = (alert: Alert) => {
     setViewItem(alert);
   };
+
+  if (!isAdmin) return null;
 
   return (
     <div className="alerts-admin-panel">
@@ -143,10 +400,14 @@ export const AlertsPanel: React.FC = () => {
             <div className="icon-square">
               <IonIcon icon={addOutline} />
             </div>
+
             <div className="header-text-container">
               <h2>{editingAlert ? 'Editar Alerta' : 'Nueva Alerta'}</h2>
-              <p>Agrega un aviso corto con imagen y descripción.</p>
+              <p>
+                La alerta quedará publicada automáticamente por {user?.nombre_completo || 'el administrador'}.
+              </p>
             </div>
+
             {editingAlert && (
               <IonButton
                 fill="clear"
@@ -161,49 +422,170 @@ export const AlertsPanel: React.FC = () => {
           <form className="admin-form-body" onSubmit={handleSubmit}>
             <div className="form-group">
               <label>Título</label>
+
               <IonInput
                 placeholder="Título de la alerta"
                 value={title}
-                onIonChange={(e) => setTitle(e.detail.value!)}
+                onIonChange={(e) => setTitle(e.detail.value || '')}
                 className="custom-input"
               />
             </div>
 
             <div className="form-group">
               <label>Descripción</label>
+
               <IonTextarea
                 placeholder="Descripción breve"
                 rows={4}
                 value={description}
-                onIonChange={(e) => setDescription(e.detail.value!)}
+                onIonChange={(e) => setDescription(e.detail.value || '')}
                 className="custom-textarea"
               />
             </div>
 
             <div className="form-group">
-              <label>Imagen</label>
+              <label>Portada</label>
+
               <div
-                className="file-drop-zone"
+                className={`file-drop-zone attachment-zone ${removeCover ? 'attachment-zone-removed' : ''}`}
+                onClick={() => coverInputRef.current?.click()}
                 onDrop={(e) => {
                   e.preventDefault();
-                  handleImageUpload(e.dataTransfer.files[0]);
+                  handleCoverUpload(e.dataTransfer.files[0]);
                 }}
                 onDragOver={(e) => e.preventDefault()}
               >
+                {(coverPreview || (!removeCover && editingAlert?.image)) && (
+                  <button
+                    type="button"
+                    className="attachment-remove-x"
+                    aria-label="Quitar portada"
+                    onClick={handleRemoveCover}
+                  >
+                    ×
+                  </button>
+                )}
+
                 <div className="file-drop-content">
                   <IonIcon icon={cloudUploadOutline} />
-                  <span>Arrastra una imagen o selecciona archivo</span>
+
+                  <span>
+                    {removeCover
+                      ? 'Portada eliminada'
+                      : coverName ||
+                        editingAlert?.coverName ||
+                        'Seleccionar imagen de portada'}
+                  </span>
                 </div>
+
                 <input
+                  ref={coverInputRef}
                   type="file"
                   accept="image/*"
-                  className="file-input"
-                  onChange={(e) => e.target.files && handleImageUpload(e.target.files[0])}
+                  style={{ display: 'none' }}
+                  onChange={(e) => handleCoverUpload(e.target.files?.[0])}
                 />
               </div>
-              {imagePreview && (
+
+              {!removeCover && coverPreview && (
                 <div className="image-preview-box">
-                  <img src={imagePreview} alt="preview" />
+                  <img src={coverPreview} alt="Vista previa de portada" />
+                </div>
+              )}
+            </div>
+
+            <div className="form-group">
+              <label>Imágenes de la alerta ({alertImages.length}/{MAX_ALERT_IMAGES})</label>
+
+              {alertImages.length < MAX_ALERT_IMAGES ? (
+                <div
+                  className="file-drop-zone"
+                  onClick={() => alertImagesInputRef.current?.click()}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    handleAlertImagesUpload(e.dataTransfer.files);
+                  }}
+                  onDragOver={(e) => e.preventDefault()}
+                >
+                  <div className="file-drop-content">
+                    <IonIcon icon={cloudUploadOutline} />
+
+                    <span>
+                      Puedes agregar {MAX_ALERT_IMAGES - alertImages.length} imagen(es) más
+                    </span>
+                  </div>
+
+                  <input
+                    ref={alertImagesInputRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    style={{ display: 'none' }}
+                    onChange={(e) => handleAlertImagesUpload(e.target.files)}
+                  />
+                </div>
+              ) : (
+                <div className="images-limit-message">
+                  Ya alcanzaste el límite de 10 imágenes. Elimina una imagen para poder adjuntar otra.
+                </div>
+              )}
+
+              {alertImages.length > 0 && (
+                <div className="ordered-images-list">
+                  {alertImages.map((image, index) => (
+                    <div key={image.id} className="ordered-image-item">
+                      <div className="ordered-image-preview-wrap">
+                        <img src={image.previewUrl} alt={`Imagen ${index + 1}`} />
+
+                        <span className="ordered-image-number">
+                          {index + 1}
+                        </span>
+                      </div>
+
+                      <div className="ordered-image-info">
+                        <strong>{image.name}</strong>
+                        <span>Orden {index + 1}</span>
+                      </div>
+
+                      <div className="ordered-image-actions">
+                        <IonButton
+                          fill="clear"
+                          size="small"
+                          disabled={index === 0}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            moveAlertImage(image.id, 'up');
+                          }}
+                        >
+                          Subir
+                        </IonButton>
+
+                        <IonButton
+                          fill="clear"
+                          size="small"
+                          disabled={index === alertImages.length - 1}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            moveAlertImage(image.id, 'down');
+                          }}
+                        >
+                          Bajar
+                        </IonButton>
+
+                        <IonButton
+                          fill="clear"
+                          size="small"
+                          color="danger"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeAlertImage(image.id);
+                          }}
+                        >
+                          Eliminar
+                        </IonButton>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
@@ -220,9 +602,10 @@ export const AlertsPanel: React.FC = () => {
       <section className="panel-list-section">
         <div className="panel-section-header">
           <div>
-            <h2>Alertas publicadas</h2>
+            <h2>Alertas publicadas ({alerts.length})</h2>
             <p>Busca, edita o elimina las alertas existentes.</p>
           </div>
+
           <IonSearchbar
             value={searchTerm}
             placeholder="Buscar alerta..."
@@ -232,43 +615,98 @@ export const AlertsPanel: React.FC = () => {
         </div>
 
         <div className="alerts-grid">
-          {filteredAlerts.map((alert) => (
-            <article key={alert.id} className="alert-card">
-              <div className="card-image-wrap">
-                <img src={alert.image} alt={alert.title} />
-              </div>
-              <h2>{alert.title}</h2>
-              <p>{alert.description}</p>
-              <div className="card-meta">
-                <span>{alert.createdAt}</span>
-              </div>
-              <div className="card-actions">
-                <IonButton fill="clear" size="small" onClick={() => handleView(alert)}>
-                  <IonIcon icon={eyeOutline} /> Leer más
-                </IonButton>
-                <IonButton fill="clear" size="small" onClick={() => handleEdit(alert)}>
-                  <IonIcon icon={createOutline} /> Editar
-                </IonButton>
-                <IonButton fill="clear" size="small" onClick={() => handleDelete(alert.id)}>
-                  <IonIcon icon={trashOutline} /> Eliminar
-                </IonButton>
-              </div>
-            </article>
-          ))}
+          {filteredAlerts.length === 0 ? (
+            <p>No hay alertas disponibles.</p>
+          ) : (
+            filteredAlerts.map((alert) => (
+              <article key={alert.id} className="alert-card">
+                <div className="card-image-wrap">
+                  {alert.image ? (
+                    <img src={alert.image} alt={alert.title} />
+                  ) : (
+                    <div className="alert-image-placeholder">
+                      Sin portada
+                    </div>
+                  )}
+                </div>
+
+                <h2>{alert.title}</h2>
+                <p>{alert.description}</p>
+
+                <div className="card-meta">
+                  <span>{alert.createdAt}</span>
+                  <span>Publicado por: {alert.autorNombre || 'Municipalidad'}</span>
+                  <span>{alert.images?.length || 0} imagen(es)</span>
+                </div>
+
+                <div className="card-actions">
+                  <IonButton
+                    fill="clear"
+                    size="small"
+                    onClick={() => handleView(alert)}
+                  >
+                    <IonIcon icon={eyeOutline} />
+                    Leer más
+                  </IonButton>
+
+                  <IonButton
+                    fill="clear"
+                    size="small"
+                    onClick={() => handleEdit(alert)}
+                  >
+                    <IonIcon icon={createOutline} />
+                    Editar
+                  </IonButton>
+
+                  <IonButton
+                    fill="clear"
+                    size="small"
+                    className="delete-btn"
+                    onClick={() => handleDelete(alert.id)}
+                  >
+                    <IonIcon icon={trashOutline} />
+                    Eliminar
+                  </IonButton>
+                </div>
+              </article>
+            ))
+          )}
         </div>
 
         {viewItem && (
           <div className="detail-panel">
             <h3>Vista rápida</h3>
+
             <div className="alert-detail-card">
               <div className="card-image-wrap">
-                <img src={viewItem.image} alt={viewItem.title} />
+                {viewItem.image ? (
+                  <img src={viewItem.image} alt={viewItem.title} />
+                ) : (
+                  <div className="alert-image-placeholder">
+                    Sin portada
+                  </div>
+                )}
               </div>
+
               <h2>{viewItem.title}</h2>
               <p>{viewItem.description}</p>
+
               <div className="card-meta">
                 <span>{viewItem.createdAt}</span>
+                <span>Publicado por: {viewItem.autorNombre || 'Municipalidad'}</span>
+                <span>{viewItem.images?.length || 0} imagen(es)</span>
               </div>
+
+              {viewItem.images && viewItem.images.length > 0 && (
+                <div className="alert-detail-gallery">
+                  {viewItem.images.map((image, index) => (
+                    <div key={image.id} className="alert-detail-gallery-item">
+                      <img src={image.previewUrl} alt={`Imagen ${index + 1}`} />
+                      <span>{index + 1}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
