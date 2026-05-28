@@ -39,7 +39,7 @@ interface DenunciaDB {
   nombre_completo?: string | null;
   usuario_id?: string | null;
   archivos?: ArchivoDenuncia[] | null;
-  created_at?: string | null;
+  creado_en?: string | null;
 
   nombre?: string | null;
   fecha_incidente?: string | null;
@@ -229,7 +229,7 @@ const mapDenunciaResponse = (denuncia: DenunciaDB) => {
 
   const nombreCompleto = denuncia.nombre_completo || denuncia.nombre || '';
   const fechaIncidente = denuncia.fecha || denuncia.fecha_incidente || '';
-  const fechaRegistro = denuncia.created_at || denuncia.fecha_registro || '';
+  const fechaRegistro = denuncia.creado_en || denuncia.fecha_registro || '';
 
   const archivoNombre =
     primerArchivo?.name || denuncia.archivo_adjunto || 'Ninguno';
@@ -263,7 +263,7 @@ const mapDenunciaResponse = (denuncia: DenunciaDB) => {
     archivos,
 
     fechaRegistro: formatFecha(fechaRegistro),
-    created_at: fechaRegistro,
+    creado_en: fechaRegistro,
 
     usuarioId: denuncia.usuario_id || null,
     usuario_id: denuncia.usuario_id || null
@@ -298,7 +298,7 @@ export const obtenerDenuncias = async (_req: Request, res: Response) => {
     const { data, error } = await supabase
       .from(DENUNCIAS_TABLE)
       .select('*')
-      .order('created_at', { ascending: false });
+      .order('creado_en', { ascending: false });
 
     if (error) {
       throw error;

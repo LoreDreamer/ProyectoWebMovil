@@ -29,7 +29,7 @@ interface UsuarioBackend {
   comuna?: string;
   estado?: string;
   estatus?: string;
-  created_at?: string | null;
+  creado_en?: string | null;
 }
 
 interface UsersApiResponse {

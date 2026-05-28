@@ -13,7 +13,7 @@ interface User {
   estado?: string;
   tipo_usuario?: string;
   role: 'admin' | 'user';
-  created_at?: string;
+  creado_en?: string;
 }
 
 interface AuthContextType {
@@ -49,7 +49,7 @@ const normalizeFrontendUser = (raw: any): User | null => {
     estado: realUser.estado || realUser.estatus || '',
     tipo_usuario: realUser.tipo_usuario || realUser.role || '',
     role: dbRole === 'admin' ? 'admin' : 'user',
-    created_at: realUser.created_at || '',
+    creado_en: realUser.creado_en || '',
   };
 };
 

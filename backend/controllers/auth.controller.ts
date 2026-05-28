@@ -41,7 +41,7 @@ const normalizeUser = (user: any) => {
     estado: estatus,
     tipo_usuario: role,
     role,
-    created_at: user.created_at || null
+    craedo_en: user.creado_en || null
   };
 };
 
@@ -160,7 +160,7 @@ export const register = async (req: Request, res: Response) => {
       password: hashedPassword,
       estatus: 'activo',
       tipo_usuario: 'user',
-      created_at: new Date().toISOString()
+      creado_en: new Date().toISOString()
     };
 
     const { data, error } = await supabase
@@ -344,9 +344,9 @@ export const getUsers = async (_req: Request, res: Response) => {
     const { data, error } = await supabase
       .from(USERS_TABLE)
       .select(
-        'id, rut, nombre_completo, region, comuna, correo, estatus, created_at, tipo_usuario'
+        'id, rut, nombre_completo, region, comuna, correo, estatus, creado_en, tipo_usuario'
       )
-      .order('created_at', { ascending: false });
+      .order('creado_en', { ascending: false });
 
     if (error) {
       console.error('Error getUsers:', error);

@@ -43,7 +43,7 @@ interface EducationDB {
   archivo_url: string | null;
   archivo_nombre: string | null;
   archivo_tipo: string | null;
-  created_at?: string | null;
+  creado_en?: string | null;
 }
 
 const EDUCATION_TABLE = process.env.SUPABASE_EDUCATION_TABLE || 'educacion';
@@ -283,7 +283,7 @@ const mapEducationResponse = (item: EducationDB) => {
     images,
     imagenes: images,
 
-    createdAt: item.created_at || null
+    createdAt: item.creado_en || null
   };
 };
 
@@ -306,7 +306,7 @@ export const getEducationModules = async (_req: Request, res: Response) => {
     const { data, error } = await supabase
       .from(EDUCATION_TABLE)
       .select('*')
-      .order('created_at', { ascending: false });
+      .order('creado_en', { ascending: false });
 
     if (error) {
       throw error;
