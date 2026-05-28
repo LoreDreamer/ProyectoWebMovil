@@ -1,15 +1,11 @@
 import express from 'express';
 import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
-
 import {
   getAlerts,
   createAlert,
   updateAlert,
   deleteAlert
 } from '../controllers/alerts.controller';
-
 import {
   authenticateToken,
   requireAdmin
@@ -17,79 +13,87 @@ import {
 
 const router = express.Router();
 
-const uploadsDir = path.join(__dirname, '..', 'uploads');
+const MAX_FILE_SIZE_MB = 10;
+const MAX_IMAGES = 10;
 
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
+const allowedMimeTypes = [
+  'image/png',
+  'image/jpeg',
+  'image/jpg',
+  'image/webp'
+];
 
-const storage = multer.diskStorage({
-  destination: (
-    _req: express.Request,
-    _file: Express.Multer.File,
-    cb: (error: Error | null, destination: string) => void
-  ) => {
-    cb(null, uploadsDir);
-  },
+const allowedExtensions = ['.png', '.jpg', '.jpeg', '.webp'];
 
-  filename: (
-    _req: express.Request,
-    file: Express.Multer.File,
-    cb: (error: Error | null, filename: string) => void
-  ) => {
-    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-    const extension = path.extname(file.originalname);
+const getFileExtension = (fileName: string) => {
+  const lastDot = fileName.lastIndexOf('.');
 
-    cb(null, `${uniqueSuffix}${extension}`);
-  }
-});
+  if (lastDot === -1) return '';
 
-const fileFilter = (
-  _req: express.Request,
-  file: Express.Multer.File,
-  cb: multer.FileFilterCallback
-) => {
-  const allowedImageTypes = [
-    'image/png',
-    'image/jpeg',
-    'image/jpg',
-    'image/webp'
-  ];
-
-  if (!allowedImageTypes.includes(file.mimetype)) {
-    return cb(
-      new Error(
-        'Solo se permiten imágenes PNG, JPG, JPEG o WEBP para las alertas.'
-      )
-    );
-  }
-
-  return cb(null, true);
+  return fileName.substring(lastDot).toLowerCase();
 };
+
+const storage = multer.memoryStorage();
 
 const upload = multer({
   storage,
-  fileFilter,
   limits: {
-    fileSize: 8 * 1024 * 1024,
-    files: 12
+    fileSize: MAX_FILE_SIZE_MB * 1024 * 1024,
+    files: MAX_IMAGES + 1
+  },
+  fileFilter: (_req, file, cb) => {
+    const extension = getFileExtension(file.originalname);
+
+    const isValidFile =
+      allowedMimeTypes.includes(file.mimetype) ||
+      allowedExtensions.includes(extension);
+
+    if (!isValidFile) {
+      return cb(
+        new Error(
+          'Formato de imagen no permitido. Solo se permiten PNG, JPG, JPEG o WEBP.'
+        )
+      );
+    }
+
+    return cb(null, true);
   }
 });
 
 const uploadAlertFiles = upload.fields([
-  {
-    name: 'portada',
-    maxCount: 1
-  },
-  {
-    name: 'imagen',
-    maxCount: 1
-  },
-  {
-    name: 'imagenes',
-    maxCount: 10
-  }
+  { name: 'portada', maxCount: 1 },
+  { name: 'imagen', maxCount: 1 },
+  { name: 'imagenes', maxCount: MAX_IMAGES }
 ]);
+
+const handleMulterError = (
+  err: unknown,
+  _req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+) => {
+  if (!err) {
+    return next();
+  }
+
+  if (err instanceof multer.MulterError) {
+    return res.status(400).json({
+      message: 'Error al subir archivo.',
+      error: err.message
+    });
+  }
+
+  if (err instanceof Error) {
+    return res.status(400).json({
+      message: 'Archivo no válido.',
+      error: err.message
+    });
+  }
+
+  return res.status(400).json({
+    message: 'Error desconocido al subir archivo.'
+  });
+};
 
 router.get('/', getAlerts);
 
@@ -98,6 +102,7 @@ router.post(
   authenticateToken,
   requireAdmin,
   uploadAlertFiles,
+  handleMulterError,
   createAlert
 );
 
@@ -106,6 +111,7 @@ router.put(
   authenticateToken,
   requireAdmin,
   uploadAlertFiles,
+  handleMulterError,
   updateAlert
 );
 

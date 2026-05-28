@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { IonContent, IonIcon, IonPage } from '@ionic/react';
-import { Navbar, StatCard, Progress, NewsPanel, Footer } from '../../components';
+import { Navbar, StatCard, Progress, Footer } from '../../components';
 import {
   listOutline,
   eyeOutline,
@@ -250,7 +250,6 @@ export const InicioPage: React.FC = () => {
 
           <div className="main-grid">
             <Progress />
-            <NewsPanel />
           </div>
         </div>
 

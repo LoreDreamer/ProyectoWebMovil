@@ -1,90 +1,91 @@
 import { Request, Response } from 'express';
-import { randomUUID } from 'crypto';
 import { supabase } from '../config/supabase';
-
-type DifficultyDB = 'facil' | 'medio' | 'dificil';
-type EducationTypeDB = 'Phishing' | 'Seguridad' | 'VPNs' | 'Privacidad';
+import {
+  uploadFileToStorage,
+  uploadFilesToStorage,
+  deleteFilesFromStorage,
+  UploadedStorageFile
+} from '../src/service/storage.service';
 
 interface EducationImage {
+  id?: string;
+  name?: string;
+  originalName?: string;
+  previewUrl?: string;
+  url?: string;
+  path?: string;
+  type?: string;
+  size?: number | null;
+  order?: number;
+}
+
+interface NormalizedEducationImage {
   id: string;
   name: string;
+  originalName: string;
   previewUrl: string;
   url: string;
   path: string;
-  type?: string;
-  size?: number | null;
+  type: string;
+  size: number | null;
   order: number;
 }
 
 interface EducationDB {
   id: string;
   titulo: string;
-  nivel: DifficultyDB | null;
   resumen: string;
-  cuerpo: string;
-  imagenes: string[] | null;
-  tipo_educacion: EducationTypeDB | null;
+  cuerpo: string | null;
+  nivel: string | null;
+  tipo_educacion: string | null;
   cover_img: string | null;
-  archivo_url?: string | null;
-  archivo_nombre?: string | null;
-  archivo_tipo?: string | null;
+  imagenes: EducationImage[] | string[] | null;
+  archivo_url: string | null;
+  archivo_nombre: string | null;
+  archivo_tipo: string | null;
+  created_at?: string | null;
 }
 
 const EDUCATION_TABLE = process.env.SUPABASE_EDUCATION_TABLE || 'educacion';
-const MAX_IMAGES = 10;
+const STORAGE_BUCKET =
+  process.env.SUPABASE_STORAGE_BUCKET?.trim() || 'municipal-files';
 
-const getFilesFromRequest = (req: Request) => {
-  const files = req.files as
-    | {
-        [fieldname: string]: Express.Multer.File[];
-      }
-    | undefined;
-
-  return {
-    portada: files?.portada?.[0] || null,
-    archivo: files?.archivo?.[0] || null,
-    imagenes: files?.imagenes || []
-  };
-};
-
-const getUploadUrl = (file: Express.Multer.File) => {
-  return `/uploads/${file.filename}`;
-};
-
-const toRelativeUploadUrl = (value?: string | null) => {
-  const url = String(value || '').trim();
-
+const buildStoragePathFromPublicUrl = (url?: string | null): string => {
   if (!url) return '';
-  if (url.startsWith('blob:') || url.startsWith('data:')) return '';
 
-  const uploadsIndex = url.indexOf('/uploads/');
-
-  if (uploadsIndex >= 0) {
-    return url.substring(uploadsIndex);
+  if (!url.includes('/storage/v1/object/public/')) {
+    return '';
   }
 
-  return url;
+  const marker = `/storage/v1/object/public/${STORAGE_BUCKET}/`;
+  const markerIndex = url.indexOf(marker);
+
+  if (markerIndex === -1) return '';
+
+  return decodeURIComponent(url.substring(markerIndex + marker.length));
 };
 
-const getFileNameFromUrl = (url?: string | null) => {
-  const cleanUrl = toRelativeUploadUrl(url);
-
-  if (!cleanUrl) return '';
-
-  const parts = cleanUrl.split('/');
-  return parts[parts.length - 1] || '';
+const isNonEmptyString = (value: unknown): value is string => {
+  return typeof value === 'string' && value.trim().length > 0;
 };
 
-const safeJsonParse = <T,>(value: unknown, fallback: T): T => {
+const parseJsonArray = <T>(value: unknown): T[] => {
+  if (!value) return [];
+
+  if (Array.isArray(value)) return value as T[];
+
+  if (typeof value !== 'string') return [];
+
   try {
-    if (typeof value !== 'string') return fallback;
-    return JSON.parse(value) as T;
+    const parsed = JSON.parse(value);
+
+    return Array.isArray(parsed) ? (parsed as T[]) : [];
   } catch {
-    return fallback;
+    return [];
   }
 };
 
-const normalizeDifficulty = (value?: string | null): DifficultyDB => {
+const normalizeDifficulty = (value?: string): string => {
   const normalized = String(value || '')
     .trim()
     .toLowerCase()
@@ -110,8 +111,8 @@ const normalizeDifficulty = (value?: string | null): DifficultyDB => {
   return 'medio';
 };
 
-const getDifficultyLabel = (value?: string | null) => {
-  const normalized = normalizeDifficulty(value);
+const getDifficultyLabel = (value?: string | null): string => {
+  const normalized = normalizeDifficulty(value || '');
 
   if (normalized === 'facil') return 'Básico';
   if (normalized === 'dificil') return 'Avanzado';
@@ -119,7 +120,7 @@ const getDifficultyLabel = (value?: string | null) => {
   return 'Intermedio';
 };
 
-const normalizeEducationType = (value?: string | null): EducationTypeDB => {
+const normalizeEducationType = (value?: string): string => {
   const normalized = String(value || '')
     .trim()
     .toLowerCase()
@@ -141,104 +142,113 @@ const normalizeEducationType = (value?: string | null): EducationTypeDB => {
   return 'Seguridad';
 };
 
-const parseImagesValue = (value: unknown): unknown[] => {
-  if (Array.isArray(value)) return value;
+const getFilesFromRequest = (req: Request) => {
+  const files = req.files as
+    | {
+        [fieldname: string]: Express.Multer.File[];
+      }
+    | undefined;
 
-  if (typeof value === 'string') {
-    return safeJsonParse<unknown[]>(value, []);
-  }
-
-  return [];
+  return {
+    portada: files?.portada?.[0] || null,
+    archivo: files?.archivo?.[0] || null,
+    imagenes: files?.imagenes || []
+  };
 };
 
-const getImageUrlFromPayloadItem = (image: unknown) => {
-  if (typeof image === 'string') {
-    return image;
-  }
+const normalizeImages = (
+  images: Array<EducationImage | string>
+): NormalizedEducationImage[] => {
+  if (!Array.isArray(images)) return [];
 
-  if (image && typeof image === 'object') {
-    const item = image as {
-      url?: string;
-      path?: string;
-      previewUrl?: string;
-    };
+  return images.map(
+    (
+      imageItem: EducationImage | string,
+      index: number
+    ): NormalizedEducationImage => {
+      if (typeof imageItem === 'string') {
+        const imageUrl = imageItem;
+        const imagePath = buildStoragePathFromPublicUrl(imageUrl);
+        const imageName = `imagen-${index + 1}`;
 
-    return item.url || item.path || item.previewUrl || '';
-  }
+        return {
+          id: `${index + 1}-${imageUrl || imageName}`,
+          name: imageName,
+          originalName: imageName,
+          previewUrl: imageUrl,
+          url: imageUrl,
+          path: imagePath,
+          type: '',
+          size: null,
+          order: index + 1
+        };
+      }
 
-  return '';
-};
-
-const mergeImageUrls = (
-  imagesValue: unknown,
-  uploadedImageUrls: string[],
-  fallbackImages: string[] = []
-) => {
-  const imagesFieldWasSent = typeof imagesValue !== 'undefined';
-  const parsedImages = parseImagesValue(imagesValue);
-
-  if (parsedImages.length === 0) {
-    if (uploadedImageUrls.length > 0) {
-      return uploadedImageUrls.slice(0, MAX_IMAGES);
-    }
-
-    if (imagesFieldWasSent) {
-      return [];
-    }
-
-    return fallbackImages.slice(0, MAX_IMAGES);
-  }
-
-  const result: string[] = [];
-  let uploadedIndex = 0;
-
-  parsedImages.forEach((image) => {
-    const rawUrl = getImageUrlFromPayloadItem(image);
-    const cleanUrl = toRelativeUploadUrl(rawUrl);
-
-    if (cleanUrl) {
-      result.push(cleanUrl);
-      return;
-    }
-
-    if (uploadedIndex < uploadedImageUrls.length) {
-      result.push(uploadedImageUrls[uploadedIndex]);
-      uploadedIndex += 1;
-    }
-  });
-
-  while (uploadedIndex < uploadedImageUrls.length) {
-    result.push(uploadedImageUrls[uploadedIndex]);
-    uploadedIndex += 1;
-  }
-
-  return result.slice(0, MAX_IMAGES);
-};
-
-const mapImageUrlsToResponse = (imagenes?: string[] | null): EducationImage[] => {
-  if (!Array.isArray(imagenes)) return [];
-
-  return imagenes
-    .map((url, index) => {
-      const cleanUrl = toRelativeUploadUrl(url);
+      const imageUrl = imageItem.url || imageItem.previewUrl || '';
+      const imagePath =
+        imageItem.path || buildStoragePathFromPublicUrl(imageUrl);
+      const imageName =
+        imageItem.name || imageItem.originalName || `imagen-${index + 1}`;
+      const imageId =
+        imageItem.id || `${index + 1}-${imageUrl || imagePath || imageName}`;
 
       return {
-        id: `${index + 1}-${cleanUrl}`,
-        name: getFileNameFromUrl(cleanUrl) || `imagen-${index + 1}`,
-        previewUrl: cleanUrl,
-        url: cleanUrl,
-        path: cleanUrl,
-        type: undefined,
-        size: null,
+        id: imageId,
+        name: imageName,
+        originalName: imageItem.originalName || imageName,
+        previewUrl: imageItem.previewUrl || imageUrl,
+        url: imageUrl,
+        path: imagePath,
+        type: imageItem.type || '',
+        size: typeof imageItem.size === 'number' ? imageItem.size : null,
         order: index + 1
       };
-    })
-    .filter((image) => Boolean(image.url));
+    }
+  );
+};
+
+const filterValidExistingImages = (
+  images: Array<EducationImage | string>
+): NormalizedEducationImage[] => {
+  const normalizedImages = normalizeImages(images);
+
+  return normalizedImages.filter(
+    (imageItem: NormalizedEducationImage): boolean => {
+      const imageUrl = imageItem.url || '';
+      const imagePath = imageItem.path || '';
+
+      if (!imageUrl && !imagePath) return false;
+      if (imageUrl.startsWith('blob:')) return false;
+      if (imageUrl.startsWith('data:')) return false;
+
+      return true;
+    }
+  );
+};
+
+const mapUploadedFileToEducationImage = (
+  uploadedFile: UploadedStorageFile,
+  index: number
+): NormalizedEducationImage => {
+  const fallbackId = `${index + 1}-${
+    uploadedFile.path || uploadedFile.url || uploadedFile.name
+  }`;
+
+  return {
+    id: uploadedFile.id || fallbackId,
+    name: uploadedFile.name,
+    originalName: uploadedFile.originalName,
+    previewUrl: uploadedFile.url,
+    url: uploadedFile.url,
+    path: uploadedFile.path,
+    type: uploadedFile.type,
+    size: uploadedFile.size,
+    order: index + 1
+  };
 };
 
 const mapEducationResponse = (item: EducationDB) => {
-  const coverUrl = item.cover_img || '';
-  const fileUrl = item.archivo_url || '';
+  const images = normalizeImages(item.imagenes || []);
 
   return {
     id: item.id,
@@ -249,9 +259,8 @@ const mapEducationResponse = (item: EducationDB) => {
     description: item.resumen,
     resumen: item.resumen,
 
-    body: item.cuerpo,
-    cuerpo: item.cuerpo,
-    content: item.cuerpo,
+    body: item.cuerpo || item.resumen,
+    cuerpo: item.cuerpo || item.resumen,
 
     category: item.tipo_educacion || 'Seguridad',
     tipo_educacion: item.tipo_educacion || 'Seguridad',
@@ -261,21 +270,35 @@ const mapEducationResponse = (item: EducationDB) => {
     level: getDifficultyLabel(item.nivel),
     nivel: item.nivel || 'medio',
 
-    image: coverUrl,
-    cover_img: coverUrl,
-    coverName: getFileNameFromUrl(coverUrl),
+    image: item.cover_img || '',
+    cover_img: item.cover_img || '',
+    coverName: item.cover_img ? 'Portada' : '',
 
-    fileName: item.archivo_nombre || getFileNameFromUrl(fileUrl),
-    fileUrl,
-    archivo_nombre: item.archivo_nombre || getFileNameFromUrl(fileUrl),
-    archivo_url: fileUrl,
+    fileName: item.archivo_nombre || '',
+    fileUrl: item.archivo_url || '',
+    archivo_nombre: item.archivo_nombre || '',
+    archivo_url: item.archivo_url || '',
     archivo_tipo: item.archivo_tipo || '',
 
-    images: mapImageUrlsToResponse(item.imagenes),
-    imagenes: item.imagenes || [],
+    images,
+    imagenes: images,
 
-    createdAt: null
+    createdAt: item.created_at || null
   };
+};
+
+const getCurrentEducationModule = async (
+  id: string
+): Promise<EducationDB | null> => {
+  const { data, error } = await supabase
+    .from(EDUCATION_TABLE)
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (error || !data) return null;
+
+  return data as EducationDB;
 };
 
 export const getEducationModules = async (_req: Request, res: Response) => {
@@ -283,7 +306,7 @@ export const getEducationModules = async (_req: Request, res: Response) => {
     const { data, error } = await supabase
       .from(EDUCATION_TABLE)
       .select('*')
-      .order('titulo', { ascending: true });
+      .order('created_at', { ascending: false });
 
     if (error) {
       throw error;
@@ -291,7 +314,9 @@ export const getEducationModules = async (_req: Request, res: Response) => {
 
     const modules = (data || []) as EducationDB[];
 
-    return res.json(modules.map((item) => mapEducationResponse(item)));
+    return res.json(
+      modules.map((item: EducationDB) => mapEducationResponse(item))
+    );
   } catch (error: any) {
     console.error('Error en getEducationModules:', error);
 
@@ -303,6 +328,10 @@ export const getEducationModules = async (_req: Request, res: Response) => {
 };
 
 export const createEducationModule = async (req: Request, res: Response) => {
+  let uploadedCover: UploadedStorageFile | null = null;
+  let uploadedDocument: UploadedStorageFile | null = null;
+  let uploadedImagesPayload: NormalizedEducationImage[] = [];
+
   try {
     const {
       title,
@@ -311,24 +340,20 @@ export const createEducationModule = async (req: Request, res: Response) => {
       resumen,
       body,
       cuerpo,
-      content,
       category,
       tipo_educacion,
       level,
       nivel,
-      image = '',
-      cover_img = '',
-      fileName = '',
-      archivo_nombre = '',
-      fileUrl = '',
-      archivo_url = '',
-      archivo_tipo = '',
-      images
+      image,
+      fileUrl,
+      images = []
     } = req.body;
 
     const finalTitle = String(title || titulo || '').trim();
     const finalDescription = String(description || resumen || '').trim();
-    const finalBody = String(body || cuerpo || content || finalDescription).trim();
+    const finalBody = String(body || cuerpo || finalDescription).trim();
+    const finalType = normalizeEducationType(category || tipo_educacion);
+    const finalLevel = normalizeDifficulty(level || nivel);
 
     if (!finalTitle || !finalDescription) {
       return res.status(400).json({
@@ -338,37 +363,58 @@ export const createEducationModule = async (req: Request, res: Response) => {
 
     const { portada, archivo, imagenes } = getFilesFromRequest(req);
 
-    const uploadedImageUrls = imagenes.map((file) => getUploadUrl(file));
-    const finalImages = mergeImageUrls(images, uploadedImageUrls, []);
+    if (portada) {
+      uploadedCover = await uploadFileToStorage(portada, {
+        folder: 'educacion/portadas',
+        order: 1
+      });
+    }
 
-    const portadaUrl = portada
-      ? getUploadUrl(portada)
-      : toRelativeUploadUrl(image || cover_img);
+    if (archivo) {
+      uploadedDocument = await uploadFileToStorage(archivo, {
+        folder: 'educacion/documentos',
+        order: 1
+      });
+    }
 
-    const archivoUrl = archivo
-      ? getUploadUrl(archivo)
-      : toRelativeUploadUrl(fileUrl || archivo_url);
+    const uploadedImages = await uploadFilesToStorage(
+      imagenes,
+      'educacion/imagenes'
+    );
 
-    const archivoNombre = archivo
-      ? archivo.originalname
-      : String(fileName || archivo_nombre || getFileNameFromUrl(archivoUrl)).trim();
+    uploadedImagesPayload = normalizeImages(
+      uploadedImages.map(
+        (
+          uploadedFile: UploadedStorageFile,
+          index: number
+        ): NormalizedEducationImage =>
+          mapUploadedFileToEducationImage(uploadedFile, index)
+      )
+    );
 
-    const archivoTipo = archivo
-      ? archivo.mimetype
-      : String(archivo_tipo || '').trim();
+    const parsedImages =
+      typeof images === 'string'
+        ? parseJsonArray<EducationImage>(images)
+        : Array.isArray(images)
+          ? images
+          : [];
+
+    const finalImages =
+      uploadedImagesPayload.length > 0
+        ? uploadedImagesPayload
+        : filterValidExistingImages(parsedImages);
 
     const payload = {
-      id: randomUUID(),
       titulo: finalTitle,
       resumen: finalDescription,
       cuerpo: finalBody,
-      nivel: normalizeDifficulty(level || nivel),
-      tipo_educacion: normalizeEducationType(category || tipo_educacion),
-      cover_img: portadaUrl,
-      imagenes: finalImages,
-      archivo_url: archivoUrl,
-      archivo_nombre: archivoNombre,
-      archivo_tipo: archivoTipo
+      nivel: finalLevel,
+      tipo_educacion: finalType,
+      cover_img: uploadedCover?.url || image || null,
+      imagenes: normalizeImages(finalImages).slice(0, 10),
+      archivo_url: uploadedDocument?.url || fileUrl || null,
+      archivo_nombre: uploadedDocument?.name || null,
+      archivo_tipo: uploadedDocument?.type || null
     };
 
     const { data, error } = await supabase
@@ -378,11 +424,27 @@ export const createEducationModule = async (req: Request, res: Response) => {
       .single();
 
     if (error) {
+      await deleteFilesFromStorage([
+        uploadedCover?.path,
+        uploadedDocument?.path,
+        ...uploadedImagesPayload.map(
+          (imageItem: NormalizedEducationImage): string => imageItem.path
+        )
+      ]);
+
       throw error;
     }
 
     return res.status(201).json(mapEducationResponse(data as EducationDB));
   } catch (error: any) {
+    await deleteFilesFromStorage([
+      uploadedCover?.path,
+      uploadedDocument?.path,
+      ...uploadedImagesPayload.map(
+        (imageItem: NormalizedEducationImage): string => imageItem.path
+      )
+    ]);
+
     console.error('Error en createEducationModule:', error);
 
     return res.status(500).json({
@@ -393,8 +455,26 @@ export const createEducationModule = async (req: Request, res: Response) => {
 };
 
 export const updateEducationModule = async (req: Request, res: Response) => {
+  let uploadedCover: UploadedStorageFile | null = null;
+  let uploadedDocument: UploadedStorageFile | null = null;
+  let uploadedImagesPayload: NormalizedEducationImage[] = [];
+
   try {
-    const { id } = req.params;
+    const moduleId = String(req.params.id || '').trim();
+
+    if (!moduleId) {
+      return res.status(400).json({
+        message: 'ID de módulo no proporcionado.'
+      });
+    }
+
+    const actual = await getCurrentEducationModule(moduleId);
+
+    if (!actual) {
+      return res.status(404).json({
+        message: 'Módulo educativo no encontrado.'
+      });
+    }
 
     const {
       title,
@@ -403,32 +483,22 @@ export const updateEducationModule = async (req: Request, res: Response) => {
       resumen,
       body,
       cuerpo,
-      content,
       category,
       tipo_educacion,
       level,
       nivel,
-      image = '',
-      cover_img = '',
-      fileName = '',
-      archivo_nombre = '',
-      fileUrl = '',
-      archivo_url = '',
-      archivo_tipo = '',
-      images,
+      image,
+      fileUrl,
+      images = [],
       removeCover = 'false',
       removeFile = 'false'
     } = req.body;
 
-    if (!id) {
-      return res.status(400).json({
-        message: 'ID de módulo no proporcionado.'
-      });
-    }
-
     const finalTitle = String(title || titulo || '').trim();
     const finalDescription = String(description || resumen || '').trim();
-    const finalBody = String(body || cuerpo || content || finalDescription).trim();
+    const finalBody = String(body || cuerpo || finalDescription).trim();
+    const finalType = normalizeEducationType(category || tipo_educacion);
+    const finalLevel = normalizeDifficulty(level || nivel);
 
     if (!finalTitle || !finalDescription) {
       return res.status(400).json({
@@ -436,85 +506,159 @@ export const updateEducationModule = async (req: Request, res: Response) => {
       });
     }
 
-    const { data: currentData, error: fetchError } = await supabase
-      .from(EDUCATION_TABLE)
-      .select('*')
-      .eq('id', id)
-      .single();
-
-    if (fetchError) {
-      throw fetchError;
-    }
-
-    const current = currentData as EducationDB;
-
     const { portada, archivo, imagenes } = getFilesFromRequest(req);
 
-    const uploadedImageUrls = imagenes.map((file) => getUploadUrl(file));
+    let finalCoverUrl = actual.cover_img;
+    let finalFileUrl = actual.archivo_url;
+    let finalFileName = actual.archivo_nombre;
+    let finalFileType = actual.archivo_tipo;
 
-    const finalImages = mergeImageUrls(
-      images,
-      uploadedImageUrls,
-      current.imagenes || []
+    let oldCoverPathToDelete = '';
+    let oldFilePathToDelete = '';
+
+    if (removeCover === 'true') {
+      oldCoverPathToDelete = buildStoragePathFromPublicUrl(actual.cover_img);
+      finalCoverUrl = null;
+    }
+
+    if (portada) {
+      oldCoverPathToDelete = buildStoragePathFromPublicUrl(actual.cover_img);
+
+      uploadedCover = await uploadFileToStorage(portada, {
+        folder: 'educacion/portadas',
+        order: 1
+      });
+
+      finalCoverUrl = uploadedCover.url;
+    }
+
+    if (removeFile === 'true') {
+      oldFilePathToDelete = buildStoragePathFromPublicUrl(actual.archivo_url);
+
+      finalFileUrl = null;
+      finalFileName = null;
+      finalFileType = null;
+    }
+
+    if (archivo) {
+      oldFilePathToDelete = buildStoragePathFromPublicUrl(actual.archivo_url);
+
+      uploadedDocument = await uploadFileToStorage(archivo, {
+        folder: 'educacion/documentos',
+        order: 1
+      });
+
+      finalFileUrl = uploadedDocument.url;
+      finalFileName = uploadedDocument.name;
+      finalFileType = uploadedDocument.type;
+    }
+
+    if (!archivo && !removeFile && fileUrl) {
+      finalFileUrl = fileUrl;
+    }
+
+    if (!portada && !removeCover && image) {
+      finalCoverUrl = image;
+    }
+
+    const hasImagesPayload =
+      typeof req.body.images !== 'undefined' ||
+      typeof req.body.imagenes !== 'undefined' ||
+      typeof req.body.imagenesOrden !== 'undefined';
+
+    const requestedExistingImages = hasImagesPayload
+      ? filterValidExistingImages(
+          parseJsonArray<EducationImage>(
+            req.body.images || req.body.imagenes || req.body.imagenesOrden
+          )
+        )
+      : normalizeImages(actual.imagenes || []);
+
+    const uploadedImages = await uploadFilesToStorage(
+      imagenes,
+      'educacion/imagenes'
     );
 
-    const portadaUrl = portada
-      ? getUploadUrl(portada)
-      : removeCover === 'true'
-        ? ''
-        : toRelativeUploadUrl(image || cover_img || current.cover_img || '');
+    uploadedImagesPayload = uploadedImages.map(
+      (
+        uploadedFile: UploadedStorageFile,
+        index: number
+      ): NormalizedEducationImage =>
+        mapUploadedFileToEducationImage(
+          uploadedFile,
+          requestedExistingImages.length + index
+        )
+    );
 
-    const archivoUrl = archivo
-      ? getUploadUrl(archivo)
-      : removeFile === 'true'
-        ? ''
-        : toRelativeUploadUrl(fileUrl || archivo_url || current.archivo_url || '');
+    const finalImages = normalizeImages([
+      ...requestedExistingImages,
+      ...uploadedImagesPayload
+    ]).slice(0, 10);
 
-    const archivoNombre = archivo
-      ? archivo.originalname
-      : removeFile === 'true'
-        ? ''
-        : String(
-            fileName ||
-              archivo_nombre ||
-              current.archivo_nombre ||
-              getFileNameFromUrl(archivoUrl)
-          ).trim();
+    const currentImagePaths = normalizeImages(actual.imagenes || [])
+      .map((imageItem: NormalizedEducationImage): string => {
+        return imageItem.path || buildStoragePathFromPublicUrl(imageItem.url);
+      })
+      .filter(isNonEmptyString);
 
-    const archivoTipo = archivo
-      ? archivo.mimetype
-      : removeFile === 'true'
-        ? ''
-        : String(archivo_tipo || current.archivo_tipo || '').trim();
+    const finalImagePaths = finalImages
+      .map((imageItem: NormalizedEducationImage): string => {
+        return imageItem.path || buildStoragePathFromPublicUrl(imageItem.url);
+      })
+      .filter(isNonEmptyString);
+
+    const imagePathsToDelete = currentImagePaths.filter(
+      (storagePath: string): boolean => !finalImagePaths.includes(storagePath)
+    );
 
     const payload = {
       titulo: finalTitle,
       resumen: finalDescription,
       cuerpo: finalBody,
-      nivel: normalizeDifficulty(level || nivel || current.nivel),
-      tipo_educacion: normalizeEducationType(
-        category || tipo_educacion || current.tipo_educacion
-      ),
-      cover_img: portadaUrl,
+      nivel: finalLevel,
+      tipo_educacion: finalType,
+      cover_img: finalCoverUrl,
       imagenes: finalImages,
-      archivo_url: archivoUrl,
-      archivo_nombre: archivoNombre,
-      archivo_tipo: archivoTipo
+      archivo_url: finalFileUrl,
+      archivo_nombre: finalFileName,
+      archivo_tipo: finalFileType
     };
 
     const { data, error } = await supabase
       .from(EDUCATION_TABLE)
       .update(payload)
-      .eq('id', id)
+      .eq('id', moduleId)
       .select('*')
       .single();
 
     if (error) {
+      await deleteFilesFromStorage([
+        uploadedCover?.path,
+        uploadedDocument?.path,
+        ...uploadedImagesPayload.map(
+          (imageItem: NormalizedEducationImage): string => imageItem.path
+        )
+      ]);
+
       throw error;
     }
 
+    await deleteFilesFromStorage([
+      oldCoverPathToDelete,
+      oldFilePathToDelete,
+      ...imagePathsToDelete
+    ]);
+
     return res.json(mapEducationResponse(data as EducationDB));
   } catch (error: any) {
+    await deleteFilesFromStorage([
+      uploadedCover?.path,
+      uploadedDocument?.path,
+      ...uploadedImagesPayload.map(
+        (imageItem: NormalizedEducationImage): string => imageItem.path
+      )
+    ]);
+
     console.error('Error en updateEducationModule:', error);
 
     return res.status(500).json({
@@ -526,21 +670,38 @@ export const updateEducationModule = async (req: Request, res: Response) => {
 
 export const deleteEducationModule = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const moduleId = String(req.params.id || '').trim();
 
-    if (!id) {
+    if (!moduleId) {
       return res.status(400).json({
         message: 'ID de módulo no proporcionado.'
       });
     }
 
+    const actual = await getCurrentEducationModule(moduleId);
+
     const { error } = await supabase
       .from(EDUCATION_TABLE)
       .delete()
-      .eq('id', id);
+      .eq('id', moduleId);
 
     if (error) {
       throw error;
+    }
+
+    if (actual) {
+      const coverPath = buildStoragePathFromPublicUrl(actual.cover_img);
+      const documentPath = buildStoragePathFromPublicUrl(actual.archivo_url);
+
+      const imagePaths = normalizeImages(actual.imagenes || [])
+        .map((imageItem: NormalizedEducationImage): string => {
+          return (
+            imageItem.path || buildStoragePathFromPublicUrl(imageItem.url)
+          );
+        })
+        .filter(isNonEmptyString);
+
+      await deleteFilesFromStorage([coverPath, documentPath, ...imagePaths]);
     }
 
     return res.json({

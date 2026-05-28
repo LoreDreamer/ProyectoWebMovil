@@ -1,7 +1,5 @@
 import express from 'express';
 import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
 
 import {
   getQuestionnaires,
@@ -17,97 +15,116 @@ import {
 
 const router = express.Router();
 
-const uploadsDir = path.join(__dirname, '..', 'uploads');
+const MAX_FILE_SIZE_MB = 10;
+const MAX_IMAGES = 10;
 
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
+const allowedImageMimeTypes = [
+  'image/png',
+  'image/jpeg',
+  'image/jpg',
+  'image/webp'
+];
 
-const storage = multer.diskStorage({
-  destination: (
-    _req: express.Request,
-    _file: Express.Multer.File,
-    cb: (error: Error | null, destination: string) => void
-  ) => {
-    cb(null, uploadsDir);
+const allowedImageExtensions = ['.png', '.jpg', '.jpeg', '.webp'];
+
+const allowedDocumentMimeTypes = [
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+];
+
+const allowedDocumentExtensions = ['.pdf', '.doc', '.docx'];
+
+const getFileExtension = (fileName: string) => {
+  const lastDot = fileName.lastIndexOf('.');
+
+  if (lastDot === -1) return '';
+
+  return fileName.substring(lastDot).toLowerCase();
+};
+
+const storage = multer.memoryStorage();
+
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: MAX_FILE_SIZE_MB * 1024 * 1024,
+    files: MAX_IMAGES + 2
   },
+  fileFilter: (_req, file, cb) => {
+    const extension = getFileExtension(file.originalname);
 
-  filename: (
-    _req: express.Request,
-    file: Express.Multer.File,
-    cb: (error: Error | null, filename: string) => void
-  ) => {
-    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-    const extension = path.extname(file.originalname);
+    const isImageField =
+      file.fieldname === 'portada' || file.fieldname === 'imagenes';
 
-    cb(null, `${uniqueSuffix}${extension}`);
-  }
-});
+    const isDocumentField = file.fieldname === 'archivo';
 
-const fileFilter = (
-  _req: express.Request,
-  file: Express.Multer.File,
-  cb: multer.FileFilterCallback
-) => {
-  const allowedImageTypes = [
-    'image/png',
-    'image/jpeg',
-    'image/jpg',
-    'image/webp'
-  ];
+    const isValidImage =
+      allowedImageMimeTypes.includes(file.mimetype) ||
+      allowedImageExtensions.includes(extension);
 
-  const allowedDocumentTypes = [
-    'application/pdf',
-    'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-  ];
+    const isValidDocument =
+      allowedDocumentMimeTypes.includes(file.mimetype) ||
+      allowedDocumentExtensions.includes(extension);
 
-  if (file.fieldname === 'portada' || file.fieldname === 'imagenes') {
-    if (!allowedImageTypes.includes(file.mimetype)) {
+    if (isImageField && !isValidImage) {
       return cb(
         new Error(
-          'La portada e imágenes adicionales deben ser PNG, JPG, JPEG o WEBP.'
+          'Formato de imagen no permitido. Solo se permiten PNG, JPG, JPEG o WEBP.'
         )
       );
     }
 
-    return cb(null, true);
-  }
+    if (isDocumentField && !isValidDocument) {
+      return cb(
+        new Error(
+          'Formato de documento no permitido. Solo se permiten PDF, DOC o DOCX.'
+        )
+      );
+    }
 
-  if (file.fieldname === 'archivo') {
-    if (!allowedDocumentTypes.includes(file.mimetype)) {
-      return cb(new Error('El archivo adjunto debe ser PDF, DOC o DOCX.'));
+    if (!isImageField && !isDocumentField) {
+      return cb(new Error(`Campo de archivo no permitido: ${file.fieldname}`));
     }
 
     return cb(null, true);
   }
-
-  return cb(new Error('Campo de archivo no permitido.'));
-};
-
-const upload = multer({
-  storage,
-  fileFilter,
-  limits: {
-    fileSize: 10 * 1024 * 1024,
-    files: 12
-  }
 });
 
 const uploadQuestionnaireFiles = upload.fields([
-  {
-    name: 'portada',
-    maxCount: 1
-  },
-  {
-    name: 'archivo',
-    maxCount: 1
-  },
-  {
-    name: 'imagenes',
-    maxCount: 10
-  }
+  { name: 'portada', maxCount: 1 },
+  { name: 'archivo', maxCount: 1 },
+  { name: 'imagenes', maxCount: MAX_IMAGES }
 ]);
+
+const handleMulterError = (
+  err: unknown,
+  _req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+) => {
+  if (!err) {
+    return next();
+  }
+
+  if (err instanceof multer.MulterError) {
+    return res.status(400).json({
+      message: 'Error al subir archivo.',
+      error: err.message
+    });
+  }
+
+  if (err instanceof Error) {
+    return res.status(400).json({
+      message: 'Archivo no válido.',
+      error: err.message
+    });
+  }
+
+  return res.status(400).json({
+    message: 'Error desconocido al subir archivo.'
+  });
+};
 
 router.get('/', getQuestionnaires);
 
@@ -116,6 +133,7 @@ router.post(
   authenticateToken,
   requireAdmin,
   uploadQuestionnaireFiles,
+  handleMulterError,
   createQuestionnaire
 );
 
@@ -124,6 +142,7 @@ router.put(
   authenticateToken,
   requireAdmin,
   uploadQuestionnaireFiles,
+  handleMulterError,
   updateQuestionnaire
 );
 

@@ -1,37 +1,111 @@
 import { Request, Response } from 'express';
-import { randomUUID } from 'crypto';
 import { supabase } from '../config/supabase';
-
-type RiskDB = 'bajo' | 'medio' | 'alto';
+import {
+  uploadFileToStorage,
+  uploadFilesToStorage,
+  deleteFilesFromStorage,
+  UploadedStorageFile
+} from '../src/service/storage.service';
 
 interface QuestionnaireImage {
+  id?: string;
+  name?: string;
+  originalName?: string;
+  previewUrl?: string;
+  url?: string;
+  path?: string;
+  type?: string;
+  size?: number | null;
+  order?: number;
+}
+
+interface NormalizedQuestionnaireImage {
   id: string;
   name: string;
+  originalName: string;
   previewUrl: string;
   url: string;
   path: string;
-  type?: string;
-  size?: number | null;
+  type: string;
+  size: number | null;
   order: number;
 }
 
-interface QuestionnaireDB {
+interface CuestionarioDB {
   id: string;
-  riesgo: RiskDB | null;
   titulo: string;
   resumen: string;
+  riesgo: string | null;
   cover_img: string | null;
   puntaje_maximo: number | null;
-  archivo_url?: string | null;
-  archivo_nombre?: string | null;
-  archivo_tipo?: string | null;
-  imagenes?: string[] | null;
+  archivo_url: string | null;
+  archivo_nombre: string | null;
+  archivo_tipo: string | null;
+  imagenes: string[] | null;
 }
 
 const QUESTIONNAIRES_TABLE =
   process.env.SUPABASE_QUESTIONNAIRES_TABLE || 'cuestionario';
 
-const MAX_IMAGES = 10;
+const STORAGE_BUCKET =
+  process.env.SUPABASE_STORAGE_BUCKET?.trim() || 'municipal-files';
+
+const buildStoragePathFromPublicUrl = (url?: string | null): string => {
+  if (!url) return '';
+
+  if (!url.includes('/storage/v1/object/public/')) {
+    return '';
+  }
+
+  const marker = `/storage/v1/object/public/${STORAGE_BUCKET}/`;
+  const markerIndex = url.indexOf(marker);
+
+  if (markerIndex === -1) return '';
+
+  return decodeURIComponent(url.substring(markerIndex + marker.length));
+};
+
+const isNonEmptyString = (value: unknown): value is string => {
+  return typeof value === 'string' && value.trim().length > 0;
+};
+
+const parseJsonArray = <T>(value: unknown): T[] => {
+  if (!value) return [];
+
+  if (Array.isArray(value)) return value as T[];
+
+  if (typeof value !== 'string') return [];
+
+  try {
+    const parsed = JSON.parse(value);
+
+    return Array.isArray(parsed) ? (parsed as T[]) : [];
+  } catch {
+    return [];
+  }
+};
+
+const normalizeRiskForDB = (value?: string): string => {
+  const normalized = String(value || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+
+  if (normalized === 'alto') return 'alto';
+  if (normalized === 'bajo') return 'bajo';
+
+  return 'medio';
+};
+
+const normalizeRiskForFrontend = (value?: string | null): string => {
+  const normalized = normalizeRiskForDB(value || '');
+
+  if (normalized === 'alto') return 'ALTO';
+  if (normalized === 'bajo') return 'BAJO';
+
+  return 'MEDIO';
+};
 
 const getFilesFromRequest = (req: Request) => {
   const files = req.files as
@@ -47,180 +121,112 @@ const getFilesFromRequest = (req: Request) => {
   };
 };
 
-const getUploadUrl = (file: Express.Multer.File) => {
-  return `/uploads/${file.filename}`;
-};
-
-const toRelativeUploadUrl = (value?: string | null) => {
-  const url = String(value || '').trim();
-
-  if (!url) return '';
-  if (url.startsWith('blob:') || url.startsWith('data:')) return '';
-
-  const uploadsIndex = url.indexOf('/uploads/');
-
-  if (uploadsIndex >= 0) {
-    return url.substring(uploadsIndex);
-  }
-
-  return url;
-};
-
-const getFileNameFromUrl = (url?: string | null) => {
-  const cleanUrl = toRelativeUploadUrl(url);
-
-  if (!cleanUrl) return '';
-
-  const parts = cleanUrl.split('/');
-  return parts[parts.length - 1] || '';
-};
-
-const safeJsonParse = <T,>(value: unknown, fallback: T): T => {
-  try {
-    if (typeof value !== 'string') return fallback;
-    return JSON.parse(value) as T;
-  } catch {
-    return fallback;
-  }
-};
-
-const toBoolean = (value: unknown) => {
-  return value === true || value === 'true';
-};
-
-const normalizeRisk = (value?: string | null): RiskDB => {
-  const normalized = String(value || '')
-    .trim()
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '');
-
-  if (normalized === 'alto') return 'alto';
-  if (normalized === 'bajo') return 'bajo';
-
-  return 'medio';
-};
-
-const getRiskUpper = (risk?: string | null): 'BAJO' | 'MEDIO' | 'ALTO' => {
-  const normalized = normalizeRisk(risk);
-
-  if (normalized === 'alto') return 'ALTO';
-  if (normalized === 'bajo') return 'BAJO';
-
-  return 'MEDIO';
-};
-
-const parsePositiveNumber = (value: unknown, fallback: number) => {
-  const parsed = Number(value);
-
-  if (!Number.isFinite(parsed) || parsed <= 0) {
-    return fallback;
-  }
-
-  return Math.round(parsed);
-};
-
-const parseImagesValue = (value: unknown): unknown[] => {
-  if (Array.isArray(value)) return value;
-
-  if (typeof value === 'string') {
-    return safeJsonParse<unknown[]>(value, []);
-  }
-
-  return [];
-};
-
-const getImageUrlFromPayloadItem = (image: unknown) => {
-  if (typeof image === 'string') {
-    return image;
-  }
-
-  if (image && typeof image === 'object') {
-    const item = image as {
-      url?: string;
-      path?: string;
-      previewUrl?: string;
-    };
-
-    return item.url || item.path || item.previewUrl || '';
-  }
-
-  return '';
-};
-
-const mergeImageUrls = (
-  imagesValue: unknown,
-  uploadedImageUrls: string[],
-  fallbackImages: string[] = []
-) => {
-  const imagesFieldWasSent = typeof imagesValue !== 'undefined';
-  const parsedImages = parseImagesValue(imagesValue);
-
-  if (parsedImages.length === 0) {
-    if (uploadedImageUrls.length > 0) {
-      return uploadedImageUrls.slice(0, MAX_IMAGES);
-    }
-
-    if (imagesFieldWasSent) {
-      return [];
-    }
-
-    return fallbackImages.slice(0, MAX_IMAGES);
-  }
-
-  const result: string[] = [];
-  let uploadedIndex = 0;
-
-  parsedImages.forEach((image) => {
-    const rawUrl = getImageUrlFromPayloadItem(image);
-    const cleanUrl = toRelativeUploadUrl(rawUrl);
-
-    if (cleanUrl) {
-      result.push(cleanUrl);
-      return;
-    }
-
-    if (uploadedIndex < uploadedImageUrls.length) {
-      result.push(uploadedImageUrls[uploadedIndex]);
-      uploadedIndex += 1;
-    }
-  });
-
-  while (uploadedIndex < uploadedImageUrls.length) {
-    result.push(uploadedImageUrls[uploadedIndex]);
-    uploadedIndex += 1;
-  }
-
-  return result.slice(0, MAX_IMAGES);
-};
-
-const mapImageUrlsToResponse = (
-  imagenes?: string[] | null
-): QuestionnaireImage[] => {
-  if (!Array.isArray(imagenes)) return [];
-
-  return imagenes
-    .map((url, index) => {
-      const cleanUrl = toRelativeUploadUrl(url);
+const normalizeImagesFromUrls = (
+  imageUrls: string[]
+): NormalizedQuestionnaireImage[] => {
+  return imageUrls
+    .filter(isNonEmptyString)
+    .map((imageUrl: string, index: number): NormalizedQuestionnaireImage => {
+      const imagePath = buildStoragePathFromPublicUrl(imageUrl);
+      const imageName = `imagen-${index + 1}`;
 
       return {
-        id: `${index + 1}-${cleanUrl}`,
-        name: getFileNameFromUrl(cleanUrl) || `imagen-${index + 1}`,
-        previewUrl: cleanUrl,
-        url: cleanUrl,
-        path: cleanUrl,
-        type: undefined,
+        id: `${index + 1}-${imageUrl}`,
+        name: imageName,
+        originalName: imageName,
+        previewUrl: imageUrl,
+        url: imageUrl,
+        path: imagePath,
+        type: '',
         size: null,
         order: index + 1
       };
-    })
-    .filter((image) => Boolean(image.url));
+    });
 };
 
-const mapQuestionnaireResponse = (item: QuestionnaireDB) => {
-  const coverUrl = item.cover_img || '';
-  const fileUrl = item.archivo_url || '';
-  const score = item.puntaje_maximo || 10;
+const normalizeImagePayload = (
+  images: Array<QuestionnaireImage | string>
+): NormalizedQuestionnaireImage[] => {
+  return images
+    .map(
+      (
+        imageItem: QuestionnaireImage | string,
+        index: number
+      ): NormalizedQuestionnaireImage => {
+        if (typeof imageItem === 'string') {
+          const imageUrl = imageItem;
+          const imagePath = buildStoragePathFromPublicUrl(imageUrl);
+          const imageName = `imagen-${index + 1}`;
+
+          return {
+            id: `${index + 1}-${imageUrl || imageName}`,
+            name: imageName,
+            originalName: imageName,
+            previewUrl: imageUrl,
+            url: imageUrl,
+            path: imagePath,
+            type: '',
+            size: null,
+            order: index + 1
+          };
+        }
+
+        const imageUrl = imageItem.url || imageItem.previewUrl || '';
+        const imagePath =
+          imageItem.path || buildStoragePathFromPublicUrl(imageUrl);
+        const imageName =
+          imageItem.name || imageItem.originalName || `imagen-${index + 1}`;
+        const imageId =
+          imageItem.id || `${index + 1}-${imageUrl || imagePath || imageName}`;
+
+        return {
+          id: imageId,
+          name: imageName,
+          originalName: imageItem.originalName || imageName,
+          previewUrl: imageItem.previewUrl || imageUrl,
+          url: imageUrl,
+          path: imagePath,
+          type: imageItem.type || '',
+          size: typeof imageItem.size === 'number' ? imageItem.size : null,
+          order: index + 1
+        };
+      }
+    )
+    .filter((imageItem: NormalizedQuestionnaireImage): boolean => {
+      const imageUrl = imageItem.url || '';
+
+      if (!imageUrl) return false;
+      if (imageUrl.startsWith('blob:')) return false;
+      if (imageUrl.startsWith('data:')) return false;
+
+      return true;
+    });
+};
+
+const mapUploadedFileToQuestionnaireImage = (
+  uploadedFile: UploadedStorageFile,
+  index: number
+): NormalizedQuestionnaireImage => {
+  const fallbackId = `${index + 1}-${
+    uploadedFile.path || uploadedFile.url || uploadedFile.name
+  }`;
+
+  return {
+    id: uploadedFile.id || fallbackId,
+    name: uploadedFile.name,
+    originalName: uploadedFile.originalName,
+    previewUrl: uploadedFile.url,
+    url: uploadedFile.url,
+    path: uploadedFile.path,
+    type: uploadedFile.type,
+    size: uploadedFile.size,
+    order: index + 1
+  };
+};
+
+const mapQuestionnaireResponse = (item: CuestionarioDB) => {
+  const images = normalizeImagesFromUrls(item.imagenes || []);
+  const risk = normalizeRiskForFrontend(item.riesgo);
 
   return {
     id: item.id,
@@ -231,32 +237,44 @@ const mapQuestionnaireResponse = (item: QuestionnaireDB) => {
     description: item.resumen,
     resumen: item.resumen,
 
+    risk,
+    riesgo: item.riesgo || 'medio',
+    difficulty: risk,
+
     category: 'General',
 
-    questionsCount: score,
-    questions_count: score,
-    puntajeMaximo: score,
-    puntaje_maximo: score,
+    questionsCount: item.puntaje_maximo || 10,
+    questions_count: item.puntaje_maximo || 10,
+    puntajeMaximo: item.puntaje_maximo || 10,
+    puntaje_maximo: item.puntaje_maximo || 10,
 
-    difficulty: getRiskUpper(item.riesgo),
-    risk: getRiskUpper(item.riesgo),
-    riesgo: item.riesgo || 'medio',
+    coverUrl: item.cover_img || '',
+    cover_img: item.cover_img || '',
+    coverName: item.cover_img ? 'Portada' : '',
 
-    coverUrl,
-    cover_img: coverUrl,
-    coverName: getFileNameFromUrl(coverUrl),
-
-    fileName: item.archivo_nombre || getFileNameFromUrl(fileUrl),
-    fileUrl,
-    archivo_nombre: item.archivo_nombre || getFileNameFromUrl(fileUrl),
-    archivo_url: fileUrl,
+    fileUrl: item.archivo_url || '',
+    fileName: item.archivo_nombre || '',
+    archivo_url: item.archivo_url || '',
+    archivo_nombre: item.archivo_nombre || '',
     archivo_tipo: item.archivo_tipo || '',
 
-    images: mapImageUrlsToResponse(item.imagenes),
-    imagenes: item.imagenes || [],
-
-    createdAt: null
+    images,
+    imagenes: images
   };
+};
+
+const getCurrentQuestionnaire = async (
+  id: string
+): Promise<CuestionarioDB | null> => {
+  const { data, error } = await supabase
+    .from(QUESTIONNAIRES_TABLE)
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (error || !data) return null;
+
+  return data as CuestionarioDB;
 };
 
 export const getQuestionnaires = async (_req: Request, res: Response) => {
@@ -270,10 +288,12 @@ export const getQuestionnaires = async (_req: Request, res: Response) => {
       throw error;
     }
 
-    const questionnaires = (data || []) as QuestionnaireDB[];
+    const questionnaires = (data || []) as CuestionarioDB[];
 
     return res.json(
-      questionnaires.map((item) => mapQuestionnaireResponse(item))
+      questionnaires.map((item: CuestionarioDB) =>
+        mapQuestionnaireResponse(item)
+      )
     );
   } catch (error: any) {
     console.error('Error en getQuestionnaires:', error);
@@ -286,6 +306,10 @@ export const getQuestionnaires = async (_req: Request, res: Response) => {
 };
 
 export const createQuestionnaire = async (req: Request, res: Response) => {
+  let uploadedCover: UploadedStorageFile | null = null;
+  let uploadedDocument: UploadedStorageFile | null = null;
+  let uploadedImagesPayload: NormalizedQuestionnaireImage[] = [];
+
   try {
     const {
       title,
@@ -299,18 +323,27 @@ export const createQuestionnaire = async (req: Request, res: Response) => {
       questions_count,
       puntajeMaximo,
       puntaje_maximo,
-      coverUrl = '',
-      cover_img = '',
-      fileName = '',
-      archivo_nombre = '',
-      fileUrl = '',
-      archivo_url = '',
-      archivo_tipo = '',
-      images
+      coverUrl,
+      cover_img,
+      fileUrl,
+      archivo_url,
+      fileName,
+      archivo_nombre,
+      archivo_tipo,
+      images = []
     } = req.body;
 
     const finalTitle = String(title || titulo || '').trim();
     const finalDescription = String(description || resumen || '').trim();
+    const finalRisk = normalizeRiskForDB(risk || riesgo || difficulty);
+
+    const score = Number(
+      puntajeMaximo || puntaje_maximo || questionsCount || questions_count || 10
+    );
+
+    const finalScore = Number.isFinite(score) && score > 0
+      ? Math.round(score)
+      : 10;
 
     if (!finalTitle || !finalDescription) {
       return res.status(400).json({
@@ -320,43 +353,62 @@ export const createQuestionnaire = async (req: Request, res: Response) => {
 
     const { portada, archivo, imagenes } = getFilesFromRequest(req);
 
-    const uploadedImageUrls = imagenes.map((file) => getUploadUrl(file));
-    const finalImages = mergeImageUrls(images, uploadedImageUrls, []);
+    if (portada) {
+      uploadedCover = await uploadFileToStorage(portada, {
+        folder: 'cuestionarios/portadas',
+        order: 1
+      });
+    }
 
-    const portadaUrl = portada
-      ? getUploadUrl(portada)
-      : toRelativeUploadUrl(coverUrl || cover_img);
+    if (archivo) {
+      uploadedDocument = await uploadFileToStorage(archivo, {
+        folder: 'cuestionarios/documentos',
+        order: 1
+      });
+    }
 
-    const archivoUrl = archivo
-      ? getUploadUrl(archivo)
-      : toRelativeUploadUrl(fileUrl || archivo_url);
-
-    const archivoNombre = archivo
-      ? archivo.originalname
-      : String(
-          fileName || archivo_nombre || getFileNameFromUrl(archivoUrl)
-        ).trim();
-
-    const archivoTipo = archivo
-      ? archivo.mimetype
-      : String(archivo_tipo || '').trim();
-
-    const finalScore = parsePositiveNumber(
-      puntajeMaximo || puntaje_maximo || questionsCount || questions_count,
-      10
+    const uploadedImages = await uploadFilesToStorage(
+      imagenes,
+      'cuestionarios/imagenes'
     );
 
+    uploadedImagesPayload = uploadedImages.map(
+      (
+        uploadedFile: UploadedStorageFile,
+        index: number
+      ): NormalizedQuestionnaireImage =>
+        mapUploadedFileToQuestionnaireImage(uploadedFile, index)
+    );
+
+    const parsedImages =
+      typeof images === 'string'
+        ? parseJsonArray<QuestionnaireImage>(images)
+        : Array.isArray(images)
+          ? images
+          : [];
+
+    const existingImages = normalizeImagePayload(parsedImages);
+
+    const finalImages = [
+      ...existingImages,
+      ...uploadedImagesPayload
+    ].slice(0, 10);
+
+    const imageUrls = finalImages
+      .map((imageItem: NormalizedQuestionnaireImage): string => imageItem.url)
+      .filter(isNonEmptyString);
+
     const payload = {
-      id: randomUUID(),
       titulo: finalTitle,
       resumen: finalDescription,
-      riesgo: normalizeRisk(risk || riesgo || difficulty),
-      cover_img: portadaUrl,
+      riesgo: finalRisk,
+      cover_img: uploadedCover?.url || coverUrl || cover_img || null,
       puntaje_maximo: finalScore,
-      archivo_url: archivoUrl,
-      archivo_nombre: archivoNombre,
-      archivo_tipo: archivoTipo,
-      imagenes: finalImages
+      archivo_url: uploadedDocument?.url || fileUrl || archivo_url || null,
+      archivo_nombre:
+        uploadedDocument?.name || fileName || archivo_nombre || null,
+      archivo_tipo: uploadedDocument?.type || archivo_tipo || null,
+      imagenes: imageUrls
     };
 
     const { data, error } = await supabase
@@ -366,13 +418,29 @@ export const createQuestionnaire = async (req: Request, res: Response) => {
       .single();
 
     if (error) {
+      await deleteFilesFromStorage([
+        uploadedCover?.path,
+        uploadedDocument?.path,
+        ...uploadedImagesPayload.map(
+          (imageItem: NormalizedQuestionnaireImage): string => imageItem.path
+        )
+      ]);
+
       throw error;
     }
 
-    return res.status(201).json(
-      mapQuestionnaireResponse(data as QuestionnaireDB)
-    );
+    return res
+      .status(201)
+      .json(mapQuestionnaireResponse(data as CuestionarioDB));
   } catch (error: any) {
+    await deleteFilesFromStorage([
+      uploadedCover?.path,
+      uploadedDocument?.path,
+      ...uploadedImagesPayload.map(
+        (imageItem: NormalizedQuestionnaireImage): string => imageItem.path
+      )
+    ]);
+
     console.error('Error en createQuestionnaire:', error);
 
     return res.status(500).json({
@@ -383,8 +451,26 @@ export const createQuestionnaire = async (req: Request, res: Response) => {
 };
 
 export const updateQuestionnaire = async (req: Request, res: Response) => {
+  let uploadedCover: UploadedStorageFile | null = null;
+  let uploadedDocument: UploadedStorageFile | null = null;
+  let uploadedImagesPayload: NormalizedQuestionnaireImage[] = [];
+
   try {
-    const { id } = req.params;
+    const questionnaireId = String(req.params.id || '').trim();
+
+    if (!questionnaireId) {
+      return res.status(400).json({
+        message: 'ID de cuestionario no proporcionado.'
+      });
+    }
+
+    const actual = await getCurrentQuestionnaire(questionnaireId);
+
+    if (!actual) {
+      return res.status(404).json({
+        message: 'Cuestionario no encontrado.'
+      });
+    }
 
     const {
       title,
@@ -398,27 +484,35 @@ export const updateQuestionnaire = async (req: Request, res: Response) => {
       questions_count,
       puntajeMaximo,
       puntaje_maximo,
-      coverUrl = '',
-      cover_img = '',
-      fileName = '',
-      archivo_nombre = '',
-      fileUrl = '',
-      archivo_url = '',
-      archivo_tipo = '',
-      images,
+      coverUrl,
+      cover_img,
+      fileUrl,
+      archivo_url,
+      fileName,
+      archivo_nombre,
+      archivo_tipo,
+      images = [],
       imagenesOrden,
-      removeCover = false,
-      removeFile = false
+      removeCover = 'false',
+      removeFile = 'false'
     } = req.body;
-
-    if (!id) {
-      return res.status(400).json({
-        message: 'ID de cuestionario no proporcionado.'
-      });
-    }
 
     const finalTitle = String(title || titulo || '').trim();
     const finalDescription = String(description || resumen || '').trim();
+    const finalRisk = normalizeRiskForDB(risk || riesgo || difficulty);
+
+    const score = Number(
+      puntajeMaximo ||
+        puntaje_maximo ||
+        questionsCount ||
+        questions_count ||
+        actual.puntaje_maximo ||
+        10
+    );
+
+    const finalScore = Number.isFinite(score) && score > 0
+      ? Math.round(score)
+      : 10;
 
     if (!finalTitle || !finalDescription) {
       return res.status(400).json({
@@ -426,96 +520,164 @@ export const updateQuestionnaire = async (req: Request, res: Response) => {
       });
     }
 
-    const { data: currentData, error: fetchError } = await supabase
-      .from(QUESTIONNAIRES_TABLE)
-      .select('*')
-      .eq('id', id)
-      .single();
-
-    if (fetchError) {
-      throw fetchError;
-    }
-
-    const current = currentData as QuestionnaireDB;
-
     const { portada, archivo, imagenes } = getFilesFromRequest(req);
 
-    const uploadedImageUrls = imagenes.map((file) => getUploadUrl(file));
+    let finalCoverUrl = actual.cover_img;
+    let finalFileUrl = actual.archivo_url;
+    let finalFileName = actual.archivo_nombre;
+    let finalFileType = actual.archivo_tipo;
 
-    const finalImages = mergeImageUrls(
-      typeof imagenesOrden !== 'undefined' ? imagenesOrden : images,
-      uploadedImageUrls,
-      current.imagenes || []
+    let oldCoverPathToDelete = '';
+    let oldFilePathToDelete = '';
+
+    if (removeCover === 'true') {
+      oldCoverPathToDelete = buildStoragePathFromPublicUrl(actual.cover_img);
+      finalCoverUrl = null;
+    }
+
+    if (portada) {
+      oldCoverPathToDelete = buildStoragePathFromPublicUrl(actual.cover_img);
+
+      uploadedCover = await uploadFileToStorage(portada, {
+        folder: 'cuestionarios/portadas',
+        order: 1
+      });
+
+      finalCoverUrl = uploadedCover.url;
+    }
+
+    if (removeFile === 'true') {
+      oldFilePathToDelete = buildStoragePathFromPublicUrl(actual.archivo_url);
+
+      finalFileUrl = null;
+      finalFileName = null;
+      finalFileType = null;
+    }
+
+    if (archivo) {
+      oldFilePathToDelete = buildStoragePathFromPublicUrl(actual.archivo_url);
+
+      uploadedDocument = await uploadFileToStorage(archivo, {
+        folder: 'cuestionarios/documentos',
+        order: 1
+      });
+
+      finalFileUrl = uploadedDocument.url;
+      finalFileName = uploadedDocument.name;
+      finalFileType = uploadedDocument.type;
+    }
+
+    if (!archivo && !removeFile && (fileUrl || archivo_url)) {
+      finalFileUrl = fileUrl || archivo_url;
+      finalFileName = fileName || archivo_nombre || finalFileName;
+      finalFileType = archivo_tipo || finalFileType;
+    }
+
+    if (!portada && !removeCover && (coverUrl || cover_img)) {
+      finalCoverUrl = coverUrl || cover_img;
+    }
+
+    const hasImagesPayload =
+      typeof req.body.images !== 'undefined' ||
+      typeof req.body.imagenes !== 'undefined' ||
+      typeof req.body.imagenesOrden !== 'undefined';
+
+    const requestedExistingImages = hasImagesPayload
+      ? normalizeImagePayload(
+          parseJsonArray<QuestionnaireImage>(
+            images || req.body.imagenes || imagenesOrden
+          )
+        )
+      : normalizeImagesFromUrls(actual.imagenes || []);
+
+    const uploadedImages = await uploadFilesToStorage(
+      imagenes,
+      'cuestionarios/imagenes'
     );
 
-    const shouldRemoveCover = toBoolean(removeCover);
-    const shouldRemoveFile = toBoolean(removeFile);
+    uploadedImagesPayload = uploadedImages.map(
+      (
+        uploadedFile: UploadedStorageFile,
+        index: number
+      ): NormalizedQuestionnaireImage =>
+        mapUploadedFileToQuestionnaireImage(
+          uploadedFile,
+          requestedExistingImages.length + index
+        )
+    );
 
-    const portadaUrl = portada
-      ? getUploadUrl(portada)
-      : shouldRemoveCover
-        ? ''
-        : toRelativeUploadUrl(coverUrl || cover_img || current.cover_img || '');
+    const finalImages = [
+      ...requestedExistingImages,
+      ...uploadedImagesPayload
+    ].slice(0, 10);
 
-    const archivoUrl = archivo
-      ? getUploadUrl(archivo)
-      : shouldRemoveFile
-        ? ''
-        : toRelativeUploadUrl(fileUrl || archivo_url || current.archivo_url || '');
+    const finalImageUrls = finalImages
+      .map((imageItem: NormalizedQuestionnaireImage): string => imageItem.url)
+      .filter(isNonEmptyString);
 
-    const archivoNombre = archivo
-      ? archivo.originalname
-      : shouldRemoveFile
-        ? ''
-        : String(
-            fileName ||
-              archivo_nombre ||
-              current.archivo_nombre ||
-              getFileNameFromUrl(archivoUrl)
-          ).trim();
+    const currentImagePaths = normalizeImagesFromUrls(actual.imagenes || [])
+      .map((imageItem: NormalizedQuestionnaireImage): string => {
+        return imageItem.path || buildStoragePathFromPublicUrl(imageItem.url);
+      })
+      .filter(isNonEmptyString);
 
-    const archivoTipo = archivo
-      ? archivo.mimetype
-      : shouldRemoveFile
-        ? ''
-        : String(archivo_tipo || current.archivo_tipo || '').trim();
+    const finalImagePaths = finalImages
+      .map((imageItem: NormalizedQuestionnaireImage): string => {
+        return imageItem.path || buildStoragePathFromPublicUrl(imageItem.url);
+      })
+      .filter(isNonEmptyString);
 
-    const finalScore = parsePositiveNumber(
-      puntajeMaximo ||
-        puntaje_maximo ||
-        questionsCount ||
-        questions_count ||
-        current.puntaje_maximo,
-      current.puntaje_maximo || 10
+    const imagePathsToDelete = currentImagePaths.filter(
+      (storagePath: string): boolean => !finalImagePaths.includes(storagePath)
     );
 
     const payload = {
       titulo: finalTitle,
       resumen: finalDescription,
-      riesgo: normalizeRisk(risk || riesgo || difficulty || current.riesgo),
-      cover_img: portadaUrl,
+      riesgo: finalRisk,
+      cover_img: finalCoverUrl,
       puntaje_maximo: finalScore,
-      archivo_url: archivoUrl,
-      archivo_nombre: archivoNombre,
-      archivo_tipo: archivoTipo,
-      imagenes: finalImages
+      archivo_url: finalFileUrl,
+      archivo_nombre: finalFileName,
+      archivo_tipo: finalFileType,
+      imagenes: finalImageUrls
     };
 
     const { data, error } = await supabase
       .from(QUESTIONNAIRES_TABLE)
       .update(payload)
-      .eq('id', id)
+      .eq('id', questionnaireId)
       .select('*')
       .single();
 
     if (error) {
+      await deleteFilesFromStorage([
+        uploadedCover?.path,
+        uploadedDocument?.path,
+        ...uploadedImagesPayload.map(
+          (imageItem: NormalizedQuestionnaireImage): string => imageItem.path
+        )
+      ]);
+
       throw error;
     }
 
-    return res.json(
-      mapQuestionnaireResponse(data as QuestionnaireDB)
-    );
+    await deleteFilesFromStorage([
+      oldCoverPathToDelete,
+      oldFilePathToDelete,
+      ...imagePathsToDelete
+    ]);
+
+    return res.json(mapQuestionnaireResponse(data as CuestionarioDB));
   } catch (error: any) {
+    await deleteFilesFromStorage([
+      uploadedCover?.path,
+      uploadedDocument?.path,
+      ...uploadedImagesPayload.map(
+        (imageItem: NormalizedQuestionnaireImage): string => imageItem.path
+      )
+    ]);
+
     console.error('Error en updateQuestionnaire:', error);
 
     return res.status(500).json({
@@ -527,21 +689,38 @@ export const updateQuestionnaire = async (req: Request, res: Response) => {
 
 export const deleteQuestionnaire = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const questionnaireId = String(req.params.id || '').trim();
 
-    if (!id) {
+    if (!questionnaireId) {
       return res.status(400).json({
         message: 'ID de cuestionario no proporcionado.'
       });
     }
 
+    const actual = await getCurrentQuestionnaire(questionnaireId);
+
     const { error } = await supabase
       .from(QUESTIONNAIRES_TABLE)
       .delete()
-      .eq('id', id);
+      .eq('id', questionnaireId);
 
     if (error) {
       throw error;
+    }
+
+    if (actual) {
+      const coverPath = buildStoragePathFromPublicUrl(actual.cover_img);
+      const documentPath = buildStoragePathFromPublicUrl(actual.archivo_url);
+
+      const imagePaths = normalizeImagesFromUrls(actual.imagenes || [])
+        .map((imageItem: NormalizedQuestionnaireImage): string => {
+          return (
+            imageItem.path || buildStoragePathFromPublicUrl(imageItem.url)
+          );
+        })
+        .filter(isNonEmptyString);
+
+      await deleteFilesFromStorage([coverPath, documentPath, ...imagePaths]);
     }
 
     return res.json({

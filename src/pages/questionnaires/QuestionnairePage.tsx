@@ -9,16 +9,12 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import './QuestionnairePage.css';
 
-import im001 from '../../assets/logos/im001.png';
-import im002 from '../../assets/logos/im002.png';
-import im003 from '../../assets/logos/im003.png';
-
-import inge from '../../assets/questions/inge.png';
+import phishing from '../../assets/questions/phishing.png';
+import datos from '../../assets/questions/datos.png';
 import contrasena from '../../assets/questions/contrasena.webp';
 import dispositivos from '../../assets/questions/dispositivos.png';
 import wifi from '../../assets/questions/wifi.png';
-import phishing from '../../assets/questions/phishing.png';
-import datos from '../../assets/questions/datos.png';
+import inge from '../../assets/questions/inge.png';
 
 interface QuestionnaireModule {
   id: string;
@@ -55,65 +51,15 @@ interface BackendQuestionnaire {
 
 const API_URL = 'http://localhost:3000';
 
-const realizadosData: QuestionnaireModule[] = [
-  {
-    id: 'realizado-1',
-    titulo: 'PHISHING Y CORREO',
-    description: 'Identifica señales de fraude en correos.',
-    score: 30,
-    riesgo: 'Medio',
-    img: phishing
-  },
-  {
-    id: 'realizado-2',
-    titulo: 'SEGURIDAD DE DATOS',
-    description: 'Identifica riesgos asociados al manejo de información personal.',
-    score: 60,
-    riesgo: 'Alto',
-    img: datos
-  },
-  {
-    id: 'realizado-3',
-    titulo: 'CONTRASEÑAS',
-    description: 'Evalúa tus hábitos de creación y protección de contraseñas.',
-    score: 50,
-    riesgo: 'Medio',
-    img: contrasena
-  },
-  {
-    id: 'realizado-4',
-    titulo: 'INGENIERÍA SOCIAL',
-    description: 'Reconoce intentos de manipulación y suplantación.',
-    score: 90,
-    riesgo: 'Bajo',
-    img: inge
-  }
-];
-
-const disponiblesFallback: QuestionnaireModule[] = [
-  {
-    id: 'disponible-1',
-    titulo: 'WIFI SEGURA',
-    description: 'Aprende a proteger tu entorno digital.',
-    riesgo: 'Medio',
-    img: wifi
-  },
-  {
-    id: 'disponible-2',
-    titulo: 'DISPOSITIVOS',
-    description: 'Aprende a proteger tus dispositivos personales.',
-    riesgo: 'Bajo',
-    img: dispositivos
-  }
-];
-
 export const QuestionnairePage: React.FC = () => {
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
 
   const [disponiblesData, setDisponiblesData] = useState<
     QuestionnaireModule[]
-  >(disponiblesFallback);
+  >([]);
+
+  const [isLoading, setIsLoading] = useState(false);
 
   const buildFileUrl = (url?: string) => {
     if (!url) return '';
@@ -163,6 +109,8 @@ export const QuestionnairePage: React.FC = () => {
 
   const loadQuestionnaires = async () => {
     try {
+      setIsLoading(true);
+
       const response = await fetch(`${API_URL}/api/questionnaires`);
 
       if (!response.ok) {
@@ -171,33 +119,32 @@ export const QuestionnairePage: React.FC = () => {
 
       const data: BackendQuestionnaire[] = await response.json();
 
-      if (!Array.isArray(data) || data.length === 0) {
-        setDisponiblesData(disponiblesFallback);
-        return;
-      }
+      const backendQuestionnaires: QuestionnaireModule[] = Array.isArray(data)
+        ? data.map((item) => {
+            const title = item.title || item.titulo || 'Cuestionario';
+            const description =
+              item.description ||
+              item.resumen ||
+              'Aprende a proteger tu entorno digital.';
 
-      const backendQuestionnaires: QuestionnaireModule[] = data.map((item) => {
-        const title = item.title || item.titulo || 'Cuestionario';
-        const description =
-          item.description ||
-          item.resumen ||
-          'Aprende a proteger tu entorno digital.';
+            const coverUrl = item.coverUrl || item.cover_img || '';
 
-        const coverUrl = item.coverUrl || item.cover_img || '';
-
-        return {
-          id: String(item.id),
-          titulo: title,
-          description,
-          riesgo: normalizeRisk(item.risk || item.riesgo || item.difficulty),
-          img: coverUrl ? buildFileUrl(coverUrl) : getFallbackImage(item)
-        };
-      });
+            return {
+              id: String(item.id),
+              titulo: title,
+              description,
+              riesgo: normalizeRisk(item.risk || item.riesgo || item.difficulty),
+              img: coverUrl ? buildFileUrl(coverUrl) : getFallbackImage(item)
+            };
+          })
+        : [];
 
       setDisponiblesData(backendQuestionnaires);
     } catch (error) {
       console.error('Error al cargar cuestionarios:', error);
-      setDisponiblesData(disponiblesFallback);
+      setDisponiblesData([]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -231,82 +178,34 @@ export const QuestionnairePage: React.FC = () => {
               Evalúa tus conocimientos en distintos ámbitos de la
               ciberseguridad municipal.
             </p>
-
-            <div className="stats-banner">
-              <div className="stat-box">
-                <img src={im001} className="stat-icon" alt="icon" />
-
-                <div className="stat-info">
-                  <span>Promedio General</span>
-                  <span className="stat-value">46%</span>
-                </div>
-              </div>
-
-              <div className="stat-box">
-                <img src={im002} className="stat-icon" alt="icon" />
-
-                <div className="stat-info">
-                  <span>Completados</span>
-                  <span className="stat-value">3</span>
-                </div>
-              </div>
-
-              <div className="stat-box">
-                <img src={im003} className="stat-icon" alt="icon" />
-
-                <div className="stat-info">
-                  <span>Áreas a Reforzar</span>
-                  <span className="stat-value">2</span>
-                </div>
-              </div>
-            </div>
           </header>
-
-          <h2 className="section-title">Cuestionarios realizados</h2>
-
-          <p className="resumen-subtitle">
-            En esta sección se detallan los resultados de las evaluaciones que
-            has finalizado. Puedes revisar el puntaje obtenido en cada
-            categoría, el nivel de riesgo identificado según tus respuestas y
-            volver a consultar la información clave para asegurar que tus datos
-            y dispositivos estén siempre protegidos.
-          </p>
-
-          <div className="cuestionarios-grid">
-            {realizadosData.map((item) => (
-              <QuestionnaireCard
-                key={item.id}
-                title={item.titulo}
-                description={item.description}
-                risk={item.riesgo}
-                status="Completado"
-                score={item.score}
-                bgImage={item.img}
-              />
-            ))}
-          </div>
 
           <h2 className="section-title">Cuestionarios disponibles</h2>
 
           <p className="resumen-subtitle">
-            Fortalece tu seguridad digital completando los desafíos pendientes.
+            Fortalece tu seguridad digital completando los desafíos disponibles.
             Selecciona un tema para comenzar la evaluación y obtén
-            recomendaciones personalizadas para proteger tu información en el
-            entorno municipal.
+            recomendaciones personalizadas para proteger tu información.
           </p>
 
-          <div className="cuestionarios-grid">
-            {disponiblesData.map((item) => (
-              <QuestionnaireCard
-                key={item.id}
-                title={item.titulo}
-                description={item.description}
-                risk={item.riesgo}
-                status="Pendiente"
-                bgImage={item.img}
-              />
-            ))}
-          </div>
+          {isLoading ? (
+            <p>Cargando cuestionarios...</p>
+          ) : disponiblesData.length === 0 ? (
+            <p>No hay cuestionarios disponibles por el momento.</p>
+          ) : (
+            <div className="cuestionarios-grid">
+              {disponiblesData.map((item) => (
+                <QuestionnaireCard
+                  key={item.id}
+                  title={item.titulo}
+                  description={item.description}
+                  risk={item.riesgo}
+                  status="Pendiente"
+                  bgImage={item.img}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
         <Footer />

@@ -1,14 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { SubscribeBanner } from '../subscribe/subscribeBanner';
 
-import deep from '../../assets/news/deep.png';
-import hogarInteligente from '../../assets/news/hogarInteligente.png';
-import oficina from '../../assets/news/oficina.png';
-import refuerza from '../../assets/news/refuerza.png';
 import seguridad from '../../assets/news/seguridad.png';
-import sms from '../../assets/news/sms.png';
-import datos from '../../assets/news/datos.png';
-import leyes from '../../assets/news/leyes.png';
 
 import './newsPart.css';
 
@@ -49,91 +42,9 @@ interface NewsItem {
 
 const API_URL = 'http://localhost:3000';
 
-const staticNewsItems: NewsItem[] = [
-  {
-    id: 'static-1',
-    title: 'Parche de seguridad urgente',
-    description:
-      'Se detecta una vulnerabilidad crítica en navegadores populares. Actualiza tus dispositivos para evitar el robo de sesiones.',
-    image: seguridad,
-    createdAt: '29 abr 2026',
-    autorNombre: 'Equipo de Comunicaciones',
-    images: []
-  },
-  {
-    id: 'static-2',
-    title: 'Nueva ola de SMS fraudulentos',
-    description:
-      'Delincuentes suplantan a servicios de mensajería para robar datos bancarios. Aprende a identificar estos mensajes falsos.',
-    image: sms,
-    createdAt: '29 abr 2026',
-    autorNombre: 'Equipo de Comunicaciones',
-    images: []
-  },
-  {
-    id: 'static-3',
-    title: 'Auge de los "Deepfakes" en estafas',
-    description:
-      'El uso de inteligencia artificial para suplantar voces y rostros aumenta. Descubre cómo protegerte de estas identidades sintéticas.',
-    image: deep,
-    createdAt: '29 abr 2026',
-    autorNombre: 'Dirección de Seguridad Pública',
-    images: []
-  },
-  {
-    id: 'static-4',
-    title: 'Protege tu oficina en casa',
-    description:
-      'El aumento del teletrabajo eleva los riesgos de ataques domésticos. Configura tu router de forma segura con estos pasos.',
-    image: oficina,
-    createdAt: '29 abr 2026',
-    autorNombre: 'Equipo TIC Municipal',
-    images: []
-  },
-  {
-    id: 'static-5',
-    title: 'Riesgos en el hogar inteligente',
-    description:
-      'Cámaras y asistentes de voz pueden ser puertas de entrada para hackers. Revisa cómo asegurar tus dispositivos conectados.',
-    image: hogarInteligente,
-    createdAt: '29 abr 2026',
-    autorNombre: 'Equipo TIC Municipal',
-    images: []
-  },
-  {
-    id: 'static-6',
-    title: 'Cambios en leyes de protección',
-    description:
-      'Nuevas regulaciones exigen mayor transparencia a las empresas sobre tus datos. Conoce tus derechos como usuario digital.',
-    image: leyes,
-    createdAt: '29 abr 2026',
-    autorNombre: 'Municipalidad de Santo Domingo',
-    images: []
-  },
-  {
-    id: 'static-7',
-    title: 'Alerta por secuestro de datos',
-    description:
-      'Aumentan los ataques que cifran archivos a cambio de un rescate. La prevención y los respaldos son tu mejor defensa.',
-    image: datos,
-    createdAt: '29 abr 2026',
-    autorNombre: 'Dirección de Seguridad Pública',
-    images: []
-  },
-  {
-    id: 'static-8',
-    title: 'Refuerza tu seguridad hoy',
-    description:
-      'No confíes solo en tu contraseña. Activa la verificación en dos pasos para añadir una capa extra de protección a tus cuentas.',
-    image: refuerza,
-    createdAt: '29 abr 2026',
-    autorNombre: 'Equipo de Comunicaciones',
-    images: []
-  }
-];
-
 export const NewsPart: React.FC = () => {
-  const [newsItems, setNewsItems] = useState<NewsItem[]>(staticNewsItems);
+  const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const buildFileUrl = (url?: string) => {
     if (!url) return seguridad;
@@ -146,11 +57,11 @@ export const NewsPart: React.FC = () => {
       return url;
     }
 
-    if (url.startsWith('/uploads/')) {
+    if (url.startsWith('/')) {
       return `${API_URL}${url}`;
     }
 
-    return url;
+    return `${API_URL}/${url}`;
   };
 
   const normalizeImages = (images?: BackendAlertImage[]) => {
@@ -168,6 +79,8 @@ export const NewsPart: React.FC = () => {
 
   const loadAlerts = async () => {
     try {
+      setIsLoading(true);
+
       const response = await fetch(`${API_URL}/api/alerts`);
 
       if (!response.ok) {
@@ -176,24 +89,29 @@ export const NewsPart: React.FC = () => {
 
       const data: BackendAlert[] = await response.json();
 
-      const backendNews: NewsItem[] = data.map((alert) => ({
-        id: alert.id,
-        title: alert.title || alert.titulo || 'Alerta municipal',
-        description:
-          alert.description ||
-          alert.cuerpo ||
-          alert.resumen ||
-          '',
-        image: buildFileUrl(alert.image || alert.imagen_url || ''),
-        createdAt: alert.createdAt || '',
-        autorNombre: alert.autorNombre || 'Municipalidad de Santo Domingo',
-        images: normalizeImages(alert.images || alert.imagenes || [])
-      }));
+      const backendNews: NewsItem[] = Array.isArray(data)
+        ? data.map((alert) => ({
+            id: alert.id,
+            title: alert.title || alert.titulo || 'Alerta municipal',
+            description:
+              alert.description ||
+              alert.cuerpo ||
+              alert.resumen ||
+              '',
+            image: buildFileUrl(alert.image || alert.imagen_url || ''),
+            createdAt: alert.createdAt || alert.fecha || '',
+            autorNombre:
+              alert.autorNombre || 'Municipalidad de Santo Domingo',
+            images: normalizeImages(alert.images || alert.imagenes || [])
+          }))
+        : [];
 
-      setNewsItems([...backendNews, ...staticNewsItems]);
+      setNewsItems(backendNews);
     } catch (error) {
       console.error('Error al cargar noticias desde backend:', error);
-      setNewsItems(staticNewsItems);
+      setNewsItems([]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -215,36 +133,42 @@ export const NewsPart: React.FC = () => {
         <p>Noticias y alertas publicadas por la municipalidad.</p>
       </div>
 
-      <div className="news-grid">
-        {newsItems.map((item) => (
-          <article className="news-card" key={item.id}>
-            <img
-              src={item.image}
-              alt={item.title}
-              className="news-card-image"
-            />
+      {isLoading ? (
+        <p>Cargando noticias...</p>
+      ) : newsItems.length === 0 ? (
+        <p>No hay noticias o alertas publicadas por el momento.</p>
+      ) : (
+        <div className="news-grid">
+          {newsItems.map((item) => (
+            <article className="news-card" key={item.id}>
+              <img
+                src={item.image}
+                alt={item.title}
+                className="news-card-image"
+              />
 
-            <div className="news-card-body">
-              <h2>{item.title}</h2>
+              <div className="news-card-body">
+                <h2>{item.title}</h2>
 
-              <div className="news-card-meta">
-                <span>{item.createdAt}</span>
-                <span>Publicado por: {item.autorNombre}</span>
+                <div className="news-card-meta">
+                  <span>{item.createdAt}</span>
+                  <span>Publicado por: {item.autorNombre}</span>
 
-                {item.images && item.images.length > 0 && (
-                  <span>{item.images.length} imagen(es) adicionales</span>
-                )}
+                  {item.images && item.images.length > 0 && (
+                    <span>{item.images.length} imagen(es) adicionales</span>
+                  )}
+                </div>
+
+                <p>{item.description}</p>
+
+                <button className="news-card-button" type="button">
+                  Leer más.
+                </button>
               </div>
-
-              <p>{item.description}</p>
-
-              <button className="news-card-button" type="button">
-                Leer más.
-              </button>
-            </div>
-          </article>
-        ))}
-      </div>
+            </article>
+          ))}
+        </div>
+      )}
 
       <SubscribeBanner />
     </section>

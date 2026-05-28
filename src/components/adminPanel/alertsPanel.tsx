@@ -405,6 +405,14 @@ export const AlertsPanel: React.FC = () => {
     const formData = new FormData();
 
     formData.append('title', title.trim());
+    formData.append('titulo', title.trim());
+
+    formData.append('summary', description.trim());
+    formData.append('resumen', description.trim());
+
+    formData.append('body', description.trim());
+    formData.append('cuerpo', description.trim());
+
     formData.append('description', description.trim());
 
     if (coverFile) {

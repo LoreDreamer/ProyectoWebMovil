@@ -1,13 +1,9 @@
 import express from 'express';
 import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
-
 import {
-  obtenerDenuncias,
-  crearDenuncia
+  crearDenuncia,
+  obtenerDenuncias
 } from '../controllers/complaints.controller';
-
 import {
   authenticateToken,
   requireAdmin
@@ -15,137 +11,114 @@ import {
 
 const router = express.Router();
 
-const uploadsDir = path.join(__dirname, '..', 'uploads');
+const MAX_FILE_SIZE_MB = 10;
+const MAX_FILES = 10;
 
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
+const allowedMimeTypes = [
+  'image/png',
+  'image/jpeg',
+  'image/jpg',
+  'image/webp',
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'text/plain'
+];
 
-const storage = multer.diskStorage({
-  destination: (
-    _req: express.Request,
-    _file: Express.Multer.File,
-    cb: (error: Error | null, destination: string) => void
-  ) => {
-    cb(null, uploadsDir);
-  },
+const allowedExtensions = [
+  '.png',
+  '.jpg',
+  '.jpeg',
+  '.webp',
+  '.pdf',
+  '.doc',
+  '.docx',
+  '.txt'
+];
 
-  filename: (
-    _req: express.Request,
-    file: Express.Multer.File,
-    cb: (error: Error | null, filename: string) => void
-  ) => {
-    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-    const extension = path.extname(file.originalname);
+const getFileExtension = (fileName: string) => {
+  const lastDot = fileName.lastIndexOf('.');
 
-    cb(null, `${uniqueSuffix}${extension}`);
-  }
-});
+  if (lastDot === -1) return '';
 
-const fileFilter = (
-  _req: express.Request,
-  file: Express.Multer.File,
-  cb: multer.FileFilterCallback
-) => {
-  const allowedMimeTypes = [
-    'image/png',
-    'image/jpeg',
-    'image/jpg',
-    'image/webp',
-    'application/pdf',
-    'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'text/plain'
-  ];
-
-  const allowedExtensions = [
-    '.png',
-    '.jpg',
-    '.jpeg',
-    '.webp',
-    '.pdf',
-    '.doc',
-    '.docx',
-    '.txt'
-  ];
-
-  const extension = path.extname(file.originalname).toLowerCase();
-
-  const validByMime = allowedMimeTypes.includes(file.mimetype);
-  const validByExtension = allowedExtensions.includes(extension);
-
-  if (!validByMime && !validByExtension) {
-    return cb(
-      new Error(
-        'Solo se permiten imágenes, PDF, DOC, DOCX o TXT. No se permiten ejecutables ni archivos comprimidos.'
-      )
-    );
-  }
-
-  return cb(null, true);
+  return fileName.substring(lastDot).toLowerCase();
 };
+
+const storage = multer.memoryStorage();
 
 const upload = multer({
   storage,
-  fileFilter,
   limits: {
-    fileSize: 10 * 1024 * 1024,
-    files: 10
+    fileSize: MAX_FILE_SIZE_MB * 1024 * 1024,
+    files: MAX_FILES
+  },
+  fileFilter: (_req, file, cb) => {
+    const extension = getFileExtension(file.originalname);
+
+    const isAllowedField =
+      file.fieldname === 'archivo' || file.fieldname === 'archivos';
+
+    const isValidFile =
+      allowedMimeTypes.includes(file.mimetype) ||
+      allowedExtensions.includes(extension);
+
+    if (!isAllowedField) {
+      return cb(new Error(`Campo de archivo no permitido: ${file.fieldname}`));
+    }
+
+    if (!isValidFile) {
+      return cb(
+        new Error(
+          'Formato de archivo no permitido. Solo se permiten imágenes, PDF, DOC, DOCX o TXT.'
+        )
+      );
+    }
+
+    return cb(null, true);
   }
 });
 
-const uploadDenunciaFiles = upload.fields([
-  {
-    name: 'archivo',
-    maxCount: 10
-  },
-  {
-    name: 'archivos',
-    maxCount: 10
-  }
+const uploadComplaintFiles = upload.fields([
+  { name: 'archivo', maxCount: MAX_FILES },
+  { name: 'archivos', maxCount: MAX_FILES }
 ]);
 
-const handleUploadDenunciaFiles = (
-  req: express.Request,
+const handleMulterError = (
+  err: unknown,
+  _req: express.Request,
   res: express.Response,
   next: express.NextFunction
 ) => {
-  uploadDenunciaFiles(req, res, (error) => {
-    if (!error) {
-      return next();
-    }
+  if (!err) {
+    return next();
+  }
 
-    if (error instanceof multer.MulterError) {
-      if (error.code === 'LIMIT_FILE_SIZE') {
-        return res.status(400).json({
-          error: 'Uno de los archivos supera el límite de 10 MB.'
-        });
-      }
-
-      if (error.code === 'LIMIT_FILE_COUNT') {
-        return res.status(400).json({
-          error: 'Solo puedes adjuntar un máximo de 10 archivos.'
-        });
-      }
-
-      return res.status(400).json({
-        error: 'Error al subir archivos.',
-        message: error.message
-      });
-    }
-
+  if (err instanceof multer.MulterError) {
     return res.status(400).json({
-      error: 'Archivo no permitido.',
-      message: error.message || 'Tipo de archivo no válido.'
+      message: 'Error al subir archivo.',
+      error: err.message
     });
+  }
+
+  if (err instanceof Error) {
+    return res.status(400).json({
+      message: 'Archivo no válido.',
+      error: err.message
+    });
+  }
+
+  return res.status(400).json({
+    message: 'Error desconocido al subir archivo.'
   });
 };
 
-/*
-  GET queda protegido porque las denuncias contienen datos personales.
-  POST queda público para que cualquier ciudadano pueda enviar una denuncia.
-*/
 router.get('/', authenticateToken, requireAdmin, obtenerDenuncias);
-router.post('/', handleUploadDenunciaFiles, crearDenuncia);
+
+router.post(
+  '/',
+  uploadComplaintFiles,
+  handleMulterError,
+  crearDenuncia
+);
 
 export default router;

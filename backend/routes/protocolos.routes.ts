@@ -1,7 +1,5 @@
 import express from 'express';
 import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
 
 import {
   getProtocolos,
@@ -17,78 +15,104 @@ import {
 
 const router = express.Router();
 
-const uploadsDir = path.join(__dirname, '..', 'uploads');
+const MAX_FILE_SIZE_MB = 10;
+const MAX_FILES = 10;
 
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
+const allowedMimeTypes = [
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'image/png',
+  'image/jpeg',
+  'image/jpg',
+  'image/webp'
+];
 
-const storage = multer.diskStorage({
-  destination: (
-    _req: express.Request,
-    _file: Express.Multer.File,
-    cb: (error: Error | null, destination: string) => void
-  ) => {
-    cb(null, uploadsDir);
-  },
+const allowedExtensions = [
+  '.pdf',
+  '.doc',
+  '.docx',
+  '.png',
+  '.jpg',
+  '.jpeg',
+  '.webp'
+];
 
-  filename: (
-    _req: express.Request,
-    file: Express.Multer.File,
-    cb: (error: Error | null, filename: string) => void
-  ) => {
-    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-    const extension = path.extname(file.originalname);
+const getFileExtension = (fileName: string) => {
+  const lastDot = fileName.lastIndexOf('.');
 
-    cb(null, `${uniqueSuffix}${extension}`);
-  }
-});
+  if (lastDot === -1) return '';
 
-const fileFilter = (
-  _req: express.Request,
-  file: Express.Multer.File,
-  cb: multer.FileFilterCallback
-) => {
-  const allowedTypes = [
-    'application/pdf',
-    'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'image/png',
-    'image/jpeg',
-    'image/jpg',
-    'image/webp'
-  ];
-
-  if (!allowedTypes.includes(file.mimetype)) {
-    return cb(
-      new Error(
-        'Solo se permiten archivos PDF, DOC, DOCX o imágenes PNG, JPG, JPEG y WEBP.'
-      )
-    );
-  }
-
-  cb(null, true);
+  return fileName.substring(lastDot).toLowerCase();
 };
+
+const storage = multer.memoryStorage();
 
 const upload = multer({
   storage,
-  fileFilter,
   limits: {
-    fileSize: 10 * 1024 * 1024,
-    files: 10
+    fileSize: MAX_FILE_SIZE_MB * 1024 * 1024,
+    files: MAX_FILES + 1
+  },
+  fileFilter: (_req, file, cb) => {
+    const extension = getFileExtension(file.originalname);
+
+    const isAllowedField =
+      file.fieldname === 'archivo' || file.fieldname === 'archivos';
+
+    const isValidFile =
+      allowedMimeTypes.includes(file.mimetype) ||
+      allowedExtensions.includes(extension);
+
+    if (!isAllowedField) {
+      return cb(new Error(`Campo de archivo no permitido: ${file.fieldname}`));
+    }
+
+    if (!isValidFile) {
+      return cb(
+        new Error(
+          'Formato de archivo no permitido. Solo se permiten PDF, DOC, DOCX, PNG, JPG, JPEG o WEBP.'
+        )
+      );
+    }
+
+    return cb(null, true);
   }
 });
 
 const uploadProtocolFiles = upload.fields([
-  {
-    name: 'archivo',
-    maxCount: 1
-  },
-  {
-    name: 'archivos',
-    maxCount: 10
-  }
+  { name: 'archivo', maxCount: 1 },
+  { name: 'archivos', maxCount: MAX_FILES }
 ]);
+
+const handleMulterError = (
+  err: unknown,
+  _req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+) => {
+  if (!err) {
+    return next();
+  }
+
+  if (err instanceof multer.MulterError) {
+    return res.status(400).json({
+      message: 'Error al subir archivo.',
+      error: err.message
+    });
+  }
+
+  if (err instanceof Error) {
+    return res.status(400).json({
+      message: 'Archivo no válido.',
+      error: err.message
+    });
+  }
+
+  return res.status(400).json({
+    message: 'Error desconocido al subir archivo.'
+  });
+};
 
 router.get('/', getProtocolos);
 
@@ -97,6 +121,7 @@ router.post(
   authenticateToken,
   requireAdmin,
   uploadProtocolFiles,
+  handleMulterError,
   createProtocolo
 );
 
@@ -105,6 +130,7 @@ router.put(
   authenticateToken,
   requireAdmin,
   uploadProtocolFiles,
+  handleMulterError,
   updateProtocolo
 );
 

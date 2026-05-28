@@ -1,15 +1,26 @@
 import { Request, Response } from 'express';
-import { randomUUID } from 'crypto';
 import { supabase } from '../config/supabase';
-
-type CategoriaProtocoloDB =
-  | 'Teletrabajo'
-  | 'Ciberseguridad'
-  | 'Atencion Ciudadana';
+import {
+  uploadFilesToStorage,
+  deleteFilesFromStorage,
+  UploadedStorageFile
+} from '../src/service/storage.service';
 
 interface ArchivoProtocolo {
+  id?: string;
+  name?: string;
+  originalName?: string;
+  url?: string;
+  path?: string;
+  type?: string;
+  size?: number | null;
+  order?: number;
+}
+
+interface ArchivoProtocoloNormalizado {
   id: string;
   name: string;
+  originalName: string;
   url: string;
   path: string;
   type: string;
@@ -23,17 +34,69 @@ interface ProtocoloDB {
   titulo: string;
   resumen: string;
   autor: string | null;
-  categoria: CategoriaProtocoloDB;
+  categoria: string;
   archivo_url: string | null;
   archivo_nombre: string | null;
   archivo_tipo: string | null;
   archivos: ArchivoProtocolo[] | null;
 }
 
-const PROTOCOLOS_TABLE = process.env.SUPABASE_PROTOCOLOS_TABLE || 'protocolo';
-const MAX_FILES = 10;
+const PROTOCOLOS_TABLE =
+  process.env.SUPABASE_PROTOCOLOS_TABLE || 'protocolo';
 
-const formatFecha = (fecha?: string | null) => {
+const STORAGE_BUCKET =
+  process.env.SUPABASE_STORAGE_BUCKET?.trim() || 'municipal-files';
+
+const buildStoragePathFromPublicUrl = (url?: string | null): string => {
+  if (!url) return '';
+
+  if (!url.includes('/storage/v1/object/public/')) {
+    return '';
+  }
+
+  const marker = `/storage/v1/object/public/${STORAGE_BUCKET}/`;
+  const markerIndex = url.indexOf(marker);
+
+  if (markerIndex === -1) return '';
+
+  return decodeURIComponent(url.substring(markerIndex + marker.length));
+};
+
+const getValidStoragePath = (value?: string | null): string => {
+  if (!value) return '';
+
+  if (value.includes('/storage/v1/object/public/')) {
+    return buildStoragePathFromPublicUrl(value);
+  }
+
+  if (value.startsWith('http')) return '';
+  if (value.startsWith('/uploads')) return '';
+  if (value.startsWith('uploads')) return '';
+
+  return value;
+};
+
+const isNonEmptyString = (value: unknown): value is string => {
+  return typeof value === 'string' && value.trim().length > 0;
+};
+
+const parseJsonArray = <T>(value: unknown): T[] => {
+  if (!value) return [];
+
+  if (Array.isArray(value)) return value as T[];
+
+  if (typeof value !== 'string') return [];
+
+  try {
+    const parsed = JSON.parse(value);
+
+    return Array.isArray(parsed) ? (parsed as T[]) : [];
+  } catch {
+    return [];
+  }
+};
+
+const formatFecha = (fecha?: string | null): string => {
   if (!fecha) return '';
 
   const date = new Date(fecha);
@@ -47,41 +110,8 @@ const formatFecha = (fecha?: string | null) => {
   });
 };
 
-const toRelativeUploadUrl = (value?: string | null) => {
-  const url = String(value || '').trim();
-
-  if (!url) return '';
-  if (url.startsWith('blob:') || url.startsWith('data:')) return '';
-
-  const uploadsIndex = url.indexOf('/uploads/');
-
-  if (uploadsIndex >= 0) {
-    return url.substring(uploadsIndex);
-  }
-
-  return url;
-};
-
-const getFileNameFromUrl = (url?: string | null) => {
-  const cleanUrl = toRelativeUploadUrl(url);
-
-  if (!cleanUrl) return '';
-
-  const parts = cleanUrl.split('/');
-  return parts[parts.length - 1] || '';
-};
-
-const safeJsonParse = <T,>(value: unknown, fallback: T): T => {
-  try {
-    if (typeof value !== 'string') return fallback;
-    return JSON.parse(value) as T;
-  } catch {
-    return fallback;
-  }
-};
-
-const normalizeCategoria = (value?: string | null): CategoriaProtocoloDB => {
-  const normalized = String(value || '')
+const normalizeCategoria = (categoria?: string): string => {
+  const normalized = String(categoria || '')
     .trim()
     .toLowerCase()
     .normalize('NFD')
@@ -93,7 +123,8 @@ const normalizeCategoria = (value?: string | null): CategoriaProtocoloDB => {
 
   if (
     normalized.includes('atencion') ||
-    normalized.includes('ciudadan')
+    normalized.includes('ciudadana') ||
+    normalized.includes('ciudadano')
   ) {
     return 'Atencion Ciudadana';
   }
@@ -108,101 +139,96 @@ const getUploadedFiles = (req: Request): Express.Multer.File[] => {
       }
     | undefined;
 
-  const archivoUnico = files?.archivo || [];
+  const archivoPrincipal = files?.archivo || [];
   const archivosMultiples = files?.archivos || [];
 
-  const allFiles = [...archivoUnico, ...archivosMultiples];
+  const allFiles = [...archivoPrincipal, ...archivosMultiples];
 
-  /*
-    Evita duplicar el primer archivo cuando el frontend lo manda
-    tanto en "archivo" como en "archivos".
-  */
-  const uniqueMap = new Map<string, Express.Multer.File>();
+  const uniqueFiles = allFiles.filter(
+    (file: Express.Multer.File, index: number, array: Express.Multer.File[]) => {
+      const currentKey = `${file.originalname}-${file.size}-${file.mimetype}`;
 
-  allFiles.forEach((file) => {
-    const key = `${file.originalname}-${file.size}-${file.mimetype}`;
+      return (
+        array.findIndex((candidate: Express.Multer.File) => {
+          const candidateKey = `${candidate.originalname}-${candidate.size}-${candidate.mimetype}`;
 
-    if (!uniqueMap.has(key)) {
-      uniqueMap.set(key, file);
+          return candidateKey === currentKey;
+        }) === index
+      );
     }
-  });
+  );
 
-  return Array.from(uniqueMap.values()).slice(0, MAX_FILES);
+  return uniqueFiles;
 };
 
-const buildFilesPayload = (
-  files: Express.Multer.File[],
-  startOrder = 1
-): ArchivoProtocolo[] => {
-  return files.map((file, index) => ({
-    id: `${Date.now()}-${index}-${file.filename}`,
-    name: file.originalname,
-    url: `/uploads/${file.filename}`,
-    path: `/uploads/${file.filename}`,
-    type: file.mimetype,
-    size: file.size,
-    order: startOrder + index
-  }));
-};
-
-const normalizeArchivos = (archivos: unknown): ArchivoProtocolo[] => {
+const normalizeArchivos = (
+  archivos: ArchivoProtocolo[]
+): ArchivoProtocoloNormalizado[] => {
   if (!Array.isArray(archivos)) return [];
 
   return archivos
-    .map((archivo, index) => {
-      if (!archivo || typeof archivo !== 'object') return null;
+    .map(
+      (
+        archivoItem: ArchivoProtocolo,
+        index: number
+      ): ArchivoProtocoloNormalizado => {
+        const fileUrl = archivoItem.url || '';
+        const filePath =
+          archivoItem.path || getValidStoragePath(fileUrl);
+        const fileName =
+          archivoItem.name ||
+          archivoItem.originalName ||
+          `archivo-${index + 1}`;
+        const fileId =
+          archivoItem.id ||
+          `${index + 1}-${fileUrl || filePath || fileName}`;
 
-      const item = archivo as Partial<ArchivoProtocolo>;
+        return {
+          id: fileId,
+          name: fileName,
+          originalName: archivoItem.originalName || fileName,
+          url: fileUrl,
+          path: filePath,
+          type: archivoItem.type || '',
+          size: typeof archivoItem.size === 'number' ? archivoItem.size : null,
+          order: index + 1
+        };
+      }
+    )
+    .filter((archivoItem: ArchivoProtocoloNormalizado): boolean => {
+      const fileUrl = archivoItem.url || '';
+      const filePath = archivoItem.path || '';
 
-      const url = toRelativeUploadUrl(item.url || item.path || '');
+      if (!fileUrl && !filePath) return false;
+      if (fileUrl.startsWith('blob:')) return false;
+      if (fileUrl.startsWith('data:')) return false;
 
-      if (!url) return null;
-
-      return {
-        id: String(item.id || `${index + 1}-${url}`),
-        name: String(item.name || getFileNameFromUrl(url)),
-        url,
-        path: url,
-        type: String(item.type || ''),
-        size:
-          typeof item.size === 'number'
-            ? item.size
-            : null,
-        order: index + 1
-      };
-    })
-    .filter(Boolean)
-    .slice(0, MAX_FILES) as ArchivoProtocolo[];
+      return true;
+    });
 };
 
-const getExistingFilesFromBody = (value: unknown): ArchivoProtocolo[] => {
-  if (typeof value === 'undefined') return [];
+const mapUploadedFileToArchivoProtocolo = (
+  uploadedFile: UploadedStorageFile,
+  index: number
+): ArchivoProtocoloNormalizado => {
+  const fallbackId = `${index + 1}-${
+    uploadedFile.path || uploadedFile.url || uploadedFile.name
+  }`;
 
-  if (Array.isArray(value)) {
-    return normalizeArchivos(value);
-  }
-
-  if (typeof value === 'string') {
-    return normalizeArchivos(
-      safeJsonParse<ArchivoProtocolo[]>(value, [])
-    );
-  }
-
-  return [];
-};
-
-const reorderFiles = (files: ArchivoProtocolo[]) => {
-  return files.slice(0, MAX_FILES).map((file, index) => ({
-    ...file,
+  return {
+    id: uploadedFile.id || fallbackId,
+    name: uploadedFile.name,
+    originalName: uploadedFile.originalName,
+    url: uploadedFile.url,
+    path: uploadedFile.path,
+    type: uploadedFile.type,
+    size: uploadedFile.size,
     order: index + 1
-  }));
+  };
 };
 
 const mapProtocoloResponse = (protocolo: ProtocoloDB) => {
-  const archivos = reorderFiles(
-    normalizeArchivos(protocolo.archivos || [])
-  );
-
+  const archivos = normalizeArchivos(protocolo.archivos || []);
   const primerArchivo = archivos[0];
 
   return {
@@ -210,49 +236,41 @@ const mapProtocoloResponse = (protocolo: ProtocoloDB) => {
 
     titulo: protocolo.titulo,
 
-    descripcion: protocolo.resumen,
     resumen: protocolo.resumen,
+    descripcion: protocolo.resumen,
 
     fecha: formatFecha(protocolo.fecha),
-    fechaRaw: protocolo.fecha,
+    fechaOriginal: protocolo.fecha,
 
     categoria: protocolo.categoria,
 
-    archivoUrl:
-      protocolo.archivo_url ||
-      primerArchivo?.url ||
-      '',
-
-    archivoNombre:
-      protocolo.archivo_nombre ||
-      primerArchivo?.name ||
-      '',
-
-    archivoTipo:
-      protocolo.archivo_tipo ||
-      primerArchivo?.type ||
-      '',
-
-    archivo_url:
-      protocolo.archivo_url ||
-      primerArchivo?.url ||
-      '',
-
-    archivo_nombre:
-      protocolo.archivo_nombre ||
-      primerArchivo?.name ||
-      '',
-
-    archivo_tipo:
-      protocolo.archivo_tipo ||
-      primerArchivo?.type ||
-      '',
-
-    archivos,
-
     autor: protocolo.autor,
-    publicado_por: protocolo.autor
+    publicado_por: protocolo.autor,
+
+    archivoUrl: protocolo.archivo_url || primerArchivo?.url || '',
+    archivoNombre: protocolo.archivo_nombre || primerArchivo?.name || '',
+    archivoTipo: protocolo.archivo_tipo || primerArchivo?.type || '',
+
+    archivo_url: protocolo.archivo_url || primerArchivo?.url || '',
+    archivo_nombre: protocolo.archivo_nombre || primerArchivo?.name || '',
+    archivo_tipo: protocolo.archivo_tipo || primerArchivo?.type || '',
+
+    archivos
   };
+};
+
+const getCurrentProtocolo = async (
+  id: string
+): Promise<ProtocoloDB | null> => {
+  const { data, error } = await supabase
+    .from(PROTOCOLOS_TABLE)
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (error || !data) return null;
+
+  return data as ProtocoloDB;
 };
 
 export const getProtocolos = async (_req: Request, res: Response) => {
@@ -269,7 +287,9 @@ export const getProtocolos = async (_req: Request, res: Response) => {
     const protocolos = (data || []) as ProtocoloDB[];
 
     return res.json(
-      protocolos.map((protocolo) => mapProtocoloResponse(protocolo))
+      protocolos.map((protocolo: ProtocoloDB) =>
+        mapProtocoloResponse(protocolo)
+      )
     );
   } catch (error: any) {
     console.error('Error en getProtocolos:', error);
@@ -282,54 +302,84 @@ export const getProtocolos = async (_req: Request, res: Response) => {
 };
 
 export const createProtocolo = async (req: Request, res: Response) => {
+  let uploadedFilesPayload: ArchivoProtocoloNormalizado[] = [];
+
   try {
     const {
       titulo,
+      title,
       descripcion,
       resumen,
-      categoria = 'Ciberseguridad',
-      archivos: archivosBody,
-      existingFiles
+      categoria,
+      archivoUrl,
+      archivo_url,
+      archivoNombre,
+      archivo_nombre,
+      archivoTipo,
+      archivo_tipo,
+      archivos = []
     } = req.body;
 
-    const finalTitulo = String(titulo || '').trim();
-    const finalResumen = String(descripcion || resumen || '').trim();
+    const finalTitle = String(titulo || title || '').trim();
+    const finalResumen = String(resumen || descripcion || '').trim();
+    const finalCategoria = normalizeCategoria(categoria);
 
-    if (!finalTitulo || !finalResumen) {
+    if (!finalTitle || !finalResumen) {
       return res.status(400).json({
         message: 'Título y descripción son obligatorios.'
       });
     }
 
     const uploadedFiles = getUploadedFiles(req);
-    const existingFilesPayload = getExistingFilesFromBody(
-      typeof existingFiles !== 'undefined' ? existingFiles : archivosBody
-    );
 
-    const newFilesPayload = buildFilesPayload(
+    const uploadedStorageFiles = await uploadFilesToStorage(
       uploadedFiles,
-      existingFilesPayload.length + 1
+      'protocolos/archivos'
     );
 
-    const archivosFinales = reorderFiles([
-      ...existingFilesPayload,
-      ...newFilesPayload
-    ]);
+    uploadedFilesPayload = uploadedStorageFiles.map(
+      (
+        uploadedFile: UploadedStorageFile,
+        index: number
+      ): ArchivoProtocoloNormalizado =>
+        mapUploadedFileToArchivoProtocolo(uploadedFile, index)
+    );
 
-    const primerArchivo = archivosFinales[0] || null;
+    const parsedExistingFiles =
+      typeof archivos === 'string'
+        ? parseJsonArray<ArchivoProtocolo>(archivos)
+        : Array.isArray(archivos)
+          ? archivos
+          : [];
+
+    const existingFiles = normalizeArchivos(parsedExistingFiles);
+
+    const finalFiles = normalizeArchivos([
+      ...existingFiles,
+      ...uploadedFilesPayload
+    ]).slice(0, 10);
+
+    const mainFile = finalFiles[0];
 
     const tokenUser = (req as any).user;
 
     const payload = {
-      id: randomUUID(),
-      titulo: finalTitulo,
+      fecha: new Date().toISOString(),
+      titulo: finalTitle,
       resumen: finalResumen,
-      categoria: normalizeCategoria(categoria),
-      autor: tokenUser?.id || null,
-      archivo_url: primerArchivo?.url || null,
-      archivo_nombre: primerArchivo?.name || null,
-      archivo_tipo: primerArchivo?.type || null,
-      archivos: archivosFinales
+      autor:
+        tokenUser?.nombre_completo ||
+        tokenUser?.nombre ||
+        tokenUser?.correo ||
+        tokenUser?.email ||
+        null,
+      categoria: finalCategoria,
+      archivo_url: mainFile?.url || archivoUrl || archivo_url || null,
+      archivo_nombre:
+        mainFile?.name || archivoNombre || archivo_nombre || null,
+      archivo_tipo:
+        mainFile?.type || archivoTipo || archivo_tipo || null,
+      archivos: finalFiles
     };
 
     const { data, error } = await supabase
@@ -339,13 +389,23 @@ export const createProtocolo = async (req: Request, res: Response) => {
       .single();
 
     if (error) {
+      await deleteFilesFromStorage(
+        uploadedFilesPayload.map(
+          (fileItem: ArchivoProtocoloNormalizado): string => fileItem.path
+        )
+      );
+
       throw error;
     }
 
-    return res.status(201).json(
-      mapProtocoloResponse(data as ProtocoloDB)
-    );
+    return res.status(201).json(mapProtocoloResponse(data as ProtocoloDB));
   } catch (error: any) {
+    await deleteFilesFromStorage(
+      uploadedFilesPayload.map(
+        (fileItem: ArchivoProtocoloNormalizado): string => fileItem.path
+      )
+    );
+
     console.error('Error en createProtocolo:', error);
 
     return res.status(500).json({
@@ -356,94 +416,145 @@ export const createProtocolo = async (req: Request, res: Response) => {
 };
 
 export const updateProtocolo = async (req: Request, res: Response) => {
+  let uploadedFilesPayload: ArchivoProtocoloNormalizado[] = [];
+
   try {
-    const { id } = req.params;
+    const protocoloId = String(req.params.id || '').trim();
 
-    const {
-      titulo,
-      descripcion,
-      resumen,
-      categoria = 'Ciberseguridad',
-      archivos: archivosBody,
-      existingFiles
-    } = req.body;
-
-    if (!id) {
+    if (!protocoloId) {
       return res.status(400).json({
         message: 'ID de protocolo no proporcionado.'
       });
     }
 
-    const finalTitulo = String(titulo || '').trim();
-    const finalResumen = String(descripcion || resumen || '').trim();
+    const protocoloActual = await getCurrentProtocolo(protocoloId);
 
-    if (!finalTitulo || !finalResumen) {
+    if (!protocoloActual) {
+      return res.status(404).json({
+        message: 'Protocolo no encontrado.'
+      });
+    }
+
+    const {
+      titulo,
+      title,
+      descripcion,
+      resumen,
+      categoria,
+      archivos,
+      existingFiles,
+      archivosOrden,
+      archivoUrl,
+      archivo_url,
+      archivoNombre,
+      archivo_nombre,
+      archivoTipo,
+      archivo_tipo
+    } = req.body;
+
+    const finalTitle = String(titulo || title || '').trim();
+    const finalResumen = String(resumen || descripcion || '').trim();
+    const finalCategoria = normalizeCategoria(categoria);
+
+    if (!finalTitle || !finalResumen) {
       return res.status(400).json({
         message: 'Título y descripción son obligatorios.'
       });
     }
 
-    const { data: protocoloActual, error: fetchError } = await supabase
-      .from(PROTOCOLOS_TABLE)
-      .select('*')
-      .eq('id', id)
-      .single();
+    const hasFilesPayload =
+      typeof archivos !== 'undefined' ||
+      typeof existingFiles !== 'undefined' ||
+      typeof archivosOrden !== 'undefined';
 
-    if (fetchError) {
-      throw fetchError;
-    }
-
-    const current = protocoloActual as ProtocoloDB;
+    const requestedExistingFiles = hasFilesPayload
+      ? normalizeArchivos(
+          parseJsonArray<ArchivoProtocolo>(
+            archivos || existingFiles || archivosOrden
+          )
+        )
+      : normalizeArchivos(protocoloActual.archivos || []);
 
     const uploadedFiles = getUploadedFiles(req);
 
-    const bodyHasExistingFiles =
-      typeof existingFiles !== 'undefined' ||
-      typeof archivosBody !== 'undefined';
-
-    const existingFilesPayload = bodyHasExistingFiles
-      ? getExistingFilesFromBody(
-          typeof existingFiles !== 'undefined' ? existingFiles : archivosBody
-        )
-      : normalizeArchivos(current.archivos || []);
-
-    const newFilesPayload = buildFilesPayload(
+    const uploadedStorageFiles = await uploadFilesToStorage(
       uploadedFiles,
-      existingFilesPayload.length + 1
+      'protocolos/archivos'
     );
 
-    const archivosFinales = reorderFiles([
-      ...existingFilesPayload,
-      ...newFilesPayload
-    ]);
+    uploadedFilesPayload = uploadedStorageFiles.map(
+      (
+        uploadedFile: UploadedStorageFile,
+        index: number
+      ): ArchivoProtocoloNormalizado =>
+        mapUploadedFileToArchivoProtocolo(
+          uploadedFile,
+          requestedExistingFiles.length + index
+        )
+    );
 
-    const primerArchivo = archivosFinales[0] || null;
+    const finalFiles = normalizeArchivos([
+      ...requestedExistingFiles,
+      ...uploadedFilesPayload
+    ]).slice(0, 10);
+
+    const mainFile = finalFiles[0];
+
+    const currentFilePaths = normalizeArchivos(protocoloActual.archivos || [])
+      .map((fileItem: ArchivoProtocoloNormalizado): string => {
+        return fileItem.path || getValidStoragePath(fileItem.url);
+      })
+      .filter(isNonEmptyString);
+
+    const finalFilePaths = finalFiles
+      .map((fileItem: ArchivoProtocoloNormalizado): string => {
+        return fileItem.path || getValidStoragePath(fileItem.url);
+      })
+      .filter(isNonEmptyString);
+
+    const filePathsToDelete = currentFilePaths.filter(
+      (storagePath: string): boolean => !finalFilePaths.includes(storagePath)
+    );
 
     const payload = {
-      titulo: finalTitulo,
+      titulo: finalTitle,
       resumen: finalResumen,
-      categoria: normalizeCategoria(categoria || current.categoria),
-      archivo_url: primerArchivo?.url || null,
-      archivo_nombre: primerArchivo?.name || null,
-      archivo_tipo: primerArchivo?.type || null,
-      archivos: archivosFinales
+      categoria: finalCategoria,
+      archivo_url: mainFile?.url || archivoUrl || archivo_url || null,
+      archivo_nombre:
+        mainFile?.name || archivoNombre || archivo_nombre || null,
+      archivo_tipo:
+        mainFile?.type || archivoTipo || archivo_tipo || null,
+      archivos: finalFiles
     };
 
     const { data, error } = await supabase
       .from(PROTOCOLOS_TABLE)
       .update(payload)
-      .eq('id', id)
+      .eq('id', protocoloId)
       .select('*')
       .single();
 
     if (error) {
+      await deleteFilesFromStorage(
+        uploadedFilesPayload.map(
+          (fileItem: ArchivoProtocoloNormalizado): string => fileItem.path
+        )
+      );
+
       throw error;
     }
 
-    return res.json(
-      mapProtocoloResponse(data as ProtocoloDB)
-    );
+    await deleteFilesFromStorage(filePathsToDelete);
+
+    return res.json(mapProtocoloResponse(data as ProtocoloDB));
   } catch (error: any) {
+    await deleteFilesFromStorage(
+      uploadedFilesPayload.map(
+        (fileItem: ArchivoProtocoloNormalizado): string => fileItem.path
+      )
+    );
+
     console.error('Error en updateProtocolo:', error);
 
     return res.status(500).json({
@@ -455,21 +566,35 @@ export const updateProtocolo = async (req: Request, res: Response) => {
 
 export const deleteProtocolo = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const protocoloId = String(req.params.id || '').trim();
 
-    if (!id) {
+    if (!protocoloId) {
       return res.status(400).json({
         message: 'ID de protocolo no proporcionado.'
       });
     }
 
+    const protocoloActual = await getCurrentProtocolo(protocoloId);
+
     const { error } = await supabase
       .from(PROTOCOLOS_TABLE)
       .delete()
-      .eq('id', id);
+      .eq('id', protocoloId);
 
     if (error) {
       throw error;
+    }
+
+    if (protocoloActual) {
+      const mainFilePath = getValidStoragePath(protocoloActual.archivo_url);
+
+      const filePaths = normalizeArchivos(protocoloActual.archivos || [])
+        .map((fileItem: ArchivoProtocoloNormalizado): string => {
+          return fileItem.path || getValidStoragePath(fileItem.url);
+        })
+        .filter(isNonEmptyString);
+
+      await deleteFilesFromStorage([mainFilePath, ...filePaths]);
     }
 
     return res.json({

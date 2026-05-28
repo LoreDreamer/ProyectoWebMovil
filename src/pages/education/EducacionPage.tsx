@@ -9,75 +9,32 @@ import {
 } from '../../components';
 import { useAuth } from '../../context/AuthContext';
 
-import img_01 from '../../assets/questions/img_01.jpg';
-import vpn from '../../assets/education/vpn.jpg';
 import pishing from '../../assets/education/pishing.png';
-import huella from '../../assets/education/huella.png';
 
 import './EducationPage.css';
 
 interface EducationModule {
   id: string;
 
-  title: string;
+  title?: string;
   titulo?: string;
 
-  description: string;
+  description?: string;
   resumen?: string;
 
-  category: string;
+  category?: string;
   tipo_educacion?: string;
 
   duration?: string;
 
-  level: string;
+  level?: string;
   nivel?: string;
 
-  image: string;
+  image?: string;
   cover_img?: string;
 }
 
-const API_URL = 'http://localhost:3000';
-
-const staticModules: EducationModule[] = [
-  {
-    id: 'static-1',
-    title: '¿Qué es el phishing?',
-    description: 'Aprende a reconocer correos y mensajes fraudulentos.',
-    category: 'Phishing',
-    duration: '12 min',
-    level: 'Básico',
-    image: pishing
-  },
-  {
-    id: 'static-2',
-    title: 'Seguridad en Redes',
-    description: 'Consejos para navegar de forma segura en redes Wi-Fi públicas.',
-    category: 'Seguridad',
-    duration: '15 min',
-    level: 'Intermedio',
-    image: img_01
-  },
-  {
-    id: 'static-3',
-    title: 'Uso de VPN',
-    description: 'Protege tu identidad y datos cifrando tu conexión a internet.',
-    category: 'VPNs',
-    duration: '10 min',
-    level: 'Básico',
-    image: vpn
-  },
-  {
-    id: 'static-4',
-    title: 'Huella Digital y Privacidad',
-    description:
-      'Aprende a gestionar tu huella digital y a configurar la privacidad de tus redes para evitar que rastreen tus datos.',
-    category: 'Privacidad',
-    duration: '15 min',
-    level: 'Intermedio',
-    image: huella
-  }
-];
+const API_URL = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
 
 const normalizeDifficultyLabel = (value?: string) => {
   const normalized = String(value || '')
@@ -109,7 +66,8 @@ export const EducationPage: React.FC = () => {
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
 
-  const [modules, setModules] = useState<EducationModule[]>(staticModules);
+  const [modules, setModules] = useState<EducationModule[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const buildFileUrl = (url?: string) => {
     if (!url) return '';
@@ -128,6 +86,8 @@ export const EducationPage: React.FC = () => {
   };
 
   const normalizeBackendModule = (module: EducationModule): EducationModule => {
+    const rawImage = module.image || module.cover_img || '';
+
     return {
       id: String(module.id),
       title: module.title || module.titulo || 'Módulo educativo',
@@ -135,40 +95,36 @@ export const EducationPage: React.FC = () => {
       category: module.category || module.tipo_educacion || 'Seguridad',
       duration: module.duration || '10 min',
       level: module.level || normalizeDifficultyLabel(module.nivel),
-      image: module.image || module.cover_img || ''
+      image: rawImage ? buildFileUrl(rawImage) : pishing
     };
   };
 
   const loadEducationModules = async () => {
     try {
+      setIsLoading(true);
+
       const response = await fetch(`${API_URL}/api/education`);
+      const data = await response.json().catch(() => null);
 
       if (!response.ok) {
-        throw new Error('No se pudieron cargar los módulos educativos');
+        console.error('Error backend /api/education:', data);
+        throw new Error(
+          data?.message ||
+            data?.error ||
+            'No se pudieron cargar los módulos educativos'
+        );
       }
 
-      const data = await response.json();
-
-      if (!Array.isArray(data) || data.length === 0) {
-        setModules(staticModules);
-        return;
-      }
-
-      const backendModules: EducationModule[] = data.map((module) => {
-        const normalizedModule = normalizeBackendModule(module);
-
-        return {
-          ...normalizedModule,
-          image: normalizedModule.image
-            ? buildFileUrl(normalizedModule.image)
-            : pishing
-        };
-      });
+      const backendModules: EducationModule[] = Array.isArray(data)
+        ? data.map((module) => normalizeBackendModule(module))
+        : [];
 
       setModules(backendModules);
     } catch (error) {
       console.error('Error al cargar módulos educativos:', error);
-      setModules(staticModules);
+      setModules([]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -207,19 +163,25 @@ export const EducationPage: React.FC = () => {
           <section className="modules-section">
             <h2>MÓDULOS EDUCATIVOS DISPONIBLES</h2>
 
-            <div className="cards-grid">
-              {modules.map((module) => (
-                <EducationCard
-                  key={module.id}
-                  title={module.title}
-                  description={module.description}
-                  tag={module.category}
-                  time={module.duration || '10 min'}
-                  level={module.level}
-                  image={module.image}
-                />
-              ))}
-            </div>
+            {isLoading ? (
+              <p>Cargando módulos educativos...</p>
+            ) : modules.length === 0 ? (
+              <p>No hay módulos educativos disponibles por el momento.</p>
+            ) : (
+              <div className="cards-grid">
+                {modules.map((module) => (
+                  <EducationCard
+                    key={module.id}
+                    title={module.title || 'Módulo educativo'}
+                    description={module.description || ''}
+                    tag={module.category || 'Seguridad'}
+                    time={module.duration || '10 min'}
+                    level={module.level || 'Intermedio'}
+                    image={module.image || pishing}
+                  />
+                ))}
+              </div>
+            )}
           </section>
         </div>
 

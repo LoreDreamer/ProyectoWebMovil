@@ -1,11 +1,27 @@
 import { Request, Response } from 'express';
-import { randomUUID } from 'crypto';
 import { supabase } from '../config/supabase';
+import {
+  uploadFileToStorage,
+  uploadFilesToStorage,
+  deleteFilesFromStorage,
+  UploadedStorageFile
+} from '../src/service/storage.service';
 
 interface AlertImage {
+  id?: string;
+  name?: string;
+  originalName?: string;
+  url?: string;
+  path?: string;
+  type?: string;
+  size?: number | null;
+  order?: number;
+}
+
+interface NormalizedAlertImage {
   id: string;
   name: string;
-  previewUrl: string;
+  originalName: string;
   url: string;
   path: string;
   type: string;
@@ -16,8 +32,8 @@ interface AlertImage {
 interface AlertaDB {
   id: string;
   titulo: string;
-  resumen: string | null;
-  cuerpo: string | null;
+  resumen: string;
+  cuerpo: string;
   fecha: string | null;
   imagen_url: string | null;
   imagen_nombre: string | null;
@@ -25,260 +41,129 @@ interface AlertaDB {
   publicado_por: string | null;
 }
 
-interface UsuarioAutorDB {
-  id: string;
-  correo: string;
-  nombre_completo: string;
-}
-
 const ALERTS_TABLE = process.env.SUPABASE_ALERTS_TABLE || 'alertas';
-const USERS_TABLE = process.env.SUPABASE_USERS_TABLE || 'usuario';
+const STORAGE_BUCKET =
+  process.env.SUPABASE_STORAGE_BUCKET?.trim() || 'municipal-files';
 
-const MAX_ALERT_IMAGES = 10;
-
-const formatFecha = (fecha?: string | null) => {
-  if (!fecha) return '';
-
-  const date = new Date(fecha);
-
-  if (Number.isNaN(date.getTime())) return '';
-
-  return date.toLocaleDateString('es-CL', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric'
-  });
-};
-
-const getPublicBaseUrl = (req: Request) => {
-  return `${req.protocol}://${req.get('host')}`;
-};
-
-const toRelativeUploadUrl = (value?: string | null) => {
-  const url = String(value || '').trim();
-
+const buildStoragePathFromPublicUrl = (url?: string | null): string => {
   if (!url) return '';
-  if (url.startsWith('blob:') || url.startsWith('data:')) return '';
 
-  const uploadsIndex = url.indexOf('/uploads/');
-
-  if (uploadsIndex >= 0) {
-    return url.substring(uploadsIndex);
+  if (!url.includes('/storage/v1/object/public/')) {
+    return '';
   }
 
-  return url;
+  const marker = `/storage/v1/object/public/${STORAGE_BUCKET}/`;
+  const markerIndex = url.indexOf(marker);
+
+  if (markerIndex === -1) return '';
+
+  return decodeURIComponent(url.substring(markerIndex + marker.length));
 };
 
-const buildPublicFileUrl = (req: Request, value?: string | null) => {
-  const cleanUrl = toRelativeUploadUrl(value);
-
-  if (!cleanUrl) return '';
-  if (cleanUrl.startsWith('http')) return cleanUrl;
-  if (cleanUrl.startsWith('/')) return `${getPublicBaseUrl(req)}${cleanUrl}`;
-
-  return `${getPublicBaseUrl(req)}/${cleanUrl}`;
+const isNonEmptyString = (value: unknown): value is string => {
+  return typeof value === 'string' && value.trim().length > 0;
 };
 
-const getFileNameFromUrl = (url?: string | null) => {
-  const cleanUrl = toRelativeUploadUrl(url);
+const parseJsonArray = <T>(value: unknown): T[] => {
+  if (!value) return [];
 
-  if (!cleanUrl) return '';
+  if (Array.isArray(value)) return value as T[];
 
-  const parts = cleanUrl.split('/');
-  return parts[parts.length - 1] || '';
-};
+  if (typeof value !== 'string') return [];
 
-const safeJsonParse = <T,>(value: unknown, fallback: T): T => {
   try {
-    if (typeof value !== 'string') return fallback;
+    const parsed = JSON.parse(value);
 
-    return JSON.parse(value) as T;
+    return Array.isArray(parsed) ? (parsed as T[]) : [];
   } catch {
-    return fallback;
+    return [];
   }
 };
 
-const toBoolean = (value: unknown) => {
-  return value === true || value === 'true';
-};
-
-const getFilesFromRequest = (req: Request) => {
+const getUploadedFiles = (req: Request) => {
   const files = req.files as
     | {
         [fieldname: string]: Express.Multer.File[];
       }
     | undefined;
 
+  const portada = files?.portada?.[0] || files?.imagen?.[0] || null;
+  const imagenes = files?.imagenes || [];
+
   return {
-    portada: files?.portada?.[0] || files?.imagen?.[0] || null,
-    imagenes: files?.imagenes || []
+    portada,
+    imagenes
   };
 };
 
-const buildUploadedImagesPayload = (
-  files: Express.Multer.File[],
-  startOrder = 1
-): AlertImage[] => {
-  return files.map((file, index) => ({
-    id: `${Date.now()}-${index}-${file.filename}`,
-    name: file.originalname,
-    previewUrl: `/uploads/${file.filename}`,
-    url: `/uploads/${file.filename}`,
-    path: `/uploads/${file.filename}`,
-    type: file.mimetype,
-    size: file.size,
-    order: startOrder + index
-  }));
-};
-
-const parseImagesValue = (value: unknown): unknown[] => {
-  if (Array.isArray(value)) return value;
-
-  if (typeof value === 'string') {
-    return safeJsonParse<unknown[]>(value, []);
-  }
-
-  return [];
-};
-
-const normalizeImagesForStorage = (images: unknown): AlertImage[] => {
-  const parsedImages = parseImagesValue(images);
-
-  return parsedImages
-    .map((image, index) => {
-      if (typeof image === 'string') {
-        const url = toRelativeUploadUrl(image);
-
-        if (!url) return null;
-
-        return {
-          id: `${index + 1}-${url}`,
-          name: getFileNameFromUrl(url),
-          previewUrl: url,
-          url,
-          path: url,
-          type: '',
-          size: null,
-          order: index + 1
-        };
-      }
-
-      if (!image || typeof image !== 'object') return null;
-
-      const item = image as Partial<AlertImage>;
-
-      const url = toRelativeUploadUrl(
-        item.url || item.path || item.previewUrl || ''
-      );
-
-      if (!url) return null;
+const normalizeImagesOrder = (
+  images: AlertImage[]
+): NormalizedAlertImage[] => {
+  return images.map(
+    (imageItem: AlertImage, index: number): NormalizedAlertImage => {
+      const imageUrl = imageItem.url || '';
+      const imagePath =
+        imageItem.path || buildStoragePathFromPublicUrl(imageUrl);
+      const imageName =
+        imageItem.name || imageItem.originalName || `imagen-${index + 1}`;
+      const imageId =
+        imageItem.id || `${index + 1}-${imageUrl || imagePath || imageName}`;
 
       return {
-        id: String(item.id || `${index + 1}-${url}`),
-        name: String(item.name || getFileNameFromUrl(url)),
-        previewUrl: url,
-        url,
-        path: url,
-        type: String(item.type || ''),
-        size: typeof item.size === 'number' ? item.size : null,
+        id: imageId,
+        name: imageName,
+        originalName: imageItem.originalName || imageName,
+        url: imageUrl,
+        path: imagePath,
+        type: imageItem.type || '',
+        size: typeof imageItem.size === 'number' ? imageItem.size : null,
         order: index + 1
       };
-    })
-    .filter(Boolean)
-    .slice(0, MAX_ALERT_IMAGES) as AlertImage[];
-};
-
-const mergeImagesForStorage = (
-  imagesValue: unknown,
-  uploadedImages: AlertImage[],
-  fallbackImages: AlertImage[] = []
-) => {
-  const imagesFieldWasSent = typeof imagesValue !== 'undefined';
-  const parsedImages = parseImagesValue(imagesValue);
-
-  if (!imagesFieldWasSent) {
-    return reorderImages([...fallbackImages, ...uploadedImages]);
-  }
-
-  if (parsedImages.length === 0) {
-    return reorderImages(uploadedImages);
-  }
-
-  const result: AlertImage[] = [];
-  let uploadedIndex = 0;
-
-  parsedImages.forEach((image) => {
-    const normalizedImage = normalizeImagesForStorage([image])[0];
-
-    if (normalizedImage) {
-      result.push(normalizedImage);
-      return;
     }
+  );
+};
 
-    if (uploadedIndex < uploadedImages.length) {
-      result.push(uploadedImages[uploadedIndex]);
-      uploadedIndex += 1;
+const filterValidExistingImages = (
+  images: AlertImage[]
+): NormalizedAlertImage[] => {
+  const normalizedImages = normalizeImagesOrder(images);
+
+  return normalizedImages.filter(
+    (imageItem: NormalizedAlertImage): boolean => {
+      const imageUrl = imageItem.url || '';
+      const imagePath = imageItem.path || '';
+
+      if (!imageUrl && !imagePath) return false;
+      if (imageUrl.startsWith('blob:')) return false;
+      if (imageUrl.startsWith('data:')) return false;
+
+      return true;
     }
-  });
-
-  while (uploadedIndex < uploadedImages.length) {
-    result.push(uploadedImages[uploadedIndex]);
-    uploadedIndex += 1;
-  }
-
-  return reorderImages(result);
+  );
 };
 
-const reorderImages = (images: AlertImage[]) => {
-  return images.slice(0, MAX_ALERT_IMAGES).map((image, index) => ({
-    ...image,
+const mapUploadedFileToAlertImage = (
+  uploadedFile: UploadedStorageFile,
+  index: number
+): NormalizedAlertImage => {
+  const fallbackId = `${index + 1}-${
+    uploadedFile.path || uploadedFile.url || uploadedFile.name
+  }`;
+
+  return {
+    id: uploadedFile.id || fallbackId,
+    name: uploadedFile.name,
+    originalName: uploadedFile.originalName,
+    url: uploadedFile.url,
+    path: uploadedFile.path,
+    type: uploadedFile.type,
+    size: uploadedFile.size,
     order: index + 1
-  }));
+  };
 };
 
-const mapImagesForResponse = (req: Request, images: unknown): AlertImage[] => {
-  const normalizedImages = normalizeImagesForStorage(images);
-
-  return normalizedImages.map((image, index) => ({
-    ...image,
-    id: image.id || `${index + 1}-${image.url}`,
-    previewUrl: buildPublicFileUrl(req, image.previewUrl || image.url),
-    url: buildPublicFileUrl(req, image.url),
-    path: image.path || image.url,
-    order: index + 1
-  }));
-};
-
-const getAutoresMap = async (autorIds: string[]) => {
-  const uniqueIds = Array.from(new Set(autorIds.filter(Boolean)));
-  const autoresMap = new Map<string, UsuarioAutorDB>();
-
-  if (uniqueIds.length === 0) return autoresMap;
-
-  const { data, error } = await supabase
-    .from(USERS_TABLE)
-    .select('id, correo, nombre_completo')
-    .in('id', uniqueIds);
-
-  if (error) {
-    throw error;
-  }
-
-  (data || []).forEach((usuario) => {
-    autoresMap.set(usuario.id, usuario as UsuarioAutorDB);
-  });
-
-  return autoresMap;
-};
-
-const mapAlertResponse = (
-  req: Request,
-  alerta: AlertaDB,
-  autoresMap: Map<string, UsuarioAutorDB>
-) => {
-  const autor = alerta.publicado_por
-    ? autoresMap.get(alerta.publicado_por)
-    : null;
+const mapAlertResponse = (alerta: AlertaDB) => {
+  const images = normalizeImagesOrder(alerta.imagenes || []);
 
   return {
     id: alerta.id,
@@ -286,35 +171,41 @@ const mapAlertResponse = (
     title: alerta.titulo,
     titulo: alerta.titulo,
 
-    description: alerta.cuerpo || alerta.resumen || '',
-    resumen: alerta.resumen || '',
-    cuerpo: alerta.cuerpo || '',
+    summary: alerta.resumen,
+    resumen: alerta.resumen,
 
-    image: buildPublicFileUrl(req, alerta.imagen_url),
-    imagen_url: alerta.imagen_url || '',
+    body: alerta.cuerpo,
+    cuerpo: alerta.cuerpo,
 
-    coverName:
-      alerta.imagen_nombre ||
-      getFileNameFromUrl(alerta.imagen_url),
-
-    imagen_nombre:
-      alerta.imagen_nombre ||
-      getFileNameFromUrl(alerta.imagen_url),
-
-    images: mapImagesForResponse(req, alerta.imagenes || []),
-    imagenes: alerta.imagenes || [],
-
-    createdAt: formatFecha(alerta.fecha),
+    date: alerta.fecha,
     fecha: alerta.fecha,
 
-    publicado_por: alerta.publicado_por,
+    image: alerta.imagen_url,
+    imagen_url: alerta.imagen_url,
 
-    autorNombre: autor?.nombre_completo || 'Municipalidad de Santo Domingo',
-    autorCorreo: autor?.correo || ''
+    imageName: alerta.imagen_nombre,
+    imagen_nombre: alerta.imagen_nombre,
+
+    images,
+    imagenes: images,
+
+    publicado_por: alerta.publicado_por
   };
 };
 
-export const getAlerts = async (req: Request, res: Response) => {
+const getCurrentAlert = async (id: string): Promise<AlertaDB | null> => {
+  const { data, error } = await supabase
+    .from(ALERTS_TABLE)
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (error || !data) return null;
+
+  return data as AlertaDB;
+};
+
+export const getAlerts = async (_req: Request, res: Response) => {
   try {
     const { data, error } = await supabase
       .from(ALERTS_TABLE)
@@ -327,14 +218,8 @@ export const getAlerts = async (req: Request, res: Response) => {
 
     const alertas = (data || []) as AlertaDB[];
 
-    const autoresMap = await getAutoresMap(
-      alertas
-        .map((alerta) => alerta.publicado_por)
-        .filter(Boolean) as string[]
-    );
-
     return res.json(
-      alertas.map((alerta) => mapAlertResponse(req, alerta, autoresMap))
+      alertas.map((alerta: AlertaDB) => mapAlertResponse(alerta))
     );
   } catch (error: any) {
     console.error('Error en getAlerts:', error);
@@ -348,71 +233,57 @@ export const getAlerts = async (req: Request, res: Response) => {
 
 export const createAlert = async (req: Request, res: Response) => {
   try {
-    const {
-      title,
-      titulo,
-      description,
-      descripcion,
-      resumen,
-      cuerpo,
-      image = '',
-      imagen_url = '',
-      coverName = '',
-      imagen_nombre = '',
-      images,
-      imagenes
-    } = req.body;
+    const { title, titulo, summary, resumen, body, cuerpo, date, fecha } =
+      req.body;
 
     const finalTitle = String(title || titulo || '').trim();
-    const finalBody = String(description || descripcion || cuerpo || '').trim();
-    const finalSummary = String(resumen || finalBody.slice(0, 180)).trim();
+    const finalSummary = String(summary || resumen || '').trim();
+    const finalBody = String(body || cuerpo || '').trim();
+    const finalDate = String(date || fecha || '').trim();
 
-    if (!finalTitle || !finalBody) {
+    if (!finalTitle || !finalSummary || !finalBody) {
       return res.status(400).json({
-        message: 'Título y descripción son obligatorios.'
+        message: 'Título, resumen y cuerpo son obligatorios.'
       });
     }
+
+    const { portada, imagenes } = getUploadedFiles(req);
+
+    let uploadedCover: UploadedStorageFile | null = null;
+
+    if (portada) {
+      uploadedCover = await uploadFileToStorage(portada, {
+        folder: 'alertas/portadas',
+        order: 1
+      });
+    }
+
+    const uploadedImages = await uploadFilesToStorage(
+      imagenes,
+      'alertas/imagenes'
+    );
+
+    const imagesPayload = normalizeImagesOrder(
+      uploadedImages.map(
+        (
+          uploadedFile: UploadedStorageFile,
+          index: number
+        ): NormalizedAlertImage =>
+          mapUploadedFileToAlertImage(uploadedFile, index)
+      )
+    );
 
     const tokenUser = (req as any).user;
 
-    if (!tokenUser?.id) {
-      return res.status(401).json({
-        message: 'No se pudo identificar al usuario que publica la alerta.'
-      });
-    }
-
-    const { portada, imagenes: uploadedImageFiles } = getFilesFromRequest(req);
-
-    const uploadedImagesPayload =
-      buildUploadedImagesPayload(uploadedImageFiles);
-
-    const finalImages = mergeImagesForStorage(
-      typeof imagenes !== 'undefined' ? imagenes : images,
-      uploadedImagesPayload,
-      []
-    );
-
-    const portadaUrl = portada
-      ? `/uploads/${portada.filename}`
-      : toRelativeUploadUrl(image || imagen_url);
-
-    const portadaNombre = portada
-      ? portada.originalname
-      : String(
-          coverName ||
-            imagen_nombre ||
-            getFileNameFromUrl(portadaUrl)
-        ).trim();
-
     const payload = {
-      id: randomUUID(),
       titulo: finalTitle,
       resumen: finalSummary,
       cuerpo: finalBody,
-      imagen_url: portadaUrl || null,
-      imagen_nombre: portadaNombre || null,
-      imagenes: finalImages,
-      publicado_por: tokenUser.id
+      fecha: finalDate || new Date().toISOString(),
+      imagen_url: uploadedCover?.url || null,
+      imagen_nombre: uploadedCover?.name || null,
+      imagenes: imagesPayload,
+      publicado_por: tokenUser?.id || null
     };
 
     const { data, error } = await supabase
@@ -422,18 +293,19 @@ export const createAlert = async (req: Request, res: Response) => {
       .single();
 
     if (error) {
+      const pathsToDelete = [
+        uploadedCover?.path,
+        ...imagesPayload.map(
+          (imageItem: NormalizedAlertImage): string => imageItem.path
+        )
+      ].filter(isNonEmptyString);
+
+      await deleteFilesFromStorage(pathsToDelete);
+
       throw error;
     }
 
-    const alertaCreada = data as AlertaDB;
-
-    const autoresMap = await getAutoresMap(
-      alertaCreada.publicado_por ? [alertaCreada.publicado_por] : []
-    );
-
-    return res.status(201).json(
-      mapAlertResponse(req, alertaCreada, autoresMap)
-    );
+    return res.status(201).json(mapAlertResponse(data as AlertaDB));
   } catch (error: any) {
     console.error('Error en createAlert:', error);
 
@@ -446,122 +318,157 @@ export const createAlert = async (req: Request, res: Response) => {
 
 export const updateAlert = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const alertId = String(req.params.id || '').trim();
 
-    const {
-      title,
-      titulo,
-      description,
-      descripcion,
-      resumen,
-      cuerpo,
-      image = '',
-      imagen_url = '',
-      coverName = '',
-      imagen_nombre = '',
-      images,
-      imagenes,
-      removeCover = false
-    } = req.body;
-
-    if (!id) {
+    if (!alertId) {
       return res.status(400).json({
         message: 'ID de alerta no proporcionado.'
       });
     }
 
-    const finalTitle = String(title || titulo || '').trim();
-    const finalBody = String(description || descripcion || cuerpo || '').trim();
-    const finalSummary = String(resumen || finalBody.slice(0, 180)).trim();
+    const currentAlert = await getCurrentAlert(alertId);
 
-    if (!finalTitle || !finalBody) {
-      return res.status(400).json({
-        message: 'Título y descripción son obligatorios.'
+    if (!currentAlert) {
+      return res.status(404).json({
+        message: 'Alerta no encontrada.'
       });
     }
 
-    const { data: currentData, error: fetchError } = await supabase
-      .from(ALERTS_TABLE)
-      .select('*')
-      .eq('id', id)
-      .single();
+    const {
+      title,
+      titulo,
+      summary,
+      resumen,
+      body,
+      cuerpo,
+      date,
+      fecha,
+      removeCover
+    } = req.body;
 
-    if (fetchError) {
-      throw fetchError;
+    const finalTitle = String(title || titulo || '').trim();
+    const finalSummary = String(summary || resumen || '').trim();
+    const finalBody = String(body || cuerpo || '').trim();
+    const finalDate = String(date || fecha || '').trim();
+
+    if (!finalTitle || !finalSummary || !finalBody) {
+      return res.status(400).json({
+        message: 'Título, resumen y cuerpo son obligatorios.'
+      });
     }
 
-    const currentAlert = currentData as AlertaDB;
+    const { portada, imagenes } = getUploadedFiles(req);
 
-    const { portada, imagenes: uploadedImageFiles } = getFilesFromRequest(req);
+    let finalCoverUrl = currentAlert.imagen_url;
+    let finalCoverName = currentAlert.imagen_nombre;
+    let oldCoverPathToDelete = '';
 
-    const uploadedImagesPayload =
-      buildUploadedImagesPayload(uploadedImageFiles);
+    if (removeCover === 'true') {
+      oldCoverPathToDelete = buildStoragePathFromPublicUrl(
+        currentAlert.imagen_url
+      );
 
-    const currentImages = normalizeImagesForStorage(
-      currentAlert.imagenes || []
+      finalCoverUrl = null;
+      finalCoverName = null;
+    }
+
+    if (portada) {
+      oldCoverPathToDelete = buildStoragePathFromPublicUrl(
+        currentAlert.imagen_url
+      );
+
+      const uploadedCover = await uploadFileToStorage(portada, {
+        folder: 'alertas/portadas',
+        order: 1
+      });
+
+      finalCoverUrl = uploadedCover.url;
+      finalCoverName = uploadedCover.name;
+    }
+
+    const hasImagesPayload =
+      typeof req.body.images !== 'undefined' ||
+      typeof req.body.imagenes !== 'undefined' ||
+      typeof req.body.imagenesOrden !== 'undefined';
+
+    const requestedExistingImages = hasImagesPayload
+      ? filterValidExistingImages(
+          parseJsonArray<AlertImage>(
+            req.body.images || req.body.imagenes || req.body.imagenesOrden
+          )
+        )
+      : normalizeImagesOrder(currentAlert.imagenes || []);
+
+    const uploadedImages = await uploadFilesToStorage(
+      imagenes,
+      'alertas/imagenes'
     );
 
-    const finalImages = mergeImagesForStorage(
-      typeof imagenes !== 'undefined' ? imagenes : images,
-      uploadedImagesPayload,
-      currentImages
+    const uploadedImagesPayload = uploadedImages.map(
+      (
+        uploadedFile: UploadedStorageFile,
+        index: number
+      ): NormalizedAlertImage =>
+        mapUploadedFileToAlertImage(
+          uploadedFile,
+          requestedExistingImages.length + index
+        )
     );
 
-    const shouldRemoveCover = toBoolean(removeCover);
+    const finalImages = normalizeImagesOrder([
+      ...requestedExistingImages,
+      ...uploadedImagesPayload
+    ]).slice(0, 10);
 
-    const portadaUrl = portada
-      ? `/uploads/${portada.filename}`
-      : shouldRemoveCover
-        ? ''
-        : toRelativeUploadUrl(
-            image ||
-              imagen_url ||
-              currentAlert.imagen_url ||
-              ''
-          );
+    const currentImagePaths = normalizeImagesOrder(currentAlert.imagenes || [])
+      .map((imageItem: NormalizedAlertImage): string => {
+        return imageItem.path || buildStoragePathFromPublicUrl(imageItem.url);
+      })
+      .filter(isNonEmptyString);
 
-    const portadaNombre = portada
-      ? portada.originalname
-      : shouldRemoveCover
-        ? ''
-        : String(
-            coverName ||
-              imagen_nombre ||
-              currentAlert.imagen_nombre ||
-              getFileNameFromUrl(portadaUrl)
-          ).trim();
+    const finalImagePaths = finalImages
+      .map((imageItem: NormalizedAlertImage): string => {
+        return imageItem.path || buildStoragePathFromPublicUrl(imageItem.url);
+      })
+      .filter(isNonEmptyString);
+
+    const imagePathsToDelete = currentImagePaths.filter(
+      (storagePath: string): boolean => !finalImagePaths.includes(storagePath)
+    );
 
     const payload = {
       titulo: finalTitle,
       resumen: finalSummary,
       cuerpo: finalBody,
-      imagen_url: portadaUrl || null,
-      imagen_nombre: portadaNombre || null,
+      fecha: finalDate || currentAlert.fecha || new Date().toISOString(),
+      imagen_url: finalCoverUrl,
+      imagen_nombre: finalCoverName,
       imagenes: finalImages
     };
 
     const { data, error } = await supabase
       .from(ALERTS_TABLE)
       .update(payload)
-      .eq('id', id)
+      .eq('id', alertId)
       .select('*')
       .single();
 
     if (error) {
+      const newUploadedPaths = uploadedImagesPayload
+        .map((imageItem: NormalizedAlertImage): string => imageItem.path)
+        .filter(isNonEmptyString);
+
+      await deleteFilesFromStorage(newUploadedPaths);
+
       throw error;
     }
 
-    const alertaActualizada = data as AlertaDB;
+    await deleteFilesFromStorage([
+      oldCoverPathToDelete,
+      ...imagePathsToDelete
+    ]);
 
-    const autoresMap = await getAutoresMap(
-      alertaActualizada.publicado_por
-        ? [alertaActualizada.publicado_por]
-        : []
-    );
-
-    return res.json(
-      mapAlertResponse(req, alertaActualizada, autoresMap)
-    );
+    return res.json(mapAlertResponse(data as AlertaDB));
   } catch (error: any) {
     console.error('Error en updateAlert:', error);
 
@@ -574,21 +481,37 @@ export const updateAlert = async (req: Request, res: Response) => {
 
 export const deleteAlert = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const alertId = String(req.params.id || '').trim();
 
-    if (!id) {
+    if (!alertId) {
       return res.status(400).json({
         message: 'ID de alerta no proporcionado.'
       });
     }
 
+    const currentAlert = await getCurrentAlert(alertId);
+
     const { error } = await supabase
       .from(ALERTS_TABLE)
       .delete()
-      .eq('id', id);
+      .eq('id', alertId);
 
     if (error) {
       throw error;
+    }
+
+    if (currentAlert) {
+      const coverPath = buildStoragePathFromPublicUrl(currentAlert.imagen_url);
+
+      const imagePaths = normalizeImagesOrder(currentAlert.imagenes || [])
+        .map((imageItem: NormalizedAlertImage): string => {
+          return (
+            imageItem.path || buildStoragePathFromPublicUrl(imageItem.url)
+          );
+        })
+        .filter(isNonEmptyString);
+
+      await deleteFilesFromStorage([coverPath, ...imagePaths]);
     }
 
     return res.json({

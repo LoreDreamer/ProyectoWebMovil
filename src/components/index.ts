@@ -8,7 +8,6 @@ export { SubscribeBanner } from './subscribe/subscribeBanner';
 export { ComplaintTips } from './complaints/ComplaintTips';
 export { ComplaintsForm } from './complaints/ComplaintsForm';
 export { QuestionnaireCard } from './questionnaire/QuestionnaireCard';
-export { NewsPanel } from './inicio/NewsPanel';
 export { Progress } from './inicio/Progress';
 export { StatCard } from './inicio/StatCard';
 export { Advice } from './education/Advice';
