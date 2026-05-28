@@ -56,7 +56,7 @@ export const HeroSection: React.FC = () => {
             <Link to="/educacion" className="hero-button hero-button-primary">
               Comenzar diagnóstico
             </Link>
-            <Link to="/login" className="hero-button hero-button-secondary">
+            <Link to="/denuncias" className="hero-button hero-button-secondary">
               Reportar incidente
             </Link>
           </div>

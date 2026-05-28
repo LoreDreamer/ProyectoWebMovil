@@ -1,16 +1,30 @@
-import { IonContent, IonPage, IonIcon } from '@ionic/react';
-import { Navbar, Footer, ProtocolsPanel } from '../../components';
-import { useAuth } from '../../context/AuthContext';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
-  folderOutline,
-  calendarOutline,
-  clipboardOutline,
-  documentOutline
+  IonContent,
+  IonIcon,
+  IonPage,
+  IonSearchbar
+} from '@ionic/react';
+import {
+  documentTextOutline,
+  folderOpenOutline,
+  imageOutline,
+  openOutline,
+  shieldCheckmarkOutline,
+  timeOutline
 } from 'ionicons/icons';
+import {
+  Navbar,
+  Footer,
+  ProtocolsPanel
+} from '../../components';
+import { useAuth } from '../../context/AuthContext';
+
 import './ProtocolsPage.css';
 
-type ProtocolFile = {
+type ProtocolCategory = 'Todos' | 'Ciberseguridad' | 'Teletrabajo' | 'Atencion Ciudadana';
+
+interface ProtocolFile {
   id: string;
   name: string;
   url: string;
@@ -18,39 +32,50 @@ type ProtocolFile = {
   type?: string;
   size?: number | null;
   order: number;
-};
+}
 
-type Protocolo = {
+interface Protocol {
   id: string;
-
   titulo: string;
-
-  descripcion: string;
+  descripcion?: string;
   resumen?: string;
-
-  fecha: string;
-  fechaRaw?: string;
-
-  categoria: string;
-
+  fecha?: string;
+  fechaOriginal?: string;
+  categoria?: string;
   archivoUrl?: string;
   archivo_url?: string;
-
   archivoNombre?: string;
   archivo_nombre?: string;
-
   archivoTipo?: string;
   archivo_tipo?: string;
-
   archivos?: ProtocolFile[];
+}
 
-  autor?: string | null;
-  publicado_por?: string | null;
+const API_URL = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
+
+const CATEGORIES: ProtocolCategory[] = [
+  'Todos',
+  'Ciberseguridad',
+  'Teletrabajo',
+  'Atencion Ciudadana'
+];
+
+const normalizeCategory = (value?: string) => {
+  const normalized = String(value || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+
+  if (normalized.includes('teletrabajo')) return 'Teletrabajo';
+  if (normalized.includes('atencion') || normalized.includes('ciudadan')) {
+    return 'Atencion Ciudadana';
+  }
+
+  return 'Ciberseguridad';
 };
 
-const API_URL = 'http://localhost:3000';
-
-const normalizeFileUrl = (url?: string) => {
+const buildFileUrl = (url?: string) => {
   if (!url) return '';
 
   if (
@@ -66,127 +91,172 @@ const normalizeFileUrl = (url?: string) => {
   return `${API_URL}/${url}`;
 };
 
-const getFileNameFromUrl = (url?: string) => {
-  if (!url) return 'Documento';
+const getCategoryLabel = (category?: string) => {
+  const normalized = normalizeCategory(category);
 
-  const parts = url.split('/');
-  return parts[parts.length - 1] || 'Documento';
+  if (normalized === 'Atencion Ciudadana') return 'Atención Ciudadana';
+
+  return normalized;
 };
 
-const formatFileType = (file?: ProtocolFile | null) => {
-  const type = String(file?.type || '').toLowerCase();
-  const name = String(file?.name || '').toLowerCase();
+const getCategoryClass = (category?: string) => {
+  const normalized = normalizeCategory(category)
+    .toLowerCase()
+    .replace(/\s+/g, '-');
 
-  if (type.includes('pdf') || name.endsWith('.pdf')) return 'PDF';
-  if (type.includes('word') || name.endsWith('.doc') || name.endsWith('.docx')) {
-    return 'DOC';
+  return `protocol-category-${normalized}`;
+};
+
+const getProtocolAvailableFiles = (protocol: Protocol): ProtocolFile[] => {
+  const files: ProtocolFile[] = [];
+
+  if (protocol.archivoUrl) {
+    files.push({
+      id: `main-${protocol.id}`,
+      name: protocol.archivoNombre || 'Documento principal',
+      url: protocol.archivoUrl,
+      path: protocol.archivoUrl,
+      type: protocol.archivoTipo || protocol.archivo_tipo || '',
+      size: null,
+      order: 0
+    });
   }
 
-  if (type.includes('image') || /\.(png|jpg|jpeg|webp)$/i.test(name)) {
-    return 'IMG';
+  (protocol.archivos || []).forEach((file, index) => {
+    if (!file.url && !file.path) return;
+
+    files.push({
+      ...file,
+      id: file.id || `${protocol.id}-${index + 1}`,
+      name: file.name || `Archivo ${index + 1}`,
+      url: buildFileUrl(file.url || file.path || ''),
+      path: file.path || file.url || '',
+      type: file.type || '',
+      size: typeof file.size === 'number' ? file.size : null,
+      order: index + 1
+    });
+  });
+
+  const uniqueFiles = new Map<string, ProtocolFile>();
+
+  files.forEach((file) => {
+    const key = file.url || file.path || file.name;
+
+    if (!key) return;
+
+    if (!uniqueFiles.has(key)) {
+      uniqueFiles.set(key, file);
+    }
+  });
+
+  return Array.from(uniqueFiles.values());
+};
+
+const getFileTypeLabel = (file: ProtocolFile) => {
+  const value = `${file.type || ''} ${file.name || ''} ${file.url || ''}`
+    .toLowerCase();
+
+  if (value.includes('pdf')) return 'PDF';
+  if (
+    value.includes('image') ||
+    value.includes('.png') ||
+    value.includes('.jpg') ||
+    value.includes('.jpeg') ||
+    value.includes('.webp')
+  ) {
+    return 'Imagen';
   }
 
-  return 'ARCHIVO';
+  return 'Archivo';
+};
+
+const getFileIcon = (file: ProtocolFile) => {
+  return getFileTypeLabel(file) === 'Imagen'
+    ? imageOutline
+    : documentTextOutline;
 };
 
 export const ProtocolsPage: React.FC = () => {
   const { user } = useAuth();
-
   const isAdmin = user?.role === 'admin';
 
-  const [protocolos, setProtocolos] = useState<Protocolo[]>([]);
+  const [protocols, setProtocols] = useState<Protocol[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] =
+    useState<ProtocolCategory>('Todos');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const normalizeFiles = (protocol: Protocolo): ProtocolFile[] => {
-    const filesFromArray = Array.isArray(protocol.archivos)
-      ? protocol.archivos
+  const normalizeProtocol = (protocol: Protocol): Protocol => {
+    const files = Array.isArray(protocol.archivos)
+      ? protocol.archivos.filter((file) => file?.url || file?.path)
       : [];
 
-    const normalizedFiles = filesFromArray
-      .filter((file) => file?.url || file?.path)
-      .map((file, index) => {
-        const url = file.url || file.path || '';
+    const mainFileUrl =
+      protocol.archivoUrl ||
+      protocol.archivo_url ||
+      files[0]?.url ||
+      files[0]?.path ||
+      '';
 
-        return {
-          id: String(file.id || `${protocol.id}-archivo-${index + 1}`),
-          name: file.name || getFileNameFromUrl(url),
-          url,
-          path: file.path || url,
-          type: file.type || '',
-          size: typeof file.size === 'number' ? file.size : null,
-          order: index + 1
-        };
-      });
-
-    if (normalizedFiles.length > 0) {
-      return normalizedFiles;
-    }
-
-    const fallbackUrl = protocol.archivoUrl || protocol.archivo_url || '';
-
-    if (!fallbackUrl) return [];
-
-    return [
-      {
-        id: `${protocol.id}-archivo-principal`,
-        name:
-          protocol.archivoNombre ||
-          protocol.archivo_nombre ||
-          getFileNameFromUrl(fallbackUrl),
-        url: fallbackUrl,
-        path: fallbackUrl,
-        type: protocol.archivoTipo || protocol.archivo_tipo || '',
-        size: null,
-        order: 1
-      }
-    ];
-  };
-
-  const normalizeProtocol = (protocol: Protocolo): Protocolo => {
-    const files = normalizeFiles(protocol);
-    const mainFile = files[0];
+    const mainFileName =
+      protocol.archivoNombre ||
+      protocol.archivo_nombre ||
+      files[0]?.name ||
+      'Documento';
 
     return {
       ...protocol,
       id: String(protocol.id),
       titulo: protocol.titulo || 'Protocolo institucional',
       descripcion: protocol.descripcion || protocol.resumen || '',
-      fecha: protocol.fecha || '',
-      categoria: protocol.categoria || 'Ciberseguridad',
-      archivoUrl: protocol.archivoUrl || protocol.archivo_url || mainFile?.url || '',
-      archivoNombre:
-        protocol.archivoNombre ||
-        protocol.archivo_nombre ||
-        mainFile?.name ||
-        '',
-      archivos: files
+      categoria: normalizeCategory(protocol.categoria),
+      archivoUrl: buildFileUrl(mainFileUrl),
+      archivoNombre: mainFileName,
+      archivos: files.map((file, index) => ({
+        ...file,
+        id: String(file.id || `${index + 1}-${file.url || file.path}`),
+        name: file.name || `archivo-${index + 1}`,
+        url: buildFileUrl(file.url || file.path || ''),
+        path: file.path || file.url || '',
+        order: index + 1
+      }))
     };
   };
 
-  const cargarProtocolos = async () => {
+  const loadProtocols = async () => {
     try {
+      setIsLoading(true);
+
       const response = await fetch(`${API_URL}/api/protocolos`);
+      const data = await response.json().catch(() => null);
 
       if (!response.ok) {
-        throw new Error('No se pudieron cargar los protocolos');
+        console.error('Error backend /api/protocolos:', data);
+
+        throw new Error(
+          data?.message ||
+            data?.error ||
+            'No se pudieron cargar los protocolos'
+        );
       }
 
-      const data = await response.json();
+      const normalizedProtocols = Array.isArray(data)
+        ? data.map((protocol) => normalizeProtocol(protocol))
+        : [];
 
-      setProtocolos(
-        Array.isArray(data)
-          ? data.map((protocol) => normalizeProtocol(protocol))
-          : []
-      );
+      setProtocols(normalizedProtocols);
     } catch (error) {
       console.error('Error al cargar protocolos:', error);
-      setProtocolos([]);
+      setProtocols([]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    cargarProtocolos();
+    loadProtocols();
 
-    const handler = () => cargarProtocolos();
+    const handler = () => loadProtocols();
     window.addEventListener('protocolos-updated', handler);
 
     return () => {
@@ -194,167 +264,250 @@ export const ProtocolsPage: React.FC = () => {
     };
   }, []);
 
-  const getMainFile = (protocolo: Protocolo) => {
-    const files = normalizeFiles(protocolo);
+  const filteredProtocols = useMemo(() => {
+    const search = searchTerm.trim().toLowerCase();
 
-    return files[0] || null;
-  };
+    return protocols.filter((protocol) => {
+      const category = normalizeCategory(protocol.categoria);
 
-  const openFile = (file?: ProtocolFile | null) => {
-    if (!file?.url) {
-      alert('Este archivo no está disponible.');
-      return;
-    }
+      const matchesCategory =
+        selectedCategory === 'Todos' || category === selectedCategory;
 
-    window.open(normalizeFileUrl(file.url), '_blank');
-  };
+      const matchesSearch =
+        !search ||
+        protocol.titulo.toLowerCase().includes(search) ||
+        String(protocol.descripcion || '').toLowerCase().includes(search) ||
+        String(protocol.categoria || '').toLowerCase().includes(search) ||
+        String(protocol.archivoNombre || '').toLowerCase().includes(search);
 
-  const downloadFile = (file?: ProtocolFile | null) => {
-    if (!file?.url) {
-      alert('Este archivo no está disponible.');
-      return;
-    }
+      return matchesCategory && matchesSearch;
+    });
+  }, [protocols, searchTerm, selectedCategory]);
 
-    const link = document.createElement('a');
+  const totalFiles = protocols.reduce(
+    (total, protocol) => total + (protocol.archivos?.length || 0),
+    0
+  );
 
-    link.href = normalizeFileUrl(file.url);
-    link.download = file.name || 'protocolo';
-    link.target = '_blank';
+  const totalCybersecurity = protocols.filter(
+    (protocol) => normalizeCategory(protocol.categoria) === 'Ciberseguridad'
+  ).length;
 
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+  const totalTelework = protocols.filter(
+    (protocol) => normalizeCategory(protocol.categoria) === 'Teletrabajo'
+  ).length;
 
-  const handleViewFile = (protocolo: Protocolo) => {
-    openFile(getMainFile(protocolo));
-  };
-
-  const handleDownloadFile = (protocolo: Protocolo) => {
-    downloadFile(getMainFile(protocolo));
-  };
+  const totalCitizenCare = protocols.filter(
+    (protocol) => normalizeCategory(protocol.categoria) === 'Atencion Ciudadana'
+  ).length;
 
   return (
     <IonPage>
       <Navbar />
 
-      <IonContent fullscreen className="protocolos-content">
-        <div className="protocolos-shell">
-          <header className="protocolos-header">
+      <IonContent className="protocols-content-page">
+        <div className="protocols-shell">
+          <section className="protocols-page-heading">
             <div>
-              <h1>Protocolos institucionales</h1>
+              <span className="protocols-kicker">
+                Documentos institucionales
+              </span>
+
+              <h1>Protocolos municipales</h1>
 
               <p>
-                Documentación oficial publicada por el equipo TIC.
+                Revisa documentos oficiales, guías y protocolos publicados para
+                orientar buenas prácticas digitales y procedimientos municipales.
               </p>
             </div>
-          </header>
+          </section>
 
           {isAdmin && (
-            <section style={{ marginBottom: 24 }}>
+            <section className="protocols-admin-section">
               <ProtocolsPanel />
             </section>
           )}
 
-          <section className="protocolos-grid">
-            {protocolos.length === 0 ? (
-              <p>No hay protocolos disponibles.</p>
-            ) : (
-              protocolos.map((p) => {
-                const mainFile = getMainFile(p);
-                const files = normalizeFiles(p);
-                const fileCount = files.length;
+          <section className="protocols-section protocols-summary-section">
+            <div className="protocols-summary-grid">
+              <article className="protocol-summary-card">
+                <div className="protocol-summary-icon">
+                  <IonIcon icon={documentTextOutline} />
+                </div>
 
-                return (
-                  <article key={p.id} className="protocolo-card">
-                    <div className="protocolo-card-header">
-                      <div className="icon-clipboard-wrapper">
-                        <IonIcon icon={clipboardOutline} />
+                <div>
+                  <span>Total protocolos</span>
+                  <strong>{protocols.length}</strong>
+                </div>
+              </article>
+
+              <article className="protocol-summary-card">
+                <div className="protocol-summary-icon">
+                  <IonIcon icon={folderOpenOutline} />
+                </div>
+
+                <div>
+                  <span>Archivos disponibles</span>
+                  <strong>{totalFiles}</strong>
+                </div>
+              </article>
+
+              <article className="protocol-summary-card">
+                <div className="protocol-summary-icon">
+                  <IonIcon icon={shieldCheckmarkOutline} />
+                </div>
+
+                <div>
+                  <span>Ciberseguridad</span>
+                  <strong>{totalCybersecurity}</strong>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <section className="protocols-section">
+            <div className="protocols-section-header">
+              <div>
+                <span className="section-eyebrow">Biblioteca</span>
+                <h2>Protocolos disponibles</h2>
+                <p>
+                  Busca por título, descripción, categoría o nombre del archivo.
+                </p>
+              </div>
+
+              <IonSearchbar
+                value={searchTerm}
+                placeholder="Buscar protocolo..."
+                onIonChange={(e) => setSearchTerm(e.detail.value || '')}
+                mode="ios"
+                className="protocols-searchbar"
+              />
+            </div>
+
+            <div className="protocols-category-filters">
+              {CATEGORIES.map((category) => (
+                <button
+                  key={category}
+                  type="button"
+                  className={
+                    selectedCategory === category
+                      ? 'protocol-filter-chip protocol-filter-chip-active'
+                      : 'protocol-filter-chip'
+                  }
+                  onClick={() => setSelectedCategory(category)}
+                >
+                  {category === 'Atencion Ciudadana'
+                    ? 'Atención Ciudadana'
+                    : category}
+                </button>
+              ))}
+            </div>
+
+            <div className="protocols-category-overview">
+              <div>
+                <span>Ciberseguridad</span>
+                <strong>{totalCybersecurity}</strong>
+              </div>
+
+              <div>
+                <span>Teletrabajo</span>
+                <strong>{totalTelework}</strong>
+              </div>
+
+              <div>
+                <span>Atención Ciudadana</span>
+                <strong>{totalCitizenCare}</strong>
+              </div>
+            </div>
+
+            {isLoading ? (
+              <div className="protocol-empty-state">
+                Cargando protocolos...
+              </div>
+            ) : filteredProtocols.length === 0 ? (
+              <div className="protocol-empty-state">
+                No hay protocolos disponibles para esta búsqueda.
+              </div>
+            ) : (
+              <div className="protocols-card-grid">
+                {filteredProtocols.map((protocol) => (
+                  <article key={protocol.id} className="protocol-public-card">
+                    <div className="protocol-public-card-top">
+                      <div className="protocol-document-icon">
+                        <IonIcon icon={documentTextOutline} />
                       </div>
 
-                      <span className="badge-pdf">
-                        {fileCount > 1
-                          ? `${fileCount} ARCHIVOS`
-                          : formatFileType(mainFile)}
+                      <span
+                        className={`protocol-category-badge ${getCategoryClass(
+                          protocol.categoria
+                        )}`}
+                      >
+                        {getCategoryLabel(protocol.categoria)}
                       </span>
                     </div>
 
-                    <div className="protocolo-card-meta">
-                      <div className="meta-item">
-                        <IonIcon icon={folderOutline} />
-                        <span>{p.categoria}</span>
+                    <div className="protocol-public-card-body">
+                      <h3>{protocol.titulo}</h3>
+
+                      <p>
+                        {protocol.descripcion ||
+                          'Documento institucional disponible para consulta.'}
+                      </p>
+                    </div>
+
+                    <div className="protocol-public-meta">
+                      <span>
+                        <IonIcon icon={timeOutline} />
+                        {protocol.fecha || 'Sin fecha'}
+                      </span>
+
+                      <span>
+                        <IonIcon icon={folderOpenOutline} />
+                        {protocol.archivos?.length || 0} archivo(s)
+                      </span>
+                    </div>
+
+                    <div className="protocol-files-box">
+                      <div className="protocol-files-header">
+                        <strong>Archivos disponibles</strong>
+                        <span>
+                          {getProtocolAvailableFiles(protocol).length} archivo(s)
+                        </span>
                       </div>
 
-                      <div className="meta-item">
-                        <IonIcon icon={calendarOutline} />
-                        <span>{p.fecha || 'Sin fecha'}</span>
-                      </div>
+                      {getProtocolAvailableFiles(protocol).length === 0 ? (
+                        <div className="protocol-file-empty">
+                          Sin archivos disponibles
+                        </div>
+                      ) : (
+                        <div className="protocol-files-list">
+                          {getProtocolAvailableFiles(protocol).map((file) => (
+                            <a
+                              key={file.id}
+                              href={file.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="protocol-file-link"
+                            >
+                              <div className="protocol-file-icon">
+                                <IonIcon icon={getFileIcon(file)} />
+                              </div>
 
-                      {mainFile?.name && (
-                        <div className="meta-item">
-                          <IonIcon icon={documentOutline} />
-                          <span>{mainFile.name}</span>
+                              <div className="protocol-file-data">
+                                <strong>{file.name}</strong>
+                                <span>{getFileTypeLabel(file)}</span>
+                              </div>
+
+                              <IonIcon icon={openOutline} className="protocol-file-open-icon" />
+                            </a>
+                          ))}
                         </div>
                       )}
                     </div>
-
-                    <div className="protocolo-card-body">
-                      <h2>{p.titulo}</h2>
-                      <p>{p.descripcion}</p>
-                    </div>
-
-                    {files.length > 1 && (
-                      <div className="protocolo-files-preview">
-                        {files.map((file, index) => (
-                          <button
-                            key={file.id}
-                            type="button"
-                            className="protocolo-file-chip"
-                            onClick={() => openFile(file)}
-                          >
-                            <IonIcon icon={documentOutline} />
-                            <span>
-                              {index + 1}. {file.name}
-                            </span>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-
-                    <div className="protocolo-card-actions">
-                      <button
-                        type="button"
-                        className="btn-view-pdf"
-                        onClick={() => handleViewFile(p)}
-                      >
-                        Ver archivo
-                      </button>
-
-                      <button
-                        type="button"
-                        className="btn-download"
-                        onClick={() => handleDownloadFile(p)}
-                      >
-                        Descargar
-                      </button>
-                    </div>
                   </article>
-                );
-              })
+                ))}
+              </div>
             )}
-          </section>
-
-          <section className="protocolos-cta">
-            <div className="cta-icon">📋</div>
-
-            <div>
-              <strong>¿Necesitas un documento adicional?</strong>
-              <p>Contacta al equipo TIC.</p>
-            </div>
-
-            <button className="cta-button" type="button">
-              Solicitar
-            </button>
           </section>
         </div>
 

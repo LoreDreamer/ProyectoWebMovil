@@ -16,12 +16,37 @@ import dispositivos from '../../assets/questions/dispositivos.png';
 import wifi from '../../assets/questions/wifi.png';
 import inge from '../../assets/questions/inge.png';
 
+type QuestionnaireStatus = 'Completado' | 'Pendiente';
+
 interface QuestionnaireModule {
   id: string;
-  titulo: string;
+
+  title: string;
+  titulo?: string;
+
   description: string;
-  riesgo: string;
+  resumen?: string;
+
+  risk: string;
+  riesgo?: string;
+  difficulty?: string;
+
+  category?: string;
+
+  coverUrl?: string;
+  cover_img?: string;
+
   score?: number;
+  puntaje_obtenido?: number;
+
+  questionsCount?: number;
+  questions_count?: number;
+  puntajeMaximo?: number;
+  puntaje_maximo?: number;
+
+  status?: QuestionnaireStatus;
+  estatus?: string;
+
   img: string;
 }
 
@@ -38,27 +63,63 @@ interface BackendQuestionnaire {
   riesgo?: string;
   difficulty?: string;
 
+  category?: string;
+
   coverUrl?: string;
   cover_img?: string;
-
-  category?: string;
 
   questionsCount?: number;
   questions_count?: number;
   puntajeMaximo?: number;
   puntaje_maximo?: number;
+
+  score?: number;
+  puntaje_obtenido?: number;
+
+  status?: string;
+  estatus?: string;
 }
 
-const API_URL = 'http://localhost:3000';
+const API_URL = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
+
+const normalizeRisk = (risk?: string) => {
+  const normalized = String(risk || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+
+  if (normalized === 'alto') return 'Alto';
+  if (normalized === 'bajo') return 'Bajo';
+
+  return 'Medio';
+};
+
+const normalizeStatus = (status?: string): QuestionnaireStatus => {
+  const normalized = String(status || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+
+  if (
+    normalized === 'completado' ||
+    normalized === 'completo' ||
+    normalized === 'finalizado'
+  ) {
+    return 'Completado';
+  }
+
+  return 'Pendiente';
+};
 
 export const QuestionnairePage: React.FC = () => {
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
 
-  const [disponiblesData, setDisponiblesData] = useState<
-    QuestionnaireModule[]
-  >([]);
-
+  const [questionnaires, setQuestionnaires] = useState<QuestionnaireModule[]>(
+    []
+  );
   const [isLoading, setIsLoading] = useState(false);
 
   const buildFileUrl = (url?: string) => {
@@ -77,19 +138,6 @@ export const QuestionnairePage: React.FC = () => {
     return `${API_URL}/${url}`;
   };
 
-  const normalizeRisk = (risk?: string) => {
-    const normalized = String(risk || '')
-      .trim()
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '');
-
-    if (normalized === 'alto') return 'Alto';
-    if (normalized === 'bajo') return 'Bajo';
-
-    return 'Medio';
-  };
-
   const getFallbackImage = (item: BackendQuestionnaire) => {
     const text = `${item.title || item.titulo || ''} ${
       item.category || ''
@@ -102,9 +150,51 @@ export const QuestionnairePage: React.FC = () => {
     }
     if (text.includes('wifi') || text.includes('wi-fi')) return wifi;
     if (text.includes('dispositivo')) return dispositivos;
-    if (text.includes('ingeniería')) return inge;
+    if (text.includes('ingeniería') || text.includes('ingenieria')) {
+      return inge;
+    }
 
     return phishing;
+  };
+
+  const normalizeQuestionnaire = (
+    item: BackendQuestionnaire
+  ): QuestionnaireModule => {
+    const title = item.title || item.titulo || 'Cuestionario';
+    const description =
+      item.description ||
+      item.resumen ||
+      'Evalúa tus conocimientos de ciberseguridad.';
+
+    const coverUrl = item.coverUrl || item.cover_img || '';
+    const status = normalizeStatus(item.status || item.estatus);
+
+    const maxScore =
+      item.puntajeMaximo ||
+      item.puntaje_maximo ||
+      item.questionsCount ||
+      item.questions_count ||
+      100;
+
+    const rawScore = item.score || item.puntaje_obtenido;
+
+    return {
+      id: String(item.id),
+      title,
+      description,
+      risk: normalizeRisk(item.risk || item.riesgo || item.difficulty),
+      category: item.category || 'General',
+      coverUrl,
+      cover_img: item.cover_img,
+      questionsCount: maxScore,
+      questions_count: maxScore,
+      puntajeMaximo: maxScore,
+      puntaje_maximo: maxScore,
+      score: rawScore,
+      puntaje_obtenido: rawScore,
+      status,
+      img: coverUrl ? buildFileUrl(coverUrl) : getFallbackImage(item)
+    };
   };
 
   const loadQuestionnaires = async () => {
@@ -112,37 +202,26 @@ export const QuestionnairePage: React.FC = () => {
       setIsLoading(true);
 
       const response = await fetch(`${API_URL}/api/questionnaires`);
+      const data = await response.json().catch(() => null);
 
       if (!response.ok) {
-        throw new Error('No se pudieron cargar los cuestionarios');
+        console.error('Error backend /api/questionnaires:', data);
+
+        throw new Error(
+          data?.message ||
+            data?.error ||
+            'No se pudieron cargar los cuestionarios'
+        );
       }
 
-      const data: BackendQuestionnaire[] = await response.json();
-
-      const backendQuestionnaires: QuestionnaireModule[] = Array.isArray(data)
-        ? data.map((item) => {
-            const title = item.title || item.titulo || 'Cuestionario';
-            const description =
-              item.description ||
-              item.resumen ||
-              'Aprende a proteger tu entorno digital.';
-
-            const coverUrl = item.coverUrl || item.cover_img || '';
-
-            return {
-              id: String(item.id),
-              titulo: title,
-              description,
-              riesgo: normalizeRisk(item.risk || item.riesgo || item.difficulty),
-              img: coverUrl ? buildFileUrl(coverUrl) : getFallbackImage(item)
-            };
-          })
+      const normalizedQuestionnaires = Array.isArray(data)
+        ? data.map((item) => normalizeQuestionnaire(item))
         : [];
 
-      setDisponiblesData(backendQuestionnaires);
+      setQuestionnaires(normalizedQuestionnaires);
     } catch (error) {
       console.error('Error al cargar cuestionarios:', error);
-      setDisponiblesData([]);
+      setQuestionnaires([]);
     } finally {
       setIsLoading(false);
     }
@@ -159,53 +238,137 @@ export const QuestionnairePage: React.FC = () => {
     };
   }, []);
 
+  const completedQuestionnaires = questionnaires.filter(
+    (item) => item.status === 'Completado'
+  );
+
+  const availableQuestionnaires = questionnaires.filter(
+    (item) => item.status !== 'Completado'
+  );
+
+  const hasCompletedQuestionnaires = completedQuestionnaires.length > 0;
+
+  const averageScore =
+    completedQuestionnaires.length > 0
+      ? Math.round(
+          completedQuestionnaires.reduce(
+            (total, item) => total + Number(item.score || 0),
+            0
+          ) / completedQuestionnaires.length
+        )
+      : 0;
+
   return (
     <IonPage>
       <Navbar />
 
       <IonContent fullscreen className="cuestionarios-content">
         <div className="cuestionarios-shell">
+          <header className="questionnaire-hero-section">
+            <span className="questionnaire-kicker">
+              Evaluación de ciberseguridad
+            </span>
+
+            <h1>Cuestionarios de seguridad digital</h1>
+
+            <p>
+              Responde evaluaciones breves para identificar riesgos, reforzar
+              tus conocimientos y mejorar tus hábitos digitales.
+            </p>
+          </header>
+
           {isAdmin && (
-            <section style={{ marginBottom: 24 }}>
+            <section className="questionnaire-admin-section">
               <QuestionnairesPanel />
             </section>
           )}
 
-          <header>
-            <h1 className="resumen-title">Resumen de cuestionarios</h1>
+          {hasCompletedQuestionnaires && (
+            <section className="questionnaire-section completed-summary-section">
+              <div className="questionnaire-section-header">
+                <div>
+                  <span className="section-eyebrow">Tu avance</span>
+                  <h2>Resumen de cuestionarios completados</h2>
+                  <p>
+                    Aquí puedes revisar tus evaluaciones finalizadas y el
+                    resultado obtenido.
+                  </p>
+                </div>
 
-            <p className="resumen-subtitle">
-              Evalúa tus conocimientos en distintos ámbitos de la
-              ciberseguridad municipal.
-            </p>
-          </header>
+                <div className="summary-score-card">
+                  <span>Promedio</span>
+                  <strong>{averageScore}/100</strong>
+                </div>
+              </div>
 
-          <h2 className="section-title">Cuestionarios disponibles</h2>
+              <div className="questionnaire-summary-grid">
+                <div className="summary-mini-card">
+                  <span>Completados</span>
+                  <strong>{completedQuestionnaires.length}</strong>
+                </div>
 
-          <p className="resumen-subtitle">
-            Fortalece tu seguridad digital completando los desafíos disponibles.
-            Selecciona un tema para comenzar la evaluación y obtén
-            recomendaciones personalizadas para proteger tu información.
-          </p>
+                <div className="summary-mini-card">
+                  <span>Pendientes</span>
+                  <strong>{availableQuestionnaires.length}</strong>
+                </div>
 
-          {isLoading ? (
-            <p>Cargando cuestionarios...</p>
-          ) : disponiblesData.length === 0 ? (
-            <p>No hay cuestionarios disponibles por el momento.</p>
-          ) : (
-            <div className="cuestionarios-grid">
-              {disponiblesData.map((item) => (
-                <QuestionnaireCard
-                  key={item.id}
-                  title={item.titulo}
-                  description={item.description}
-                  risk={item.riesgo}
-                  status="Pendiente"
-                  bgImage={item.img}
-                />
-              ))}
-            </div>
+                <div className="summary-mini-card">
+                  <span>Total</span>
+                  <strong>{questionnaires.length}</strong>
+                </div>
+              </div>
+
+              <div className="cuestionarios-grid">
+                {completedQuestionnaires.map((item) => (
+                  <QuestionnaireCard
+                    key={item.id}
+                    title={item.title}
+                    description={item.description}
+                    risk={item.risk}
+                    status="Completado"
+                    score={Number(item.score || 0)}
+                    bgImage={item.img}
+                  />
+                ))}
+              </div>
+            </section>
           )}
+
+          <section className="questionnaire-section">
+            <div className="questionnaire-section-header">
+              <div>
+                <span className="section-eyebrow">Disponibles</span>
+                <h2>Cuestionarios disponibles</h2>
+                <p>
+                  Selecciona un cuestionario para comenzar la evaluación y
+                  recibir recomendaciones según tu nivel de riesgo.
+                </p>
+              </div>
+            </div>
+
+            {isLoading ? (
+              <div className="questionnaire-empty-state">
+                Cargando cuestionarios...
+              </div>
+            ) : availableQuestionnaires.length === 0 ? (
+              <div className="questionnaire-empty-state">
+                No hay cuestionarios disponibles por el momento.
+              </div>
+            ) : (
+              <div className="cuestionarios-grid">
+                {availableQuestionnaires.map((item) => (
+                  <QuestionnaireCard
+                    key={item.id}
+                    title={item.title}
+                    description={item.description}
+                    risk={item.risk}
+                    status="Pendiente"
+                    bgImage={item.img}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
         </div>
 
         <Footer />

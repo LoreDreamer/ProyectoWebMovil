@@ -9,75 +9,108 @@
 .dividor {
   min-height: calc(100vh - 86px);
   width: 100%;
-  padding: 14px 16px;
+  padding: 34px 18px;
+
   display: flex;
   justify-content: center;
 }
 
 .auth-card {
   width: 100%;
-  max-width: 1050px;
-  display: flex;
-  background: #ffffff;
-  border-radius: 18px;
+  max-width: 1080px;
+
+  display: grid;
+  grid-template-columns: 0.95fr 1.05fr;
+
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  border-radius: 28px;
   overflow: hidden;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+
+  box-shadow:
+    0 24px 70px rgba(15, 23, 42, 0.24),
+    0 0 0 1px rgba(255, 255, 255, 0.45);
+
+  backdrop-filter: blur(14px);
 }
 
 .auth-image {
-  flex: 1;
-  min-height: 540px;
+  position: relative;
+  min-height: 560px;
+
   background-size: cover;
   background-position: center;
 }
 
+.auth-image::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+
+  background:
+    linear-gradient(170deg, rgba(255, 255, 255, 0), rgba(9, 47, 112, 0.699)),
+    radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.28), transparent 34%);
+}
+
+.auth-image::after {
+  content: 'Municipalidad de Santo Domingo';
+  position: absolute;
+  left: 30px;
+  right: 30px;
+  bottom: 34px;
+
+  color: #ffffff;
+  font-family: 'Archivo Black', 'Archivo', sans-serif;
+  font-size: clamp(1.6rem, 2.6vw, 2.35rem);
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+
+  text-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+}
+
 .auth-form-container {
-  flex: 1;
   min-width: 0;
-  padding: 18px 24px 20px;
+  padding: 42px 46px;
+
   display: flex;
   justify-content: center;
+  align-items: center;
+
+  background:
+    radial-gradient(circle at top right, rgba(76, 201, 240, 0.13), transparent 30%),
+    #ffffff;
 }
 
 .auth-form {
   width: 100%;
-  max-width: none;
 }
 
 .auth-form-header {
-  margin-bottom: 14px;
-  text-align: center;
-}
-
-.auth-form-header span {
-  color: #3880ff;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  text-transform: uppercase;
+  margin-bottom: 26px;
+  text-align: left;
 }
 
 .auth-form-header h2 {
-  margin: 0 0 6px;
-  color: #222428;
-  font-size: 24px;
-  line-height: 1.2;
-  font-weight: 800;
-  white-space: normal;
-  overflow: visible;
+  margin: 0 0 8px;
+
+  color: #102033;
+  font-family: 'Archivo Black', 'Archivo', sans-serif;
+  font-size: clamp(1.75rem, 3vw, 2.4rem);
+  line-height: 1.05;
+  letter-spacing: -0.04em;
 }
 
 .auth-form-header p {
   margin: 0;
-  color: #666666;
-  font-size: 13px;
-  line-height: 1.35;
-  white-space: normal;
-  overflow: visible;
+
+  color: #64748b;
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.98rem;
+  line-height: 1.5;
 }
 
 /* =============================== */
-/* LOGIN ESPECÍFICO */
+/* LOGIN */
 /* =============================== */
 
 .login-layout {
@@ -85,21 +118,20 @@
 }
 
 .login-card {
-  min-height: 540px;
+  max-width: 980px;
+  min-height: 560px;
+}
+
+.login-form {
+  max-width: 430px;
 }
 
 .login-form-container {
   align-items: center;
-  padding: 34px 36px;
-}
-
-.login-form {
-  width: 100%;
-  max-width: 430px;
 }
 
 /* =============================== */
-/* REGISTER ESPECÍFICO */
+/* REGISTER */
 /* =============================== */
 
 .register-layout {
@@ -107,6 +139,7 @@
 }
 
 .register-card {
+  max-width: 1160px;
   min-height: auto;
 }
 
@@ -115,166 +148,210 @@
 }
 
 .register-form {
+  max-width: 660px;
+}
+
+.auth-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.auth-field-full {
+  grid-column: 1 / -1;
+}
+
+/* =============================== */
+/* CAMPOS */
+/* =============================== */
+
+.auth-field {
   width: 100%;
-  max-width: none;
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
 }
 
-/* =============================== */
-/* ION ITEMS / LABELS */
-/* =============================== */
+.auth-label {
+  display: block;
 
-.auth-form ion-item,
-.select-field {
-  margin-bottom: 7px;
-  --background: transparent;
-  --padding-start: 0;
-  --inner-padding-end: 0;
-  --border-width: 0;
-  --inner-border-width: 0;
-  --highlight-height: 0;
-  --min-height: auto;
-  overflow: visible;
-}
+  margin: 0;
 
-.auth-form ion-item::part(native),
-.auth-form ion-item::part(inner),
-.select-field::part(native),
-.select-field::part(inner) {
-  border: none;
-  box-shadow: none;
-  overflow: visible;
-}
-
-.auth-form ion-label,
-.select-field ion-label {
-  margin-bottom: 5px !important;
-  color: #444444 !important;
-  font-size: 18px !important;
-  line-height: 1.25 !important;
-  font-weight: 700 !important;
-  white-space: normal !important;
-  overflow: visible !important;
-  text-overflow: unset !important;
-}
-
-/* =============================== */
-/* INPUTS / SELECTS */
-/* =============================== */
-
-.custom-input {
-  width: 100%;
-  min-height: 39px;
-  --background: #f4f5f8;
-  --color: #333333;
-  --placeholder-color: #999999;
-  --placeholder-opacity: 1;
-  --padding-start: 14px;
-  --padding-end: 14px;
-  --padding-top: 7px;
-  --padding-bottom: 7px;
-  --border-radius: 10px;
-  border-radius: 10px;
-  overflow: hidden;
-  font-size: 14px;
+  color: #334155;
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.87rem;
+  font-weight: 800;
   line-height: 1.2;
 }
 
-.custom-select {
+.auth-input,
+.auth-select {
   width: 100%;
-  min-height: 39px;
-  background: #f4f5f8;
-  border-radius: 10px;
-  overflow: hidden;
-  font-size: 14px;
+  min-height: 48px;
 
-  --background: #f4f5f8;
-  --color: #333333;
-  --placeholder-color: #999999;
+  --background: #f8fafc;
+  --color: #102033;
+  --placeholder-color: #94a3b8;
   --placeholder-opacity: 1;
-  --padding-start: 14px;
-  --padding-end: 14px;
-  --border-radius: 10px;
+
+  --padding-start: 15px;
+  --padding-end: 15px;
+  --padding-top: 10px;
+  --padding-bottom: 10px;
+
+  --border-radius: 14px;
   --highlight-color-focused: transparent;
   --highlight-color-valid: transparent;
   --highlight-color-invalid: transparent;
-  --border-width: 0px;
+
+  color: #102033;
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.95rem;
+
+  border: 1px solid #dbe4ef;
+  border-radius: 14px;
+  background: #f8fafc;
+
+  overflow: hidden;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
 }
 
-.custom-select::part(text),
-.custom-select::part(placeholder) {
-  font-size: 14px;
-  line-height: 1.2;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.auth-input::part(native),
+.auth-select::part(native) {
+  color: #102033;
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.95rem;
+  line-height: 1.25;
+}
+
+.auth-input::part(placeholder),
+.auth-select::part(placeholder) {
+  color: #94a3b8;
+  opacity: 1;
+}
+
+.auth-select::part(text) {
+  color: #102033;
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.95rem;
+}
+
+.auth-input:focus-within,
+.auth-select:focus-within {
+  background: #ffffff;
+  border-color: #0ea5e9;
+  box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.14);
+}
+
+/* Evita que Ionic pinte el input con colores raros */
+.auth-form ion-input,
+.auth-form ion-select {
+  --ion-color-base: #102033 !important;
+  --ion-text-color: #102033 !important;
 }
 
 /* =============================== */
 /* BOTONES */
 /* =============================== */
 
-.terms-button {
-  width: 100%;
-  height: auto;
-  min-height: 38px;
-  margin-top: 6px;
-  --color: #444444;
-  --background: transparent;
-  --box-shadow: none;
-  --border-radius: 10px;
-  --padding-start: 12px;
-  --padding-end: 12px;
-  font-size: 13px;
-  line-height: 1.2;
-  font-weight: 700;
-  text-transform: none;
-  white-space: normal;
-}
-
-.terms-button::part(native) {
-  border: 1px solid #d8dce3;
-  white-space: normal;
-  line-height: 1.2;
-  min-height: 38px;
-  height: auto;
-  padding-top: 8px;
-  padding-bottom: 8px;
-}
-
-.terms-button-active {
-  --color: #1f5fbf;
-}
-
 .submit-button {
-  height: 42px;
-  margin-top: 10px;
-  --border-radius: 10px;
-  font-size: 15px;
-  line-height: 1.2;
-  font-weight: 700;
+  width: 100%;
+  height: 48px;
+  margin-top: 18px;
+
+  --background: linear-gradient(135deg, #0277bd, #0056b3);
+  --background-hover: linear-gradient(135deg, #0369a1, #004a9f);
+  --background-activated: #004a9f;
+  --color: #ffffff;
+  --border-radius: 14px;
+  --box-shadow: 0 12px 26px rgba(0, 86, 179, 0.25);
+
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.98rem;
+  font-weight: 800;
+  letter-spacing: 0;
   text-transform: none;
 }
 
 .submit-button::part(native) {
-  white-space: normal;
-  line-height: 1.2;
+  border-radius: 14px;
+}
+
+.submit-button[disabled] {
+  opacity: 0.58;
 }
 
 .secondary-button {
-  height: auto;
-  min-height: 34px;
-  margin-top: 6px;
-  --color: #666666;
+  height: 42px;
+  margin-top: 8px;
+
+  --background: transparent;
+  --color: #0369a1;
   --box-shadow: none;
-  --padding-start: 8px;
-  --padding-end: 8px;
-  font-size: 13px;
-  line-height: 1.2;
+  --border-radius: 12px;
+
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.93rem;
+  font-weight: 800;
   text-transform: none;
 }
 
 .secondary-button::part(native) {
-  padding: 0;
+  border-radius: 12px;
+}
+
+.secondary-button:hover {
+  --background: rgba(14, 165, 233, 0.08);
+}
+
+/* =============================== */
+/* TÉRMINOS */
+/* =============================== */
+
+.terms-button {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 16px;
+
+  --background: #f8fafc;
+  --color: #475569;
+  --box-shadow: none;
+  --border-radius: 14px;
+  --padding-start: 14px;
+  --padding-end: 14px;
+
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.92rem;
+  font-weight: 800;
+  line-height: 1.25;
+  text-transform: none;
+}
+
+.terms-button::part(native) {
+  border: 1px solid #dbe4ef;
+  border-radius: 14px;
   white-space: normal;
-  line-height: 1.2;
+}
+
+.terms-button-active {
+  --background: #ecfdf5;
+  --color: #047857;
+}
+
+.terms-button-active::part(native) {
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+/* =============================== */
+/* LINKS ION ROUTER */
+/* =============================== */
+
+.auth-form ion-router-link {
+  display: block;
+  text-decoration: none;
 }

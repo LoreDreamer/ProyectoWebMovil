@@ -1,82 +1,193 @@
 .education-content-page {
-  --background: #f8f9fa;
+  --background: #f5f8fb;
 }
 
-/* Contenedor central: ahora es el jefe del ancho */
-.central-container {
-  max-width: 1200px; /* Un poco más ancho para 4 tarjetas */
+.education-shell {
+  width: min(1180px, calc(100% - 32px));
   margin: 0 auto;
-  padding: 40px 24px;
-  box-sizing: border-box;
+  padding: 42px 0 56px;
 }
 
-/* Sección del título: Limpia de márgenes negativos */
-.header-section {
-  margin-bottom: 32px;
-  text-align: left;
+/* ===============================
+   HERO
+   =============================== */
+
+.education-hero-section {
+  position: relative;
+  overflow: hidden;
+
+  margin-bottom: 28px;
+  padding: 44px 38px;
+
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at top right, rgba(76, 201, 240, 0.12), transparent 34%),
+    #ffffff;
+
+  border: 1px solid rgba(14, 165, 233, 0.14);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.07);
+
+  color: #102033;
 }
 
-.header-section h1 {
-  color: #333;
-  font-size: clamp(1.5rem, 5vw, 2.2rem); /* Tamaño fluido según pantalla */
+.education-kicker,
+.section-eyebrow {
+  display: inline-flex;
+  align-items: center;
+
+  margin-bottom: 10px;
+  padding: 7px 13px;
+
+  border-radius: 999px;
+  background: #e0f2fe;
+
+  color: #0369a1;
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.78rem;
   font-weight: 800;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  margin-bottom: 8px;
-  letter-spacing: -0.5px;
 }
 
-.header-section p {
-  color: #666;
-  font-size: 1.1rem;
-  max-width: 600px; /* Evita líneas demasiado largas */
-}
+.education-hero-section h1 {
+  position: relative;
+  z-index: 1;
 
-.modules-section {
-  margin-top: 48px;
-}
+  max-width: 760px;
+  margin: 0 0 12px;
 
-.modules-section h2 {
-  color: #333;
-  font-size: 1.5rem;
-  font-weight: 700;
+  color: #102033;
+  font-family: 'Archivo Black', 'Archivo', sans-serif;
+  font-size: clamp(2rem, 4vw, 3.3rem);
+  line-height: 1.02;
+  letter-spacing: -0.05em;
   text-transform: uppercase;
+}
+
+.education-hero-section p {
+  position: relative;
+  z-index: 1;
+
+  max-width: 720px;
+  margin: 0;
+
+  color: #64748b;
+  font-family: 'Archivo', sans-serif;
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+/* ===============================
+   ADMIN
+   =============================== */
+
+.education-admin-section {
+  margin-bottom: 30px;
+}
+
+/* ===============================
+   SECCIONES
+   =============================== */
+
+.education-section {
+  margin-top: 28px;
+  padding: 30px;
+
+  border-radius: 26px;
+  background: #ffffff;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.07);
+}
+
+.advice-section {
+  border: 1px solid rgba(14, 165, 233, 0.16);
+  background:
+    radial-gradient(circle at top right, rgba(76, 201, 240, 0.1), transparent 32%),
+    #ffffff;
+}
+
+.education-section-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: flex-start;
+
   margin-bottom: 24px;
 }
 
-/* Grilla Responsiva Pro: Sin calc() ni márgenes negativos */
+.education-section-header h2 {
+  margin: 0 0 8px;
+
+  color: #102033;
+  font-family: 'Archivo Black', 'Archivo', sans-serif;
+  font-size: clamp(1.5rem, 2.5vw, 2.15rem);
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+}
+
+.education-section-header p {
+  max-width: 720px;
+  margin: 0;
+
+  color: #64748b;
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.98rem;
+  line-height: 1.6;
+}
+
+/* ===============================
+   CONTADOR
+   =============================== */
+
+.education-count-card {
+  min-width: 70px;
+  padding: 12px 10px;
+
+  border-radius: 20px;
+  background: linear-gradient(135deg, #93d5f7, #0056b3);
+  color: #ffffff;
+  box-shadow: 0 12px 28px rgba(0, 86, 179, 0.23);
+
+  text-align: center;
+}
+
+.education-count-card span {
+  display: block;
+
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.education-count-card strong {
+  display: block;
+
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 1.2rem;
+}
+
+/* ===============================
+   GRID
+   =============================== */
+
 .cards-grid {
   display: grid;
-  /* El truco: repeat(auto-fill) hace que las tarjetas se acomoden solas */
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 24px;
   align-items: stretch;
 }
 
-/* --- Ajustes Responsivos --- 
+.education-empty-state {
+  padding: 26px;
 
-/* Tablets 
-@media (max-width: 1024px) {
-  .central-container {
-    padding: 30px 20px;
-  }
+  border-radius: 18px;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+
+  color: #64748b;
+  font-family: 'Archivo', sans-serif;
+  font-weight: 700;
+  text-align: center;
 }
-
-/* Móviles 
-@media (max-width: 600px) {
-  .central-container {
-    padding: 20px 16px;
-  }
-  
-  .header-section {
-    margin-bottom: 24px;
-  }
-
-  .modules-section {
-    margin-top: 32px;
-  }
-
-  /* En móviles muy pequeños, bajamos un poco el tamaño de fuente 
-  .header-section h1 {
-    font-size: 1.6rem;
-  }
-}*/

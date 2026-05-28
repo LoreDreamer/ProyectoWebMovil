@@ -22,6 +22,9 @@ interface EducationModule {
   description?: string;
   resumen?: string;
 
+  body?: string;
+  cuerpo?: string;
+
   category?: string;
   tipo_educacion?: string;
 
@@ -32,6 +35,8 @@ interface EducationModule {
 
   image?: string;
   cover_img?: string;
+
+  createdAt?: string | null;
 }
 
 const API_URL = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
@@ -92,10 +97,12 @@ export const EducationPage: React.FC = () => {
       id: String(module.id),
       title: module.title || module.titulo || 'Módulo educativo',
       description: module.description || module.resumen || '',
+      body: module.body || module.cuerpo || module.description || module.resumen || '',
       category: module.category || module.tipo_educacion || 'Seguridad',
       duration: module.duration || '10 min',
       level: module.level || normalizeDifficultyLabel(module.nivel),
-      image: rawImage ? buildFileUrl(rawImage) : pishing
+      image: rawImage ? buildFileUrl(rawImage) : pishing,
+      createdAt: module.createdAt || null
     };
   };
 
@@ -108,6 +115,7 @@ export const EducationPage: React.FC = () => {
 
       if (!response.ok) {
         console.error('Error backend /api/education:', data);
+
         throw new Error(
           data?.message ||
             data?.error ||
@@ -144,29 +152,66 @@ export const EducationPage: React.FC = () => {
       <Navbar />
 
       <IonContent className="education-content-page">
-        <div className="central-container">
-          <header className="header-section">
-            <h1>APRENDE SOBRE CIBERSEGURIDAD</h1>
+        <div className="education-shell">
+          <header className="education-hero-section">
+            <span className="education-kicker">
+              Formación en ciberseguridad
+            </span>
+
+            <h1>Aprende sobre seguridad digital</h1>
+
             <p>
-              Módulos breves y prácticos para fortalecer tu seguridad digital.
+              Revisa módulos breves y prácticos para fortalecer tus hábitos
+              digitales, proteger tus datos y prevenir riesgos en línea.
             </p>
           </header>
 
-          <Advice />
-
           {isAdmin && (
-            <section className="admin-section" style={{ marginBottom: 24 }}>
+            <section className="education-admin-section">
               <EducationPanel />
             </section>
           )}
 
-          <section className="modules-section">
-            <h2>MÓDULOS EDUCATIVOS DISPONIBLES</h2>
+          <section className="education-section advice-section">
+            <div className="education-section-header">
+              <div>
+                <span className="section-eyebrow">Consejos rápidos</span>
+                <h2>Recomendaciones para navegar seguro</h2>
+                <p>
+                  Antes de comenzar un módulo, revisa estos consejos básicos
+                  para mejorar tu seguridad digital diaria.
+                </p>
+              </div>
+            </div>
+
+            <Advice />
+          </section>
+
+          <section className="education-section">
+            <div className="education-section-header">
+              <div>
+                <span className="section-eyebrow">Disponibles</span>
+                <h2>Módulos educativos disponibles</h2>
+                <p>
+                  Selecciona un módulo para aprender sobre phishing, privacidad,
+                  redes seguras, VPNs y buenas prácticas digitales.
+                </p>
+              </div>
+
+              <div className="education-count-card">
+                <span>Total</span>
+                <strong>{modules.length}</strong>
+              </div>
+            </div>
 
             {isLoading ? (
-              <p>Cargando módulos educativos...</p>
+              <div className="education-empty-state">
+                Cargando módulos educativos...
+              </div>
             ) : modules.length === 0 ? (
-              <p>No hay módulos educativos disponibles por el momento.</p>
+              <div className="education-empty-state">
+                No hay módulos educativos disponibles por el momento.
+              </div>
             ) : (
               <div className="cards-grid">
                 {modules.map((module) => (
