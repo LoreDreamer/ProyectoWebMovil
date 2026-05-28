@@ -3,7 +3,7 @@ import { IonContent, IonPage } from '@ionic/react';
 import {
   documentTextOutline,
   warningOutline,
-  mailOutline,
+  peopleOutline,
   checkmarkCircleOutline
 } from 'ionicons/icons';
 import {
@@ -50,6 +50,11 @@ interface UsuarioRow {
   colorRiesgo: string;
 }
 
+interface DashboardCounts {
+  complaints: number;
+  protocols: number;
+}
+
 const API_URL = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
 
 export const AdminPage: React.FC = () => {
@@ -58,6 +63,14 @@ export const AdminPage: React.FC = () => {
   const [usuarios, setUsuarios] = useState<UsuarioRow[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
   const [usersError, setUsersError] = useState('');
+
+  const [dashboardCounts, setDashboardCounts] = useState<DashboardCounts>({
+    complaints: 0,
+    protocols: 0
+  });
+
+  const [isLoadingDashboardCounts, setIsLoadingDashboardCounts] =
+    useState(false);
 
   const getInitials = (name: string) => {
     const initials = name
@@ -96,11 +109,93 @@ export const AdminPage: React.FC = () => {
   };
 
   const normalizeRole = (value?: string) => {
-    const normalized = String(value || '')
-      .trim()
-      .toLowerCase();
+    const normalized = String(value || '').trim().toLowerCase();
 
     return normalized === 'admin' ? 'ADMIN' : 'USER';
+  };
+
+  const getArrayCount = (data: any, possibleKeys: string[] = []) => {
+    if (Array.isArray(data)) return data.length;
+
+    for (const key of possibleKeys) {
+      if (Array.isArray(data?.[key])) {
+        return data[key].length;
+      }
+    }
+
+    if (typeof data?.count === 'number') return data.count;
+    if (typeof data?.total === 'number') return data.total;
+
+    return 0;
+  };
+
+  const getAuthHeaders = (): Record<string, string> => {
+    const headers: Record<string, string> = {};
+
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    return headers;
+  };
+
+  const loadDashboardCounts = async () => {
+    if (!token) {
+      setDashboardCounts({
+        complaints: 0,
+        protocols: 0
+      });
+
+      return;
+    }
+
+    try {
+      setIsLoadingDashboardCounts(true);
+
+      const headers = getAuthHeaders();
+
+      const [complaintsResponse, protocolsResponse] = await Promise.all([
+        fetch(`${API_URL}/api/denuncias`, {
+          method: 'GET',
+          headers
+        }),
+        fetch(`${API_URL}/api/protocolos`, {
+          method: 'GET',
+          headers
+        })
+      ]);
+
+      const [complaintsData, protocolsData] = await Promise.all([
+        complaintsResponse.json().catch(() => null),
+        protocolsResponse.json().catch(() => null)
+      ]);
+
+      if (!complaintsResponse.ok) {
+        console.error('No se pudieron cargar denuncias:', complaintsData);
+      }
+
+      if (!protocolsResponse.ok) {
+        console.error('No se pudieron cargar protocolos:', protocolsData);
+      }
+
+      setDashboardCounts({
+        complaints: complaintsResponse.ok
+          ? getArrayCount(complaintsData, ['complaints', 'denuncias', 'data'])
+          : 0,
+        protocols: protocolsResponse.ok
+          ? getArrayCount(protocolsData, ['protocols', 'protocolos', 'data'])
+          : 0
+      });
+    } catch (error) {
+      console.error('Error al cargar contadores del panel admin:', error);
+
+      setDashboardCounts({
+        complaints: 0,
+        protocols: 0
+      });
+    } finally {
+      setIsLoadingDashboardCounts(false);
+    }
   };
 
   const loadUsers = async () => {
@@ -114,9 +209,7 @@ export const AdminPage: React.FC = () => {
       setUsersError('');
 
       const response = await fetch(`${API_URL}/api/auth/users`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+        headers: getAuthHeaders()
       });
 
       const data: UsersApiResponse | UsuarioBackend[] = await response
@@ -171,6 +264,17 @@ export const AdminPage: React.FC = () => {
 
   useEffect(() => {
     loadUsers();
+    loadDashboardCounts();
+
+    const refreshDashboardCounts = () => loadDashboardCounts();
+
+    window.addEventListener('complaints-updated', refreshDashboardCounts);
+    window.addEventListener('protocolos-updated', refreshDashboardCounts);
+
+    return () => {
+      window.removeEventListener('complaints-updated', refreshDashboardCounts);
+      window.removeEventListener('protocolos-updated', refreshDashboardCounts);
+    };
   }, [token]);
 
   const cantidadUsuariosActivos = usuarios.filter(
@@ -228,7 +332,7 @@ export const AdminPage: React.FC = () => {
 
           <div className="admin-stats-grid">
             <StatCardAdmin
-              icon={documentTextOutline}
+              icon={peopleOutline}
               title="Usuarios registrados"
               value={isLoadingUsers ? '...' : usuarios.length}
               label={`${cantidadUsuariosActivos} activos`}
@@ -236,17 +340,25 @@ export const AdminPage: React.FC = () => {
 
             <StatCardAdmin
               icon={warningOutline}
-              title="Riesgo promedio"
-              value="Medio"
-              label="Datos de prueba"
+              title="Denuncias recibidas"
+              value={
+                isLoadingDashboardCounts
+                  ? '...'
+                  : dashboardCounts.complaints
+              }
+              label="Total recibidas"
               variant="warning"
             />
 
             <StatCardAdmin
-              icon={mailOutline}
-              title="Denuncias recibidas"
-              value="27"
-              label="+3 sin atender"
+              icon={documentTextOutline}
+              title="Protocolos publicados"
+              value={
+                isLoadingDashboardCounts
+                  ? '...'
+                  : dashboardCounts.protocols
+              }
+              label="Documentos activos"
             />
 
             <StatCardAdmin

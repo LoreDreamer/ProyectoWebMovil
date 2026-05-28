@@ -30,7 +30,6 @@ interface ArchivoDenunciaNormalizado {
 
 interface DenunciaDB {
   id: string;
-
   tipo_incidente?: string | null;
   fecha?: string | null;
   descripcion?: string | null;
@@ -39,8 +38,11 @@ interface DenunciaDB {
   nombre_completo?: string | null;
   usuario_id?: string | null;
   archivos?: ArchivoDenuncia[] | null;
-  creado_en?: string | null;
 
+  /**
+   * Campos antiguos o aliases usados por frontend viejo.
+   * No necesariamente existen en la tabla actual.
+   */
   nombre?: string | null;
   fecha_incidente?: string | null;
   archivo_adjunto?: string | null;
@@ -62,12 +64,12 @@ const USERS_TABLE_CANDIDATES = process.env.SUPABASE_USERS_TABLE
 const STORAGE_BUCKET =
   process.env.SUPABASE_STORAGE_BUCKET?.trim() || 'municipal-files';
 
+/* ===============================
+   HELPERS STORAGE
+   =============================== */
+
 const buildStoragePathFromPublicUrl = (url?: string | null): string => {
   if (!url) return '';
-
-  if (!url.includes('/storage/v1/object/public/')) {
-    return '';
-  }
 
   const marker = `/storage/v1/object/public/${STORAGE_BUCKET}/`;
   const markerIndex = url.indexOf(marker);
@@ -89,10 +91,6 @@ const getValidStoragePath = (value?: string | null): string => {
   if (value.startsWith('uploads')) return '';
 
   return value;
-};
-
-const isNonEmptyString = (value: unknown): value is string => {
-  return typeof value === 'string' && value.trim().length > 0;
 };
 
 const isMissingTableError = (error: any): boolean => {
@@ -121,13 +119,15 @@ const formatFecha = (fecha?: string | null): string => {
   return date.toISOString().split('T')[0];
 };
 
+/* ===============================
+   FILES
+   =============================== */
+
 const getUploadedFiles = (req: Request): Express.Multer.File[] => {
   const singleFile = req.file ? [req.file] : [];
 
   const fieldFiles = req.files as
-    | {
-        [fieldname: string]: Express.Multer.File[];
-      }
+    | { [fieldname: string]: Express.Multer.File[] }
     | Express.Multer.File[]
     | undefined;
 
@@ -140,58 +140,47 @@ const getUploadedFiles = (req: Request): Express.Multer.File[] => {
 
   const allFiles = [...singleFile, ...archivoFiles, ...archivosFiles];
 
-  return allFiles.filter(
-    (
-      fileItem: Express.Multer.File,
-      index: number,
-      array: Express.Multer.File[]
-    ): boolean => {
-      const currentKey = `${fileItem.originalname}-${fileItem.size}-${fileItem.mimetype}`;
+  return allFiles.filter((fileItem, index, array) => {
+    const currentKey = `${fileItem.originalname}-${fileItem.size}-${fileItem.mimetype}`;
 
-      return (
-        array.findIndex((candidate: Express.Multer.File): boolean => {
-          const candidateKey = `${candidate.originalname}-${candidate.size}-${candidate.mimetype}`;
-
-          return candidateKey === currentKey;
-        }) === index
-      );
-    }
-  );
+    return (
+      array.findIndex((candidate) => {
+        const candidateKey = `${candidate.originalname}-${candidate.size}-${candidate.mimetype}`;
+        return candidateKey === currentKey;
+      }) === index
+    );
+  });
 };
 
 const normalizeArchivos = (
-  archivos: ArchivoDenuncia[]
+  archivos: ArchivoDenuncia[] | null | undefined
 ): ArchivoDenunciaNormalizado[] => {
   if (!Array.isArray(archivos)) return [];
 
   return archivos
-    .map(
-      (
-        archivoItem: ArchivoDenuncia,
-        index: number
-      ): ArchivoDenunciaNormalizado => {
-        const fileUrl = archivoItem.url || '';
-        const filePath = archivoItem.path || getValidStoragePath(fileUrl);
-        const fileName =
-          archivoItem.name ||
-          archivoItem.originalName ||
-          `archivo-${index + 1}`;
-        const fileId =
-          archivoItem.id || `${index + 1}-${fileUrl || filePath || fileName}`;
+    .map((archivoItem, index): ArchivoDenunciaNormalizado => {
+      const fileUrl = archivoItem.url || '';
+      const filePath = archivoItem.path || getValidStoragePath(fileUrl);
+      const fileName =
+        archivoItem.name ||
+        archivoItem.originalName ||
+        `archivo-${index + 1}`;
 
-        return {
-          id: fileId,
-          name: fileName,
-          originalName: archivoItem.originalName || fileName,
-          url: fileUrl,
-          path: filePath,
-          type: archivoItem.type || '',
-          size: typeof archivoItem.size === 'number' ? archivoItem.size : null,
-          order: index + 1
-        };
-      }
-    )
-    .filter((archivoItem: ArchivoDenunciaNormalizado): boolean => {
+      const fileId =
+        archivoItem.id || `${index + 1}-${fileUrl || filePath || fileName}`;
+
+      return {
+        id: fileId,
+        name: fileName,
+        originalName: archivoItem.originalName || fileName,
+        url: fileUrl,
+        path: filePath,
+        type: archivoItem.type || '',
+        size: typeof archivoItem.size === 'number' ? archivoItem.size : null,
+        order: index + 1
+      };
+    })
+    .filter((archivoItem) => {
       const fileUrl = archivoItem.url || '';
       const filePath = archivoItem.path || '';
 
@@ -223,13 +212,17 @@ const mapUploadedFileToArchivoDenuncia = (
   };
 };
 
+/* ===============================
+   MAPPERS
+   =============================== */
+
 const mapDenunciaResponse = (denuncia: DenunciaDB) => {
-  const archivos = normalizeArchivos(denuncia.archivos || []);
+  const archivos = normalizeArchivos(denuncia.archivos);
   const primerArchivo = archivos[0];
 
   const nombreCompleto = denuncia.nombre_completo || denuncia.nombre || '';
   const fechaIncidente = denuncia.fecha || denuncia.fecha_incidente || '';
-  const fechaRegistro = denuncia.creado_en || denuncia.fecha_registro || '';
+  const fechaRegistro = denuncia.fecha || denuncia.fecha_registro || '';
 
   const archivoNombre =
     primerArchivo?.name || denuncia.archivo_adjunto || 'Ninguno';
@@ -262,6 +255,10 @@ const mapDenunciaResponse = (denuncia: DenunciaDB) => {
 
     archivos,
 
+    /**
+     * Aliases para frontend.
+     * Estos campos se generan en la respuesta, no se consultan como columnas.
+     */
     fechaRegistro: formatFecha(fechaRegistro),
     creado_en: fechaRegistro,
 
@@ -270,14 +267,20 @@ const mapDenunciaResponse = (denuncia: DenunciaDB) => {
   };
 };
 
+/* ===============================
+   USERS
+   =============================== */
+
 const findUserIdByEmail = async (email?: string): Promise<string | null> => {
-  if (!email) return null;
+  const finalEmail = String(email || '').trim();
+
+  if (!finalEmail) return null;
 
   for (const tableName of USERS_TABLE_CANDIDATES) {
     const { data, error } = await supabase
       .from(tableName)
       .select('id, correo')
-      .eq('correo', email)
+      .eq('correo', finalEmail)
       .maybeSingle();
 
     if (error) {
@@ -285,20 +288,24 @@ const findUserIdByEmail = async (email?: string): Promise<string | null> => {
       throw error;
     }
 
-    if (!data) return null;
-
-    return (data as UsuarioDB).id;
+    if (data) {
+      return (data as UsuarioDB).id;
+    }
   }
 
   return null;
 };
+
+/* ===============================
+   CONTROLLERS
+   =============================== */
 
 export const obtenerDenuncias = async (_req: Request, res: Response) => {
   try {
     const { data, error } = await supabase
       .from(DENUNCIAS_TABLE)
       .select('*')
-      .order('creado_en', { ascending: false });
+      .order('fecha', { ascending: false });
 
     if (error) {
       throw error;
@@ -307,7 +314,7 @@ export const obtenerDenuncias = async (_req: Request, res: Response) => {
     const denuncias = (data || []) as DenunciaDB[];
 
     return res.status(200).json(
-      denuncias.map((denuncia: DenunciaDB) => mapDenunciaResponse(denuncia))
+      denuncias.map((denuncia) => mapDenunciaResponse(denuncia))
     );
   } catch (error: any) {
     console.error('Error al obtener denuncias:', error);
@@ -367,12 +374,8 @@ export const crearDenuncia = async (req: Request, res: Response) => {
       'denuncias/adjuntos'
     );
 
-    uploadedFilesPayload = uploadedStorageFiles.map(
-      (
-        uploadedFile: UploadedStorageFile,
-        index: number
-      ): ArchivoDenunciaNormalizado =>
-        mapUploadedFileToArchivoDenuncia(uploadedFile, index)
+    uploadedFilesPayload = uploadedStorageFiles.map((uploadedFile, index) =>
+      mapUploadedFileToArchivoDenuncia(uploadedFile, index)
     );
 
     const primerArchivo = uploadedFilesPayload[0];
@@ -397,9 +400,7 @@ export const crearDenuncia = async (req: Request, res: Response) => {
 
     if (error) {
       await deleteFilesFromStorage(
-        uploadedFilesPayload.map(
-          (fileItem: ArchivoDenunciaNormalizado): string => fileItem.path
-        )
+        uploadedFilesPayload.map((fileItem) => fileItem.path).filter(Boolean)
       );
 
       throw error;
@@ -412,9 +413,7 @@ export const crearDenuncia = async (req: Request, res: Response) => {
     return res.status(201).json(denunciaCreada);
   } catch (error: any) {
     await deleteFilesFromStorage(
-      uploadedFilesPayload.map(
-        (fileItem: ArchivoDenunciaNormalizado): string => fileItem.path
-      )
+      uploadedFilesPayload.map((fileItem) => fileItem.path).filter(Boolean)
     );
 
     console.error('Error interno al guardar denuncia:', error);

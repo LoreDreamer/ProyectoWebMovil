@@ -1,13 +1,20 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { IonContent, IonIcon, IonPage } from '@ionic/react';
-import { Navbar, StatCard, Progress, Footer } from '../../components';
 import {
-  listOutline,
-  eyeOutline,
-  sendOutline,
+  calendarOutline,
   checkmarkCircleOutline,
-  calendarOutline
+  documentTextOutline,
+  schoolOutline,
+  shieldCheckmarkOutline,
+  timeOutline
 } from 'ionicons/icons';
+import { Link } from 'react-router-dom';
+import {
+  Navbar,
+  Footer,
+  StatCard,
+  Progress
+} from '../../components';
 import { useAuth } from '../../context/AuthContext';
 import './InicioPage.css';
 
@@ -21,10 +28,7 @@ interface Activity {
   descripcion?: string;
 
   date?: string;
-  fecha?: string | null;
-
-  host?: string | null;
-  publicado_por?: string | null;
+  fecha?: string;
 }
 
 interface NormalizedActivity {
@@ -35,34 +39,29 @@ interface NormalizedActivity {
   rawDate: string;
 }
 
-const API_URL = 'http://localhost:3000';
+interface ContentCounts {
+  education: number;
+  questionnaires: number;
+  protocols: number;
+}
 
-const formatDateForInput = (date?: string | null) => {
-  if (!date) return '';
+const API_URL = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
 
-  if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    return date;
-  }
+const formatDateForView = (date?: string) => {
+  if (!date) return 'Sin fecha';
 
   const parsedDate = new Date(date);
 
   if (Number.isNaN(parsedDate.getTime())) {
-    return '';
+    return date;
   }
 
-  return parsedDate.toISOString().split('T')[0];
-};
-
-const formatDateForView = (date?: string | null) => {
-  if (!date) return 'Sin fecha';
-
-  const inputDate = formatDateForInput(date);
-
-  if (!inputDate) return 'Sin fecha';
-
-  const [year, month, day] = inputDate.split('-');
-
-  return `${day}-${month}-${year}`;
+  return parsedDate.toLocaleDateString('es-CL', {
+    timeZone: 'America/Santiago',
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric'
+  });
 };
 
 export const InicioPage: React.FC = () => {
@@ -71,21 +70,23 @@ export const InicioPage: React.FC = () => {
   const [activities, setActivities] = useState<NormalizedActivity[]>([]);
   const [isLoadingActivities, setIsLoadingActivities] = useState(false);
 
-  const nombreCompleto = user?.nombre_completo || user?.name || 'Usuario';
-  const primerNombre = nombreCompleto.split(' ')[0] || 'Usuario';
+  const [contentCounts, setContentCounts] = useState<ContentCounts>({
+    education: 0,
+    questionnaires: 0,
+    protocols: 0
+  });
 
-  const rut = user?.rut || 'No disponible';
-  const region = user?.region || '';
-  const comuna = user?.comuna || '';
-  const correo = user?.correo || user?.email || 'No disponible';
+  const [isLoadingCounts, setIsLoadingCounts] = useState(false);
 
-  const ubicacion =
-    comuna && region
-      ? `${comuna}, ${region}`
-      : comuna || region || 'No disponible';
+  const userName =
+    user?.nombre_completo ||
+    user?.name ||
+    user?.email ||
+    user?.correo ||
+    'Usuario';
 
   const normalizeActivity = (activity: Activity): NormalizedActivity => {
-    const rawDate = activity.fecha || activity.date || '';
+    const rawDate = activity.date || activity.fecha || '';
 
     return {
       id: String(activity.id),
@@ -95,8 +96,50 @@ export const InicioPage: React.FC = () => {
         activity.descripcion ||
         'Actividad disponible para la comunidad.',
       date: formatDateForView(rawDate),
-      rawDate: formatDateForInput(rawDate)
+      rawDate
     };
+  };
+
+  const getArrayCount = (data: unknown) => {
+    return Array.isArray(data) ? data.length : 0;
+  };
+
+  const loadContentCounts = async () => {
+    try {
+      setIsLoadingCounts(true);
+
+      const [educationResponse, questionnairesResponse, protocolsResponse] =
+        await Promise.all([
+          fetch(`${API_URL}/api/education`),
+          fetch(`${API_URL}/api/questionnaires`),
+          fetch(`${API_URL}/api/protocolos`)
+        ]);
+
+      const [educationData, questionnairesData, protocolsData] =
+        await Promise.all([
+          educationResponse.json().catch(() => []),
+          questionnairesResponse.json().catch(() => []),
+          protocolsResponse.json().catch(() => [])
+        ]);
+
+      setContentCounts({
+        education: educationResponse.ok ? getArrayCount(educationData) : 0,
+        questionnaires: questionnairesResponse.ok
+          ? getArrayCount(questionnairesData)
+          : 0,
+        protocols: protocolsResponse.ok ? getArrayCount(protocolsData) : 0
+      });
+    } catch (error) {
+      console.error('Error al cargar contadores de inicio:', error);
+
+      setContentCounts({
+        education: 0,
+        questionnaires: 0,
+        protocols: 0
+      });
+    } finally {
+      setIsLoadingCounts(false);
+    }
   };
 
   const loadActivities = async () => {
@@ -104,12 +147,15 @@ export const InicioPage: React.FC = () => {
       setIsLoadingActivities(true);
 
       const response = await fetch(`${API_URL}/api/activities`);
+      const data = await response.json().catch(() => null);
 
       if (!response.ok) {
-        throw new Error('No se pudieron cargar las actividades');
+        throw new Error(
+          data?.message ||
+            data?.error ||
+            'No se pudieron cargar las actividades'
+        );
       }
-
-      const data = await response.json();
 
       const normalizedActivities = Array.isArray(data)
         ? data.map((activity) => normalizeActivity(activity))
@@ -126,131 +172,197 @@ export const InicioPage: React.FC = () => {
 
   useEffect(() => {
     loadActivities();
+    loadContentCounts();
 
-    const handler = () => loadActivities();
-    window.addEventListener('activities-updated', handler);
+    const activitiesHandler = () => loadActivities();
+    const educationHandler = () => loadContentCounts();
+    const questionnairesHandler = () => loadContentCounts();
+    const protocolosHandler = () => loadContentCounts();
+
+    window.addEventListener('activities-updated', activitiesHandler);
+    window.addEventListener('education-updated', educationHandler);
+    window.addEventListener('questionnaires-updated', questionnairesHandler);
+    window.addEventListener('protocolos-updated', protocolosHandler);
 
     return () => {
-      window.removeEventListener('activities-updated', handler);
+      window.removeEventListener('activities-updated', activitiesHandler);
+      window.removeEventListener('education-updated', educationHandler);
+      window.removeEventListener('questionnaires-updated', questionnairesHandler);
+      window.removeEventListener('protocolos-updated', protocolosHandler);
     };
   }, []);
+
+  const upcomingActivities = useMemo(() => {
+    return activities.slice(0, 3);
+  }, [activities]);
 
   return (
     <IonPage>
       <Navbar />
 
       <IonContent className="inicio-content-page">
-        <div className="central-container">
-          <div className="welcome-section">
-            <h1>BIENVENID@, {primerNombre.toUpperCase()}!</h1>
+        <div className="inicio-shell">
+          <header className="inicio-hero-card">
+            <div>
+              <span className="inicio-kicker">Panel personal</span>
 
-            <p>
-              Bienvenid@ de vuelta. Aquí tienes un resumen de tu actividad y
-              alertas recientes.
-            </p>
+              <h1>Hola, {userName}</h1>
 
-            {user && (
-              <div className="user-profile-summary">
-                <div>
-                  <strong>Nombre completo</strong>
-                  <span>{nombreCompleto}</span>
-                </div>
+              <p>
+                Revisa tu actividad, accede a módulos educativos, consulta
+                cuestionarios y mantente al día con las acciones municipales de
+                ciberseguridad.
+              </p>
+            </div>
 
-                <div>
-                  <strong>RUT</strong>
-                  <span>{rut}</span>
-                </div>
+            <div className="inicio-profile-card">
+              <span>Cuenta</span>
+              <strong>{user?.role === 'admin' ? 'Administrador' : 'Usuario'}</strong>
+            </div>
+          </header>
 
-                <div>
-                  <strong>Ubicación</strong>
-                  <span>{ubicacion}</span>
-                </div>
-
-                <div>
-                  <strong>Correo</strong>
-                  <span>{correo}</span>
-                </div>
+          {user && (
+            <section className="inicio-user-summary">
+              <div>
+                <strong>Nombre</strong>
+                <span>{userName}</span>
               </div>
-            )}
-          </div>
 
-          <div className="stats-grid">
-            <StatCard
-              icon={listOutline}
-              label="CUESTIONARIOS COMPLETADOS"
-              value="3"
-            />
+              <div>
+                <strong>RUT</strong>
+                <span>{user.rut || 'No registrado'}</span>
+              </div>
 
-            <StatCard
-              icon={eyeOutline}
-              label="MÓDULOS VISTOS"
-              value="5"
-            />
+              <div>
+                <strong>Ubicación</strong>
+                <span>
+                  {user.comuna || 'Comuna'}, {user.region || 'Región'}
+                </span>
+              </div>
 
-            <StatCard
-              icon={sendOutline}
-              label="DENUNCIAS ENVIADAS"
-              value="0"
-            />
+              <div>
+                <strong>Correo</strong>
+                <span>{user.email || user.correo || 'Sin correo'}</span>
+              </div>
+            </section>
+          )}
 
+          <section className="inicio-stats-grid">
             <StatCard
               icon={checkmarkCircleOutline}
-              label="CURSOS COMPLETADOS"
-              value="1"
+              label="Estado de cuenta"
+              value="Activa"
             />
-          </div>
+
+            <StatCard
+              icon={schoolOutline}
+              label="Módulos educativos"
+              value={isLoadingCounts ? '...' : String(contentCounts.education)}
+            />
+
+            <StatCard
+              icon={documentTextOutline}
+              label="Cuestionarios"
+              value={isLoadingCounts ? '...' : String(contentCounts.questionnaires)}
+            />
+
+            <StatCard
+              icon={shieldCheckmarkOutline}
+              label="Protocolos"
+              value={isLoadingCounts ? '...' : String(contentCounts.protocols)}
+            />
+          </section>
+
+          <section className="inicio-main-grid">
+            <div className="inicio-progress-section">
+              <Progress />
+            </div>
+
+            <section className="inicio-shortcuts-section">
+              <div className="inicio-section-header">
+                <div>
+                  <span className="section-eyebrow">Accesos rápidos</span>
+                  <h2>Continúa navegando</h2>
+                  <p>
+                    Entra rápidamente a las secciones principales de la
+                    plataforma.
+                  </p>
+                </div>
+              </div>
+
+              <div className="inicio-shortcuts-grid">
+                <Link to="/educacion" className="inicio-shortcut-card">
+                  <IonIcon icon={schoolOutline} />
+                  <div>
+                    <strong>Educación</strong>
+                    <span>{contentCounts.education} módulo(s)</span>
+                  </div>
+                </Link>
+
+                <Link to="/cuestionarios" className="inicio-shortcut-card">
+                  <IonIcon icon={documentTextOutline} />
+                  <div>
+                    <strong>Cuestionarios</strong>
+                    <span>{contentCounts.questionnaires} disponible(s)</span>
+                  </div>
+                </Link>
+
+                <Link to="/protocolos" className="inicio-shortcut-card">
+                  <IonIcon icon={shieldCheckmarkOutline} />
+                  <div>
+                    <strong>Protocolos</strong>
+                    <span>{contentCounts.protocols} documento(s)</span>
+                  </div>
+                </Link>
+              </div>
+            </section>
+          </section>
 
           <section className="activities-dashboard-section">
             <div className="activities-dashboard-header">
               <div>
-                <h2>Actividades disponibles</h2>
-
+                <span className="section-eyebrow">Calendario municipal</span>
+                <h2>Próximas actividades</h2>
                 <p>
-                  Revisa las próximas actividades educativas y municipales
-                  publicadas por el equipo administrador.
+                  Revisa las actividades publicadas por la municipalidad.
                 </p>
               </div>
 
               <span className="activities-counter">
-                {activities.length} actividad(es)
+                {activities.length} actividad{activities.length === 1 ? '' : 'es'}
               </span>
             </div>
 
             {isLoadingActivities ? (
-              <div className="activities-empty-state">
+              <div className="inicio-empty-state">
                 Cargando actividades...
               </div>
-            ) : activities.length === 0 ? (
-              <div className="activities-empty-state">
+            ) : upcomingActivities.length === 0 ? (
+              <div className="inicio-empty-state">
                 No hay actividades disponibles por el momento.
               </div>
             ) : (
               <div className="activities-dashboard-grid">
-                {activities.map((activity) => (
-                  <article
-                    key={activity.id}
-                    className="activity-dashboard-card"
-                  >
+                {upcomingActivities.map((activity) => (
+                  <article key={activity.id} className="activity-dashboard-card">
                     <div className="activity-dashboard-icon">
                       <IonIcon icon={calendarOutline} />
                     </div>
 
                     <div className="activity-dashboard-info">
                       <h3>{activity.title}</h3>
-
                       <p>{activity.description}</p>
 
-                      <span>{activity.date}</span>
+                      <span>
+                        <IonIcon icon={timeOutline} />
+                        {activity.date}
+                      </span>
                     </div>
                   </article>
                 ))}
               </div>
             )}
           </section>
-
-          <div className="main-grid">
-            <Progress />
-          </div>
         </div>
 
         <Footer />
