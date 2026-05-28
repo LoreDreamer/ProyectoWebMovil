@@ -11,21 +11,32 @@ interface BackendAlertImage {
   previewUrl: string;
   url?: string;
   path?: string;
+  type?: string;
+  size?: number | null;
   order: number;
 }
 
 interface BackendAlert {
   id: string | number;
-  title: string;
+
+  title?: string;
   titulo?: string;
-  description: string;
+
+  description?: string;
+  summary?: string;
   resumen?: string;
+  body?: string;
   cuerpo?: string;
-  image: string;
+
+  image?: string;
   imagen_url?: string;
-  createdAt: string;
+
+  createdAt?: string;
+  date?: string;
   fecha?: string;
+
   autorNombre?: string;
+
   images?: BackendAlertImage[];
   imagenes?: BackendAlertImage[];
 }
@@ -40,7 +51,7 @@ interface NewsItem {
   images?: BackendAlertImage[];
 }
 
-const API_URL = 'http://localhost:3000';
+const API_URL = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
 
 export const NewsPart: React.FC = () => {
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
@@ -64,6 +75,28 @@ export const NewsPart: React.FC = () => {
     return `${API_URL}/${url}`;
   };
 
+  const formatDate = (date?: string) => {
+    if (!date) return '';
+
+    const parsedDate = new Date(date);
+
+    if (Number.isNaN(parsedDate.getTime())) {
+      return date;
+    }
+
+    return parsedDate
+      .toLocaleString('es-CL', {
+        timeZone: 'America/Santiago',
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      })
+      .replace(',', ' ·');
+  };
+
   const normalizeImages = (images?: BackendAlertImage[]) => {
     return (images || []).map((image, index) => ({
       ...image,
@@ -73,6 +106,8 @@ export const NewsPart: React.FC = () => {
       ),
       url: buildFileUrl(image.url || image.previewUrl || image.path || ''),
       path: image.path || image.url || image.previewUrl || '',
+      type: image.type || '',
+      size: typeof image.size === 'number' ? image.size : null,
       order: index + 1
     }));
   };
@@ -83,27 +118,38 @@ export const NewsPart: React.FC = () => {
 
       const response = await fetch(`${API_URL}/api/alerts`);
 
+      const data = await response.json().catch(() => null);
+
       if (!response.ok) {
-        throw new Error('No se pudieron cargar las alertas');
+        console.error('Error backend /api/alerts:', data);
+        throw new Error(
+          data?.message ||
+            data?.error ||
+            'No se pudieron cargar las alertas'
+        );
       }
 
-      const data: BackendAlert[] = await response.json();
-
       const backendNews: NewsItem[] = Array.isArray(data)
-        ? data.map((alert) => ({
-            id: alert.id,
-            title: alert.title || alert.titulo || 'Alerta municipal',
-            description:
-              alert.description ||
-              alert.cuerpo ||
-              alert.resumen ||
-              '',
-            image: buildFileUrl(alert.image || alert.imagen_url || ''),
-            createdAt: alert.createdAt || alert.fecha || '',
-            autorNombre:
-              alert.autorNombre || 'Municipalidad de Santo Domingo',
-            images: normalizeImages(alert.images || alert.imagenes || [])
-          }))
+        ? data.map((alert: BackendAlert) => {
+            const rawDate = alert.createdAt || alert.date || alert.fecha || '';
+
+            return {
+              id: alert.id,
+              title: alert.title || alert.titulo || 'Alerta municipal',
+              description:
+                alert.description ||
+                alert.body ||
+                alert.cuerpo ||
+                alert.summary ||
+                alert.resumen ||
+                '',
+              image: buildFileUrl(alert.image || alert.imagen_url || ''),
+              createdAt: formatDate(rawDate),
+              autorNombre:
+                alert.autorNombre || 'Municipalidad de Santo Domingo',
+              images: normalizeImages(alert.images || alert.imagenes || [])
+            };
+          })
         : [];
 
       setNewsItems(backendNews);
@@ -151,7 +197,8 @@ export const NewsPart: React.FC = () => {
                 <h2>{item.title}</h2>
 
                 <div className="news-card-meta">
-                  <span>{item.createdAt}</span>
+                  {item.createdAt && <span>{item.createdAt}</span>}
+
                   <span>Publicado por: {item.autorNombre}</span>
 
                   {item.images && item.images.length > 0 && (

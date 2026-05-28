@@ -47,9 +47,11 @@ interface Alert {
   publicado_por?: string;
   autorNombre?: string;
   autorCorreo?: string;
+  writtenBy?: string;
+  escrito_por?: string; 
 }
 
-const API_URL = 'http://localhost:3000';
+const API_URL = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
 const MAX_ALERT_IMAGES = 10;
 
 export const AlertsPanel: React.FC = () => {
@@ -61,6 +63,7 @@ export const AlertsPanel: React.FC = () => {
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [writtenBy, setWrittenBy] = useState('');
 
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState('');
@@ -130,6 +133,28 @@ export const AlertsPanel: React.FC = () => {
     return `${API_URL}/${url}`;
   };
 
+  const formatDateTime = (date?: string) => {
+    if (!date) return '';
+
+    const parsedDate = new Date(date);
+
+    if (Number.isNaN(parsedDate.getTime())) {
+      return date;
+    }
+
+    return parsedDate
+      .toLocaleString('es-CL', {
+        timeZone: 'America/Santiago',
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      })
+      .replace(',', ' ·');
+  };
+
   const normalizeImageOrder = (images: AlertImage[]) => {
     return images.map((image, index) => ({
       ...image,
@@ -165,6 +190,8 @@ export const AlertsPanel: React.FC = () => {
     setTitle('');
     setDescription('');
 
+    setWrittenBy('');
+
     setCoverFile(null);
     setCoverPreview('');
     setCoverName('');
@@ -184,42 +211,86 @@ export const AlertsPanel: React.FC = () => {
         headers: getAuthHeaders()
       });
 
-      if (!response.ok) {
-        throw new Error('No se pudieron cargar las alertas');
-      }
+      const data = await response.json().catch(() => null);
 
-      const data = await response.json();
+      if (!response.ok) {
+        console.error('Error backend /api/alerts:', data);
+
+        throw new Error(
+          data?.message ||
+            data?.error ||
+            'No se pudieron cargar las alertas'
+        );
+      }
 
       setAlerts(
         Array.isArray(data)
           ? data.map((alert: Alert) => ({
               ...alert,
               id: String(alert.id),
+
               title: alert.title || alert.titulo || '',
+
+              writtenBy: alert.writtenBy || alert.escrito_por || '',
+
               description:
                 alert.description ||
                 alert.cuerpo ||
                 alert.resumen ||
                 '',
-              image: alert.image || alert.imagen_url || '',
+
+              image: buildFileUrl(alert.image || alert.imagen_url || ''),
+
               coverName:
                 alert.coverName ||
                 alert.imagen_nombre ||
                 '',
+
+              createdAt: formatDateTime(alert.createdAt || alert.fecha || ''),
+
               images: normalizeImageOrder(
-                (alert.images || alert.imagenes || []).map((image, index) => ({
-                  ...image,
-                  id: image.id || `${index + 1}-${image.previewUrl || image.url}`,
-                  name: image.name || `imagen-${index + 1}`,
-                  previewUrl: buildFileUrl(
-                    image.previewUrl || image.url || image.path || ''
-                  ),
-                  url: image.url || image.previewUrl || image.path || '',
-                  path: image.path || image.url || image.previewUrl || '',
-                  type: image.type || '',
-                  size: image.size || null,
-                  order: index + 1
-                }))
+                (alert.images || alert.imagenes || []).map((image, index) => {
+                  const rawUrl =
+                    image.previewUrl ||
+                    image.url ||
+                    image.path ||
+                    '';
+
+                  return {
+                    ...image,
+                    id:
+                      image.id ||
+                      `${index + 1}-${rawUrl}`,
+
+                    name:
+                      image.name ||
+                      `imagen-${index + 1}`,
+
+                    previewUrl:
+                      buildFileUrl(rawUrl),
+
+                    url:
+                      buildFileUrl(image.url || rawUrl),
+
+                    path:
+                      image.path ||
+                      image.url ||
+                      image.previewUrl ||
+                      '',
+
+                    type:
+                      image.type ||
+                      '',
+
+                    size:
+                      typeof image.size === 'number'
+                        ? image.size
+                        : null,
+
+                    order:
+                      index + 1
+                  };
+                })
               )
             }))
           : []
@@ -244,7 +315,8 @@ export const AlertsPanel: React.FC = () => {
   const filteredAlerts = alerts.filter((alert) =>
     alert.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     alert.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (alert.autorNombre || '').toLowerCase().includes(searchTerm.toLowerCase())
+    (alert.autorNombre || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (alert.writtenBy || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleCoverUpload = (file?: File) => {
@@ -415,6 +487,9 @@ export const AlertsPanel: React.FC = () => {
 
     formData.append('description', description.trim());
 
+    formData.append('writtenBy', writtenBy.trim());
+    formData.append('escrito_por', writtenBy.trim());
+
     if (coverFile) {
       formData.append('portada', coverFile);
     } else if (editingAlert && !removeCover) {
@@ -482,6 +557,8 @@ export const AlertsPanel: React.FC = () => {
 
     setTitle(alert.title);
     setDescription(alert.description);
+
+    setWrittenBy(alert.writtenBy || alert.escrito_por || '');
 
     setCoverFile(null);
     setCoverPreview(buildFileUrl(alert.image || ''));
@@ -600,6 +677,17 @@ export const AlertsPanel: React.FC = () => {
                 value={description}
                 onIonChange={(e) => setDescription(e.detail.value || '')}
                 className="custom-textarea"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Escrito por</label>
+
+              <IonInput
+                placeholder="Nombre de quien redactó la alerta"
+                value={writtenBy}
+                onIonChange={(e) => setWrittenBy(e.detail.value || '')}
+                className="custom-input"
               />
             </div>
 
@@ -808,6 +896,10 @@ export const AlertsPanel: React.FC = () => {
                     Publicado por:{' '}
                     {alert.autorNombre || 'Municipalidad'}
                   </span>
+                  <span>
+                    Escrito por:{' '}
+                    {alert.writtenBy || 'No especificado'}
+                  </span>
                   <span>{alert.images?.length || 0} imagen(es)</span>
                 </div>
 
@@ -865,10 +957,17 @@ export const AlertsPanel: React.FC = () => {
 
               <div className="card-meta">
                 <span>{viewItem.createdAt}</span>
+
                 <span>
                   Publicado por:{' '}
                   {viewItem.autorNombre || 'Municipalidad'}
                 </span>
+
+                <span>
+                  Escrito por:{' '}
+                  {viewItem.writtenBy || 'No especificado'}
+                </span>
+
                 <span>{viewItem.images?.length || 0} imagen(es)</span>
               </div>
 

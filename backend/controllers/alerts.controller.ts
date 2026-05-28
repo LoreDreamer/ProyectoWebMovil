@@ -39,6 +39,7 @@ interface AlertaDB {
   imagen_nombre: string | null;
   imagenes: AlertImage[] | null;
   publicado_por: string | null;
+  escrito_por: string | null;
 }
 
 const ALERTS_TABLE = process.env.SUPABASE_ALERTS_TABLE || 'alertas';
@@ -189,7 +190,10 @@ const mapAlertResponse = (alerta: AlertaDB) => {
     images,
     imagenes: images,
 
-    publicado_por: alerta.publicado_por
+    publicado_por: alerta.publicado_por,
+
+    writtenBy: alerta.escrito_por,
+    escrito_por: alerta.escrito_por
   };
 };
 
@@ -233,14 +237,24 @@ export const getAlerts = async (_req: Request, res: Response) => {
 
 export const createAlert = async (req: Request, res: Response) => {
   try {
-    const { title, titulo, summary, resumen, body, cuerpo, date, fecha } =
-      req.body;
+    const {
+      title,
+      titulo,
+      summary,
+      resumen,
+      body,
+      cuerpo,
+      date,
+      fecha,
+      writtenBy,
+      escrito_por
+    } = req.body;
 
     const finalTitle = String(title || titulo || '').trim();
     const finalSummary = String(summary || resumen || '').trim();
     const finalBody = String(body || cuerpo || '').trim();
     const finalDate = String(date || fecha || '').trim();
-
+    const finalWrittenBy = String(writtenBy || escrito_por || '').trim();
     if (!finalTitle || !finalSummary || !finalBody) {
       return res.status(400).json({
         message: 'Título, resumen y cuerpo son obligatorios.'
@@ -283,7 +297,8 @@ export const createAlert = async (req: Request, res: Response) => {
       imagen_url: uploadedCover?.url || null,
       imagen_nombre: uploadedCover?.name || null,
       imagenes: imagesPayload,
-      publicado_por: tokenUser?.id || null
+      publicado_por: tokenUser?.id || null,
+      escrito_por: finalWrittenBy || null
     };
 
     const { data, error } = await supabase
@@ -343,13 +358,17 @@ export const updateAlert = async (req: Request, res: Response) => {
       cuerpo,
       date,
       fecha,
+      writtenBy,
+      escrito_por,
       removeCover
     } = req.body;
 
     const finalTitle = String(title || titulo || '').trim();
     const finalSummary = String(summary || resumen || '').trim();
     const finalBody = String(body || cuerpo || '').trim();
+    
     const finalDate = String(date || fecha || '').trim();
+    const finalWrittenBy = String(writtenBy || escrito_por || '').trim();
 
     if (!finalTitle || !finalSummary || !finalBody) {
       return res.status(400).json({
@@ -443,7 +462,8 @@ export const updateAlert = async (req: Request, res: Response) => {
       fecha: finalDate || currentAlert.fecha || new Date().toISOString(),
       imagen_url: finalCoverUrl,
       imagen_nombre: finalCoverName,
-      imagenes: finalImages
+      imagenes: finalImages,
+      escrito_por: finalWrittenBy || currentAlert.escrito_por || null
     };
 
     const { data, error } = await supabase

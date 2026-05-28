@@ -367,12 +367,7 @@ export const createProtocolo = async (req: Request, res: Response) => {
       fecha: new Date().toISOString(),
       titulo: finalTitle,
       resumen: finalResumen,
-      autor:
-        tokenUser?.nombre_completo ||
-        tokenUser?.nombre ||
-        tokenUser?.correo ||
-        tokenUser?.email ||
-        null,
+      autor: tokenUser?.id || null,
       categoria: finalCategoria,
       archivo_url: mainFile?.url || archivoUrl || archivo_url || null,
       archivo_nombre:

@@ -18,14 +18,25 @@ import './AdminPage.css';
 
 interface UsuarioBackend {
   id: string;
-  email: string;
-  role: 'admin' | 'user';
-  nombre_completo: string;
-  rut: string;
-  region: string;
-  comuna: string;
-  estado: 'ACTIVO' | 'INACTIVO';
-  created_at: string;
+  email?: string;
+  correo?: string;
+  role?: 'admin' | 'user';
+  tipo_usuario?: 'admin' | 'user' | string;
+  nombre_completo?: string;
+  name?: string;
+  rut?: string;
+  region?: string;
+  comuna?: string;
+  estado?: string;
+  estatus?: string;
+  created_at?: string | null;
+}
+
+interface UsersApiResponse {
+  ok?: boolean;
+  users?: UsuarioBackend[];
+  message?: string;
+  error?: string;
 }
 
 interface UsuarioRow {
@@ -36,21 +47,48 @@ interface UsuarioRow {
   estado: string;
   riesgo: string;
   colorRiesgo: string;
+  tipoUsuario: string;
 }
+
+const API_URL = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
 
 export const AdminPage: React.FC = () => {
   const { user, token } = useAuth();
 
   const [usuarios, setUsuarios] = useState<UsuarioRow[]>([]);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+  const [usersError, setUsersError] = useState('');
 
   const getInitials = (name: string) => {
-    return name
+    const initials = name
       .split(' ')
       .filter(Boolean)
       .slice(0, 2)
       .map((part) => part[0])
       .join('')
       .toUpperCase();
+
+    return initials || 'US';
+  };
+
+  const normalizeStatus = (status?: string) => {
+    const normalized = String(status || 'activo')
+      .trim()
+      .toLowerCase();
+
+    if (normalized === 'inactivo' || normalized === 'inactive') {
+      return 'INACTIVO';
+    }
+
+    return 'ACTIVO';
+  };
+
+  const normalizeRole = (role?: string) => {
+    const normalized = String(role || 'user')
+      .trim()
+      .toLowerCase();
+
+    return normalized === 'admin' ? 'ADMIN' : 'USER';
   };
 
   const getRiskByIndex = (index: number) => {
@@ -64,39 +102,77 @@ export const AdminPage: React.FC = () => {
   };
 
   const loadUsers = async () => {
-    if (!token) return;
+    if (!token) {
+      setUsuarios([]);
+      return;
+    }
 
     try {
-      const response = await fetch('http://localhost:3000/api/auth/users', {
+      setIsLoadingUsers(true);
+      setUsersError('');
+
+      const response = await fetch(`${API_URL}/api/auth/users`, {
+        method: 'GET',
         headers: {
           Authorization: `Bearer ${token}`
         }
       });
 
+      const data: UsersApiResponse | UsuarioBackend[] = await response
+        .json()
+        .catch(() => []);
+
       if (!response.ok) {
-        throw new Error('No se pudieron cargar los usuarios');
+        const errorData = data as UsersApiResponse;
+
+        throw new Error(
+          errorData?.message ||
+            errorData?.error ||
+            'No se pudieron cargar los usuarios'
+        );
       }
 
-      const data: UsuarioBackend[] = await response.json();
+      const usersFromApi = Array.isArray(data)
+        ? data
+        : Array.isArray(data.users)
+          ? data.users
+          : [];
 
-      const mappedUsers: UsuarioRow[] = data.map((usuario, index) => {
+      const mappedUsers: UsuarioRow[] = usersFromApi.map((usuario, index) => {
         const riskInfo = getRiskByIndex(index);
+
+        const nombre =
+          usuario.nombre_completo ||
+          usuario.name ||
+          'Usuario sin nombre';
+
+        const email =
+          usuario.email ||
+          usuario.correo ||
+          'Sin correo';
+
+        const estado = normalizeStatus(usuario.estado || usuario.estatus);
+        const tipoUsuario = normalizeRole(usuario.role || usuario.tipo_usuario);
 
         return {
           id: index + 1,
-          iniciales: getInitials(usuario.nombre_completo),
-          nombre: usuario.nombre_completo,
-          email: usuario.email,
-          estado: usuario.estado,
+          iniciales: getInitials(nombre),
+          nombre,
+          email,
+          estado,
           riesgo: riskInfo.riesgo,
-          colorRiesgo: riskInfo.colorRiesgo
+          colorRiesgo: riskInfo.colorRiesgo,
+          tipoUsuario
         };
       });
 
       setUsuarios(mappedUsers);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error al cargar usuarios:', error);
+      setUsersError(error.message || 'Error al cargar usuarios');
       setUsuarios([]);
+    } finally {
+      setIsLoadingUsers(false);
     }
   };
 
@@ -122,24 +198,24 @@ export const AdminPage: React.FC = () => {
               <div className="admin-profile-summary">
                 <div>
                   <strong>Administrador</strong>
-                  <span>{user.nombre_completo}</span>
+                  <span>{user.nombre_completo || user.name || 'Administrador'}</span>
                 </div>
 
                 <div>
                   <strong>RUT</strong>
-                  <span>{user.rut}</span>
+                  <span>{user.rut || 'Sin RUT'}</span>
                 </div>
 
                 <div>
                   <strong>Ubicación</strong>
                   <span>
-                    {user.comuna}, {user.region}
+                    {user.comuna || 'Sin comuna'}, {user.region || 'Sin región'}
                   </span>
                 </div>
 
                 <div>
                   <strong>Correo</strong>
-                  <span>{user.email}</span>
+                  <span>{user.email || user.correo}</span>
                 </div>
               </div>
             )}
@@ -148,7 +224,7 @@ export const AdminPage: React.FC = () => {
           <div className="stats-grid">
             <StatCardAdmin
               icon={documentTextOutline}
-              title="Usuarios Evaluados"
+              title="Usuarios Registrados"
               value={String(usuarios.length)}
               label={`${cantidadUsuariosActivos} activos`}
             />
@@ -174,6 +250,14 @@ export const AdminPage: React.FC = () => {
               label="2 nuevos"
             />
           </div>
+
+          {isLoadingUsers && <p>Cargando usuarios registrados...</p>}
+
+          {usersError && (
+            <p style={{ color: '#c92a2a', fontWeight: 600 }}>
+              {usersError}
+            </p>
+          )}
 
           <UserRow usuarios={usuarios} />
 
