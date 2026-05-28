@@ -81,6 +81,7 @@ interface BackendQuestionnaire {
 }
 
 const API_URL = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
+const DEV_PREVIEW_COMPLETED_QUESTIONNAIRES = false;
 
 const normalizeRisk = (risk?: string) => {
   const normalized = String(risk || '')
@@ -215,7 +216,20 @@ export const QuestionnairePage: React.FC = () => {
       }
 
       const normalizedQuestionnaires = Array.isArray(data)
-        ? data.map((item) => normalizeQuestionnaire(item))
+        ? data.map((item, index) => {
+            const normalized = normalizeQuestionnaire(item);
+
+            if (DEV_PREVIEW_COMPLETED_QUESTIONNAIRES && index === 0) {
+              return {
+                ...normalized,
+                status: 'Completado' as QuestionnaireStatus,
+                score: 86,
+                puntaje_obtenido: 86
+              };
+            }
+
+            return normalized;
+          })
         : [];
 
       setQuestionnaires(normalizedQuestionnaires);
@@ -257,6 +271,21 @@ export const QuestionnairePage: React.FC = () => {
           ) / completedQuestionnaires.length
         )
       : 0;
+
+  const markQuestionnaireAsCompleted = (questionnaireId: string) => {
+    setQuestionnaires((prevQuestionnaires) =>
+      prevQuestionnaires.map((questionnaire) =>
+        questionnaire.id === questionnaireId
+          ? {
+              ...questionnaire,
+              status: 'Completado' as QuestionnaireStatus,
+              score: questionnaire.score || 86,
+              puntaje_obtenido: questionnaire.puntaje_obtenido || 86
+            }
+          : questionnaire
+      )
+    );
+  };
 
   return (
     <IonPage>
@@ -328,6 +357,9 @@ export const QuestionnairePage: React.FC = () => {
                     status="Completado"
                     score={Number(item.score || 0)}
                     bgImage={item.img}
+                    onViewResults={() => {
+                      console.log('Ver resultados:', item.title);
+                    }}
                   />
                 ))}
               </div>
@@ -364,6 +396,7 @@ export const QuestionnairePage: React.FC = () => {
                     risk={item.risk}
                     status="Pendiente"
                     bgImage={item.img}
+                    onComplete={() => markQuestionnaireAsCompleted(item.id)}
                   />
                 ))}
               </div>

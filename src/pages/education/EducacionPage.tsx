@@ -13,6 +13,8 @@ import pishing from '../../assets/education/pishing.png';
 
 import './EducationPage.css';
 
+type EducationStatus = 'Completado' | 'Pendiente';
+
 interface EducationModule {
   id: string;
 
@@ -37,9 +39,19 @@ interface EducationModule {
   cover_img?: string;
 
   createdAt?: string | null;
+
+  status?: EducationStatus;
+  estatus?: string;
 }
 
 const API_URL = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
+
+/*
+  Modo de prueba:
+  true  = marca temporalmente el primer módulo como completado.
+  false = comportamiento normal.
+*/
+const DEV_PREVIEW_COMPLETED_EDUCATION = false;
 
 const normalizeDifficultyLabel = (value?: string) => {
   const normalized = String(value || '')
@@ -65,6 +77,24 @@ const normalizeDifficultyLabel = (value?: string) => {
   }
 
   return 'Intermedio';
+};
+
+const normalizeStatus = (value?: string): EducationStatus => {
+  const normalized = String(value || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+
+  if (
+    normalized === 'completado' ||
+    normalized === 'completo' ||
+    normalized === 'finalizado'
+  ) {
+    return 'Completado';
+  }
+
+  return 'Pendiente';
 };
 
 export const EducationPage: React.FC = () => {
@@ -97,12 +127,18 @@ export const EducationPage: React.FC = () => {
       id: String(module.id),
       title: module.title || module.titulo || 'Módulo educativo',
       description: module.description || module.resumen || '',
-      body: module.body || module.cuerpo || module.description || module.resumen || '',
+      body:
+        module.body ||
+        module.cuerpo ||
+        module.description ||
+        module.resumen ||
+        '',
       category: module.category || module.tipo_educacion || 'Seguridad',
       duration: module.duration || '10 min',
       level: module.level || normalizeDifficultyLabel(module.nivel),
       image: rawImage ? buildFileUrl(rawImage) : pishing,
-      createdAt: module.createdAt || null
+      createdAt: module.createdAt || null,
+      status: normalizeStatus(module.status || module.estatus)
     };
   };
 
@@ -124,7 +160,21 @@ export const EducationPage: React.FC = () => {
       }
 
       const backendModules: EducationModule[] = Array.isArray(data)
-        ? data.map((module) => normalizeBackendModule(module))
+        ? data.map((module, index) => {
+            const normalized = normalizeBackendModule(module);
+
+            if (DEV_PREVIEW_COMPLETED_EDUCATION && index === 0) {
+              return {
+                ...normalized,
+                status: 'Completado'
+              };
+            }
+
+            return {
+              ...normalized,
+              status: normalized.status || 'Pendiente'
+            };
+          })
         : [];
 
       setModules(backendModules);
@@ -146,6 +196,27 @@ export const EducationPage: React.FC = () => {
       window.removeEventListener('education-updated', handler);
     };
   }, []);
+
+  const completedModules = modules.filter(
+    (module) => module.status === 'Completado'
+    );
+
+    const availableModules = modules.filter(
+      (module) => module.status !== 'Completado'
+    );
+
+    const markModuleAsCompleted = (moduleId: string) => {
+    setModules((prevModules) =>
+      prevModules.map((module) =>
+        module.id === moduleId
+          ? {
+              ...module,
+              status: 'Completado'
+            }
+          : module
+      )
+    );
+  };
 
   return (
     <IonPage>
@@ -187,7 +258,42 @@ export const EducationPage: React.FC = () => {
             <Advice />
           </section>
 
-          <section className="education-section">
+          {completedModules.length > 0 && (
+            <section className="education-section completed-education-section">
+              <div className="education-section-header">
+                <div>
+                  <span className="section-eyebrow">Completados</span>
+                  <h2>Módulos educativos completados</h2>
+                  <p>
+                    Aquí puedes revisar los módulos educativos que ya fueron
+                    completados por el usuario.
+                  </p>
+                </div>
+
+                <div className="education-count-card">
+                  <span>Completados</span>
+                  <strong>{completedModules.length}</strong>
+                </div>
+              </div>
+
+              <div className="cards-grid">
+                {completedModules.map((module) => (
+                  <EducationCard
+                    key={module.id}
+                    title={module.title || 'Módulo educativo'}
+                    description={module.description || ''}
+                    tag={module.category || 'Seguridad'}
+                    time={module.duration || '10 min'}
+                    level={module.level || 'Intermedio'}
+                    image={module.image || pishing}
+                    status="Completado"
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+
+          <section className="education-section" id="modulos-educativos">
             <div className="education-section-header">
               <div>
                 <span className="section-eyebrow">Disponibles</span>
@@ -200,7 +306,7 @@ export const EducationPage: React.FC = () => {
 
               <div className="education-count-card">
                 <span>Total</span>
-                <strong>{modules.length}</strong>
+                <strong>{availableModules.length}</strong>
               </div>
             </div>
 
@@ -208,13 +314,13 @@ export const EducationPage: React.FC = () => {
               <div className="education-empty-state">
                 Cargando módulos educativos...
               </div>
-            ) : modules.length === 0 ? (
+            ) : availableModules.length === 0 ? (
               <div className="education-empty-state">
                 No hay módulos educativos disponibles por el momento.
               </div>
             ) : (
               <div className="cards-grid">
-                {modules.map((module) => (
+                {availableModules.map((module) => (
                   <EducationCard
                     key={module.id}
                     title={module.title || 'Módulo educativo'}
@@ -223,6 +329,8 @@ export const EducationPage: React.FC = () => {
                     time={module.duration || '10 min'}
                     level={module.level || 'Intermedio'}
                     image={module.image || pishing}
+                    status="Pendiente"
+                    onComplete={() => markModuleAsCompleted(module.id)}
                   />
                 ))}
               </div>
