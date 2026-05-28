@@ -1,62 +1,77 @@
-import React, { useState } from 'react';
-import { IonIcon, IonSearchbar, IonButton } from '@ionic/react';
-import { eyeOutline, createOutline, trashOutline } from 'ionicons/icons';
+import React, { useMemo, useState } from 'react';
+import { IonIcon, IonSearchbar } from '@ionic/react';
+import {
+  eyeOutline,
+  createOutline,
+  trashOutline,
+  peopleOutline
+} from 'ionicons/icons';
 import './UserRow.css';
 
-interface UserRowItem {
-  id: number;
+interface Usuario {
+  id: string;
   iniciales: string;
   nombre: string;
   email: string;
   estado: string;
+  tipoUsuario: string;
   riesgo: string;
   colorRiesgo: string;
-  tipoUsuario?: string;
 }
 
 interface UserRowProps {
-  usuarios: UserRowItem[];
+  usuarios: Usuario[];
+  isLoading?: boolean;
+  error?: string;
 }
 
-export const UserRow: React.FC<UserRowProps> = ({ usuarios }) => {
+export const UserRow: React.FC<UserRowProps> = ({
+  usuarios,
+  isLoading = false,
+  error = ''
+}) => {
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredUsers = usuarios.filter((user) => {
-    const search = searchTerm.toLowerCase();
+  const filteredUsers = useMemo(() => {
+    const search = searchTerm.trim().toLowerCase();
 
-    return (
-      user.nombre.toLowerCase().includes(search) ||
-      user.email.toLowerCase().includes(search) ||
-      user.estado.toLowerCase().includes(search) ||
-      user.riesgo.toLowerCase().includes(search) ||
-      (user.tipoUsuario || '').toLowerCase().includes(search)
-    );
-  });
+    if (!search) return usuarios;
+
+    return usuarios.filter((user) => {
+      return (
+        user.nombre.toLowerCase().includes(search) ||
+        user.email.toLowerCase().includes(search) ||
+        user.estado.toLowerCase().includes(search) ||
+        user.tipoUsuario.toLowerCase().includes(search) ||
+        user.riesgo.toLowerCase().includes(search)
+      );
+    });
+  }, [usuarios, searchTerm]);
 
   return (
-    <div className="admin-table-container">
-      <div className="table-header">
-        <div className="table-title">
-          <h2>USUARIOS REGISTRADOS</h2>
+    <section className="admin-table-container">
+      <div className="admin-users-header">
+        <div className="admin-users-title">
+          <span className="admin-users-kicker">
+            <IonIcon icon={peopleOutline} />
+            Gestión de usuarios
+          </span>
+
+          <h2>Usuarios registrados</h2>
+
           <p>
-            Lista de usuarios registrados en la plataforma, incluyendo vecinos y administradores.
+            Lista de funcionarios y vecinos registrados en la plataforma.
           </p>
         </div>
 
-        <div className="table-search">
-          <div className="search-wrapper">
-            <IonSearchbar
-              value={searchTerm}
-              placeholder="Buscar usuario..."
-              className="admin-searchbar"
-              mode="ios"
-              onIonChange={(e) => setSearchTerm(e.detail.value || '')}
-            />
-
-            <IonButton className="btn-buscar-tabla">
-              Buscar
-            </IonButton>
-          </div>
+        <div className="admin-users-search">
+          <IonSearchbar
+            value={searchTerm}
+            placeholder="Buscar usuario..."
+            className="admin-searchbar"
+            mode="ios"
+            onIonInput={(event) => setSearchTerm(event.detail.value || '')}
+          />
         </div>
       </div>
 
@@ -64,22 +79,47 @@ export const UserRow: React.FC<UserRowProps> = ({ usuarios }) => {
         <table className="custom-table">
           <thead>
             <tr>
-              <th>NOMBRE</th>
-              <th>TIPO</th>
-              <th>ESTADO</th>
-              <th>RIESGO</th>
-              <th>ACCIONES</th>
+              <th>Nombre</th>
+              <th>Tipo</th>
+              <th>Estado</th>
+              <th>Riesgo</th>
+              <th>Acciones</th>
             </tr>
           </thead>
 
           <tbody>
-            {filteredUsers.length === 0 ? (
+            {isLoading && (
               <tr>
                 <td colSpan={5}>
-                  No hay usuarios registrados para mostrar.
+                  <div className="admin-table-state">
+                    Cargando usuarios...
+                  </div>
                 </td>
               </tr>
-            ) : (
+            )}
+
+            {!isLoading && error && (
+              <tr>
+                <td colSpan={5}>
+                  <div className="admin-table-state admin-table-state-error">
+                    {error}
+                  </div>
+                </td>
+              </tr>
+            )}
+
+            {!isLoading && !error && filteredUsers.length === 0 && (
+              <tr>
+                <td colSpan={5}>
+                  <div className="admin-table-state">
+                    No hay usuarios para mostrar.
+                  </div>
+                </td>
+              </tr>
+            )}
+
+            {!isLoading &&
+              !error &&
               filteredUsers.map((user) => (
                 <tr key={user.id}>
                   <td>
@@ -94,13 +134,17 @@ export const UserRow: React.FC<UserRowProps> = ({ usuarios }) => {
                   </td>
 
                   <td>
-                    <span className="badge-estado">
-                      {user.tipoUsuario || 'USER'}
+                    <span
+                      className={`badge-tipo ${user.tipoUsuario.toLowerCase()}`}
+                    >
+                      {user.tipoUsuario}
                     </span>
                   </td>
 
                   <td>
-                    <span className={`badge-estado ${user.estado.toLowerCase()}`}>
+                    <span
+                      className={`badge-estado ${user.estado.toLowerCase()}`}
+                    >
                       {user.estado}
                     </span>
                   </td>
@@ -115,17 +159,24 @@ export const UserRow: React.FC<UserRowProps> = ({ usuarios }) => {
                   </td>
 
                   <td className="actions-cell">
-                    <IonIcon icon={eyeOutline} className="icon-view" />
-                    <IonIcon icon={createOutline} className="icon-edit" />
-                    <IonIcon icon={trashOutline} className="icon-delete" />
+                    <button type="button" aria-label="Ver usuario">
+                      <IonIcon icon={eyeOutline} className="icon-view" />
+                    </button>
+
+                    <button type="button" aria-label="Editar usuario">
+                      <IonIcon icon={createOutline} className="icon-edit" />
+                    </button>
+
+                    <button type="button" aria-label="Eliminar usuario">
+                      <IonIcon icon={trashOutline} className="icon-delete" />
+                    </button>
                   </td>
                 </tr>
-              ))
-            )}
+              ))}
           </tbody>
         </table>
       </div>
-    </div>
+    </section>
   );
 };
 

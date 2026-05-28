@@ -1,173 +1,287 @@
 .admin-table-container {
-  background: white;
-  border-radius: 15px;
-  padding: 25px;
-  margin-top: 20px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
   width: 100%;
+  margin-top: 26px;
+  padding: 26px;
+
+  border-radius: 26px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.07);
 }
 
-.table-header {
+/* ===============================
+   HEADER TABLA
+   =============================== */
+
+.admin-users-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 25px;
-  flex-wrap: wrap;
-  gap: 15px;
+  align-items: flex-start;
+  gap: 24px;
+
+  margin-bottom: 22px;
 }
 
-.table-title h2 {
-  font-size: 1.8rem;
-  font-weight: 700;
+.admin-users-title {
+  min-width: 0;
+}
+
+.admin-users-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+
+  margin-bottom: 10px;
+  padding: 7px 13px;
+
+  border-radius: 999px;
+  background: #e0f2fe;
+  color: #0369a1;
+
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: #333;
-  margin-bottom: 5px;
-  margin-top: -5px;
 }
 
+.admin-users-title h2 {
+  margin: 0 0 8px;
 
-
-.table-title p {
-  color: #666;
-  font-size: 1.1rem;
-  margin: 5px 0 25px 0;
-  margin-bottom: -5px;
+  color: #102033;
+  font-family: 'Archivo Black', 'Archivo', sans-serif;
+  font-size: clamp(1.45rem, 2.4vw, 2rem);
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
 }
 
-/* ALINEACIÓN DEL BUSCADOR Y BOTÓN */
-.table-search {
-  display: flex;
-  align-items: center;
+.admin-users-title p {
+  max-width: 640px;
+  margin: 0;
+
+  color: #64748b;
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.95rem;
+  line-height: 1.5;
 }
 
-.search-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 10px; /* Espacio entre barra y botón */
-  background: #f2f2f2;
-  border-radius: 15px;
-  padding-right: 10px; /* Margen derecho para que el botón no toque el borde del wrapper */
+.admin-users-search {
+  width: min(360px, 100%);
 }
 
 .admin-searchbar {
-  --background: transparent;
+  width: 100%;
+  --background: #f8fafc;
+  --border-radius: 16px;
   --box-shadow: none;
-  --padding-start: 10px;
-  width: 250px;
-  margin: 0;
-  padding: 0;
+  --color: #102033;
+  --placeholder-color: #94a3b8;
 }
 
-.btn-buscar-tabla {
-  --background: linear-gradient(to right, #55d2db, #0056b3);
-  --border-radius: 10px;
-  --box-shadow: none;
-  height: 38px;
-  font-weight: bold;
-  margin: 0;
-  font-size: 0.85rem;
-}
+/* ===============================
+   TABLA
+   =============================== */
 
-/* Estilos de la Tabla */
 .table-responsive {
+  width: 100%;
   overflow-x: auto;
 }
 
 .custom-table {
   width: 100%;
+  min-width: 760px;
   border-collapse: collapse;
 }
 
 .custom-table th {
+  padding: 14px 12px;
+
+  border-bottom: 1px solid #e2e8f0;
+
+  color: #64748b;
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
   text-align: left;
-  color: #888;
-  font-size: 0.85rem;
-  padding: 15px 10px;
-  border-bottom: 1.5px solid #eee;
   text-transform: uppercase;
 }
 
 .custom-table td {
-  padding: 15px 10px;
-  border-bottom: 1px solid #f2f2f2;
+  padding: 16px 12px;
+  border-bottom: 1px solid #f1f5f9;
   vertical-align: middle;
 }
 
-/* Avatar y Nombre */
+.custom-table tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.custom-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+/* ===============================
+   USUARIO
+   =============================== */
+
 .user-cell {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 14px;
 }
 
 .user-avatar {
   width: 42px;
   height: 42px;
-  background: linear-gradient(to bottom, #3892e3, #1366b1);
-  color: white;
-  border-radius: 50%;
+  flex: 0 0 42px;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: bold;
-  font-size: 0.9rem;
+
+  border-radius: 14px;
+  background: linear-gradient(135deg, #0277bd, #0056b3);
+  color: #ffffff;
+
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 900;
 }
 
 .user-data {
+  min-width: 0;
   display: flex;
   flex-direction: column;
+  gap: 3px;
 }
 
 .user-name {
-  font-weight: 700;
-  color: #4a5d3f;
-  font-size: 0.95rem;
+  color: #102033;
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.92rem;
+  font-weight: 900;
 }
 
 .user-email {
-  color: #888;
-  font-size: 0.85rem;
+  color: #64748b;
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.82rem;
 }
 
-/* Badges */
-.badge-estado {
+/* ===============================
+   BADGES
+   =============================== */
+
+.badge-tipo,
+.badge-estado,
+.badge-riesgo {
+  min-width: 88px;
+  padding: 7px 11px;
+
   display: inline-flex;
   justify-content: center;
   align-items: center;
-  width: 95px;
-  padding: 6px 12px;
-  border-radius: 20px;
-  color: white;
-  font-size: 0.75rem;
-  font-weight: bold;
-  text-transform: uppercase;
-  box-sizing: border-box;
+
+  border-radius: 999px;
+
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 900;
+  line-height: 1;
   text-align: center;
+  text-transform: uppercase;
 }
 
-.badge-estado.activo { background-color: #7ab356; }
-.badge-estado.inactivo { background-color: #e65252; }
+.badge-tipo.admin {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.badge-tipo.user {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.badge-estado.activo {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.badge-estado.inactivo {
+  background: #fee2e2;
+  color: #b91c1c;
+}
 
 .badge-riesgo {
-  padding: 6px 16px;
-  border-radius: 20px;
-  color: white;
-  font-size: 0.75rem;
-  font-weight: bold;
-  display: inline-block;
-  min-width: 80px;
-  text-align: center;
-  text-transform: uppercase;
+  color: #ffffff;
 }
 
-/* Iconos */
+/* ===============================
+   ACCIONES
+   =============================== */
+
 .actions-cell {
-  font-size: 1.5rem;
-  color: #555;
   white-space: nowrap;
 }
 
-.actions-cell ion-icon {
-  margin-right: 15px;
+.actions-cell button {
+  width: 34px;
+  height: 34px;
+  margin-right: 6px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #64748b;
+
   cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.actions-cell button:hover {
+  transform: translateY(-1px);
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.actions-cell ion-icon {
+  font-size: 1.05rem;
+}
+
+.icon-delete {
+  color: #dc2626;
+}
+
+/* ===============================
+   ESTADOS TABLA
+   =============================== */
+
+.admin-table-state {
+  padding: 24px;
+
+  border-radius: 18px;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+
+  color: #64748b;
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.admin-table-state-error {
+  background: #fff1f2;
+  border-color: #fecdd3;
+  color: #be123c;
 }

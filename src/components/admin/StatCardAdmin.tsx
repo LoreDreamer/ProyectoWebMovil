@@ -6,7 +6,7 @@ export interface StatCardProps {
   title: string;
   value: string | number;
   icon: string;
-  label?: string; 
+  label?: string;
   variant?: 'default' | 'warning' | 'success';
 }
 
@@ -18,22 +18,21 @@ export const StatCardAdmin: React.FC<StatCardProps> = ({
   variant = 'default'
 }) => {
   return (
-    <div className={`stat-card ${variant}`}>
-      
-      {label && <div className="stat-label">{label}</div>}
-
-      <div className="stat-content">
-        <div className="stat-icon">
+    <article className={`admin-stat-card admin-stat-card-${variant}`}>
+      <div className="admin-stat-card-top">
+        <div className="admin-stat-icon">
           <IonIcon icon={icon} />
         </div>
 
-        <div className="stat-text">
-          <div className="stat-title">{title}</div>
-          <div className="stat-value">{value}</div>
-        </div>
+        {label && <span className="admin-stat-label">{label}</span>}
       </div>
-    </div>
+
+      <div className="admin-stat-content">
+        <span>{title}</span>
+        <strong>{value}</strong>
+      </div>
+    </article>
   );
 };
 
-export default  StatCardAdmin;
+export default StatCardAdmin;

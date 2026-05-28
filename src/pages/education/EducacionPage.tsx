@@ -201,11 +201,10 @@ export const EducationPage: React.FC = () => {
     (module) => module.status === 'Completado'
     );
 
-    const availableModules = modules.filter(
-      (module) => module.status !== 'Completado'
-    );
+  const availableModules = modules.filter(
+    (module) => module.status !== 'Completado');
 
-    const markModuleAsCompleted = (moduleId: string) => {
+  const markModuleAsCompleted = (moduleId: string) => {
     setModules((prevModules) =>
       prevModules.map((module) =>
         module.id === moduleId

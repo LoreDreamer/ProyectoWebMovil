@@ -21,7 +21,7 @@ interface UsuarioBackend {
   email?: string;
   correo?: string;
   role?: 'admin' | 'user';
-  tipo_usuario?: 'admin' | 'user' | string;
+  tipo_usuario?: 'admin' | 'user';
   nombre_completo?: string;
   name?: string;
   rut?: string;
@@ -29,7 +29,7 @@ interface UsuarioBackend {
   comuna?: string;
   estado?: string;
   estatus?: string;
-  creado_en?: string | null;
+  created_at?: string;
 }
 
 interface UsersApiResponse {
@@ -40,14 +40,14 @@ interface UsersApiResponse {
 }
 
 interface UsuarioRow {
-  id: number;
+  id: string;
   iniciales: string;
   nombre: string;
   email: string;
   estado: string;
+  tipoUsuario: string;
   riesgo: string;
   colorRiesgo: string;
-  tipoUsuario: string;
 }
 
 const API_URL = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
@@ -71,10 +71,22 @@ export const AdminPage: React.FC = () => {
     return initials || 'US';
   };
 
-  const normalizeStatus = (status?: string) => {
-    const normalized = String(status || 'activo')
+  const getRiskByIndex = (index: number) => {
+    const riesgos = [
+      { riesgo: 'BAJO', colorRiesgo: '#16a34a' },
+      { riesgo: 'MEDIO', colorRiesgo: '#f59e0b' },
+      { riesgo: 'ALTO', colorRiesgo: '#ef4444' }
+    ];
+
+    return riesgos[index % riesgos.length];
+  };
+
+  const normalizeStatus = (value?: string) => {
+    const normalized = String(value || '')
       .trim()
-      .toLowerCase();
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
 
     if (normalized === 'inactivo' || normalized === 'inactive') {
       return 'INACTIVO';
@@ -83,22 +95,12 @@ export const AdminPage: React.FC = () => {
     return 'ACTIVO';
   };
 
-  const normalizeRole = (role?: string) => {
-    const normalized = String(role || 'user')
+  const normalizeRole = (value?: string) => {
+    const normalized = String(value || '')
       .trim()
       .toLowerCase();
 
     return normalized === 'admin' ? 'ADMIN' : 'USER';
-  };
-
-  const getRiskByIndex = (index: number) => {
-    const riesgos = [
-      { riesgo: 'ALTO', colorRiesgo: '#ff6b6b' },
-      { riesgo: 'MEDIO', colorRiesgo: '#fcc419' },
-      { riesgo: 'BAJO', colorRiesgo: '#51cf66' }
-    ];
-
-    return riesgos[index % riesgos.length];
   };
 
   const loadUsers = async () => {
@@ -112,7 +114,6 @@ export const AdminPage: React.FC = () => {
       setUsersError('');
 
       const response = await fetch(`${API_URL}/api/auth/users`, {
-        method: 'GET',
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -123,12 +124,10 @@ export const AdminPage: React.FC = () => {
         .catch(() => []);
 
       if (!response.ok) {
-        const errorData = data as UsersApiResponse;
-
         throw new Error(
-          errorData?.message ||
-            errorData?.error ||
-            'No se pudieron cargar los usuarios'
+          !Array.isArray(data)
+            ? data.message || data.error || 'No se pudieron cargar los usuarios'
+            : 'No se pudieron cargar los usuarios'
         );
       }
 
@@ -144,33 +143,27 @@ export const AdminPage: React.FC = () => {
         const nombre =
           usuario.nombre_completo ||
           usuario.name ||
-          'Usuario sin nombre';
-
-        const email =
           usuario.email ||
           usuario.correo ||
-          'Sin correo';
-
-        const estado = normalizeStatus(usuario.estado || usuario.estatus);
-        const tipoUsuario = normalizeRole(usuario.role || usuario.tipo_usuario);
+          'Usuario sin nombre';
 
         return {
-          id: index + 1,
+          id: String(usuario.id || index + 1),
           iniciales: getInitials(nombre),
           nombre,
-          email,
-          estado,
+          email: usuario.email || usuario.correo || 'Sin correo',
+          estado: normalizeStatus(usuario.estado || usuario.estatus),
+          tipoUsuario: normalizeRole(usuario.role || usuario.tipo_usuario),
           riesgo: riskInfo.riesgo,
-          colorRiesgo: riskInfo.colorRiesgo,
-          tipoUsuario
+          colorRiesgo: riskInfo.colorRiesgo
         };
       });
 
       setUsuarios(mappedUsers);
     } catch (error: any) {
       console.error('Error al cargar usuarios:', error);
-      setUsersError(error.message || 'Error al cargar usuarios');
       setUsuarios([]);
+      setUsersError(error.message || 'Error al cargar usuarios.');
     } finally {
       setIsLoadingUsers(false);
     }
@@ -184,6 +177,10 @@ export const AdminPage: React.FC = () => {
     (usuario) => usuario.estado === 'ACTIVO'
   ).length;
 
+  const cantidadAdmins = usuarios.filter(
+    (usuario) => usuario.tipoUsuario === 'ADMIN'
+  ).length;
+
   return (
     <IonPage>
       <Navbar />
@@ -191,75 +188,81 @@ export const AdminPage: React.FC = () => {
       <IonContent className="admin-container">
         <div className="admin-content-wrapper">
           <header className="admin-header">
-            <h1>PANEL DE ADMINISTRACIÓN</h1>
-            <p>Gestiona usuarios, riesgo municipal, denuncias y publicaciones.</p>
+            <span className="admin-kicker">Panel municipal</span>
+
+            <h1>Panel de administración</h1>
+
+            <p>
+              Gestiona usuarios, revisa estadísticas generales y administra el
+              contenido publicado en la plataforma.
+            </p>
 
             {user && (
               <div className="admin-profile-summary">
                 <div>
                   <strong>Administrador</strong>
-                  <span>{user.nombre_completo || user.name || 'Administrador'}</span>
+                  <span>
+                    {user.nombre_completo || user.name || 'Administrador'}
+                  </span>
                 </div>
 
                 <div>
                   <strong>RUT</strong>
-                  <span>{user.rut || 'Sin RUT'}</span>
+                  <span>{user.rut || 'No registrado'}</span>
                 </div>
 
                 <div>
                   <strong>Ubicación</strong>
                   <span>
-                    {user.comuna || 'Sin comuna'}, {user.region || 'Sin región'}
+                    {user.comuna || 'Comuna'}, {user.region || 'Región'}
                   </span>
                 </div>
 
                 <div>
                   <strong>Correo</strong>
-                  <span>{user.email || user.correo}</span>
+                  <span>{user.email || user.correo || 'Sin correo'}</span>
                 </div>
               </div>
             )}
           </header>
 
-          <div className="stats-grid">
+          <div className="admin-stats-grid">
             <StatCardAdmin
               icon={documentTextOutline}
-              title="Usuarios Registrados"
-              value={String(usuarios.length)}
+              title="Usuarios registrados"
+              value={isLoadingUsers ? '...' : usuarios.length}
               label={`${cantidadUsuariosActivos} activos`}
             />
 
             <StatCardAdmin
               icon={warningOutline}
-              title="Riesgo Promedio"
+              title="Riesgo promedio"
               value="Medio"
               label="Datos de prueba"
+              variant="warning"
             />
 
             <StatCardAdmin
               icon={mailOutline}
-              title="Denuncias Recibidas"
+              title="Denuncias recibidas"
               value="27"
               label="+3 sin atender"
             />
 
             <StatCardAdmin
               icon={checkmarkCircleOutline}
-              title="Protocolos Publicados"
-              value="27"
-              label="2 nuevos"
+              title="Administradores"
+              value={isLoadingUsers ? '...' : cantidadAdmins}
+              label="Cuentas admin"
+              variant="success"
             />
           </div>
 
-          {isLoadingUsers && <p>Cargando usuarios registrados...</p>}
-
-          {usersError && (
-            <p style={{ color: '#c92a2a', fontWeight: 600 }}>
-              {usersError}
-            </p>
-          )}
-
-          <UserRow usuarios={usuarios} />
+          <UserRow
+            usuarios={usuarios}
+            isLoading={isLoadingUsers}
+            error={usersError}
+          />
 
           <div className="forms-container-grid">
             <ActivityPanel />

@@ -1,81 +1,97 @@
-.stat-card {
-   background: white;
-   border-radius: 20px;
-   /* Aumentamos el padding superior para "bajar" todo lo que esté adentro */
-   padding: 40px 25px 25px 25px;
-   box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-   display: flex;
-   flex-direction: column;
-   position: relative;
-   min-height: 140px;
- }
+.admin-stat-card {
+  min-height: 145px;
+  padding: 20px;
 
-/* EL BADGE (Se queda fijo arriba) */
-.stat-label {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  font-size: 11px;
-  background: #f0f0f0;
-  padding: 4px 10px;
-  border-radius: 10px;
-  color: #666;
-  font-weight: 700;
-  text-transform: uppercase;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 18px;
+
+  border-radius: 22px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
 }
 
-/* EL CONTENIDO (Icono + Texto) */
-.stat-content {
-   display: flex;
-   align-items: center;
-   gap: 12px;
-   /* Este margen asegura que el contenido empiece más abajo del badge */
-   margin-top: 10px; 
-   width: 100%;
+.admin-stat-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(14, 165, 233, 0.28);
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.1);
 }
 
-.stat-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 14px;
-  background: #f2f2f2;
+.admin-stat-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.admin-stat-icon {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 40px;
-  color: #333;
-  flex-shrink: 0;
+
+  border-radius: 15px;
+  background: #e0f2fe;
+  color: #0369a1;
+  font-size: 1.45rem;
 }
 
-.stat-text {
+.admin-stat-label {
+  max-width: 130px;
+  padding: 6px 10px;
+
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #64748b;
+
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 900;
+  line-height: 1.15;
+  text-transform: uppercase;
+  text-align: right;
+}
+
+.admin-stat-content {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
+  gap: 6px;
 }
 
-.stat-title {
-  font-size: 14px;
-  color: #4b5d3a;
-  font-weight: 600;
+.admin-stat-content span {
+  color: #64748b;
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.83rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
   text-transform: uppercase;
-  margin: 0;
-  line-height: 1.1;
 }
 
-.stat-value {
-   font-size: 46px;
-   font-weight: 700;
-   color: #2f3e2f;
-   margin-top: 6px;
-   line-height: 1;
- }
+.admin-stat-content strong {
+  color: #102033;
+  font-family: 'Archivo Black', 'Archivo', sans-serif;
+  font-size: 2.1rem;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
 
-/* VARIANTES */
-.stat-card.warning .stat-icon { background: #ffe9b3; color: #a67c00; }
-.stat-card.success .stat-icon { background: #d4f5d0; color: #2e7d32; }
+.admin-stat-card-warning .admin-stat-icon {
+  background: #fef3c7;
+  color: #b45309;
+}
 
-.stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+.admin-stat-card-success .admin-stat-icon {
+  background: #dcfce7;
+  color: #15803d;
 }
