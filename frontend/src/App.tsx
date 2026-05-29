@@ -37,6 +37,8 @@ import {
   AdminPage
 } from './pages';
 
+import { QuestionnaireTakePage } from './pages/questionnaires/QuestionnaireTakePage';
+
 import { AuthProvider, useAuth } from './context/AuthContext';
 import '@ionic/react/css/core.css';
 import '@ionic/react/css/normalize.css';
@@ -119,6 +121,16 @@ const AppRoutes: React.FC = () => {
           <Route exact path="/educacion" component={EducationPage} />
           <Route exact path="/denuncias" component={ComplaintsPage} />
           <Route exact path="/cuestionarios" component={QuestionnairePage} />
+
+          <Route
+            exact
+            path="/cuestionarios/:id/resolver"
+            render={() => {
+              if (!user) return <Redirect to="/login" />;
+              return <QuestionnaireTakePage />;
+            }}
+          />
+
           <Route exact path="/protocolos" component={ProtocolsPage} />
           <Route exact path="/alertas" component={NewsPage} />
 

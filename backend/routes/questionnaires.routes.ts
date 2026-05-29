@@ -7,7 +7,10 @@ import {
   updateQuestionnaire,
   deleteQuestionnaire,
   getMyQuestionnaireProgress,
-  completeQuestionnaire
+  completeQuestionnaire,
+  importQuestionnaireExercises,
+  getQuestionnaireToResolve,
+  respondQuestionnaire
 } from '../controllers/questionnaires.controller';
 
 import {
@@ -36,6 +39,15 @@ const allowedDocumentMimeTypes = [
 ];
 
 const allowedDocumentExtensions = ['.pdf', '.doc', '.docx'];
+
+const allowedCsvMimeTypes = [
+  'text/csv',
+  'text/plain',
+  'application/csv',
+  'application/vnd.ms-excel'
+];
+
+const allowedCsvExtensions = ['.csv', '.txt'];
 
 const getFileExtension = (fileName: string) => {
   const lastDot = fileName.lastIndexOf('.');
@@ -93,11 +105,38 @@ const upload = multer({
   }
 });
 
+const uploadCsv = multer({
+  storage,
+  limits: {
+    fileSize: MAX_FILE_SIZE_MB * 1024 * 1024,
+    files: 1
+  },
+  fileFilter: (_req, file, cb) => {
+    const extension = getFileExtension(file.originalname);
+
+    const isValidCsv =
+      allowedCsvMimeTypes.includes(file.mimetype) ||
+      allowedCsvExtensions.includes(extension);
+
+    if (!isValidCsv) {
+      return cb(
+        new Error(
+          'Formato de CSV no permitido. Solo se permiten archivos CSV o TXT.'
+        )
+      );
+    }
+
+    return cb(null, true);
+  }
+});
+
 const uploadQuestionnaireFiles = upload.fields([
   { name: 'portada', maxCount: 1 },
   { name: 'archivo', maxCount: 1 },
   { name: 'imagenes', maxCount: MAX_IMAGES }
 ]);
+
+const uploadCsvFile = uploadCsv.single('csv');
 
 const handleMulterError = (
   err: unknown,
@@ -135,16 +174,29 @@ const handleMulterError = (
 router.get('/', getQuestionnaires);
 
 /* =============================== */
-/* RUTAS DE PROGRESO USUARIO */
+/* RUTAS DE PROGRESO Y RESOLUCIÓN */
 /* =============================== */
 
 router.get('/progress/me', authenticateToken, getMyQuestionnaireProgress);
+
+router.get('/:id/resolver', authenticateToken, getQuestionnaireToResolve);
+
+router.post('/:id/responder', authenticateToken, respondQuestionnaire);
 
 router.post('/:id/complete', authenticateToken, completeQuestionnaire);
 
 /* =============================== */
 /* RUTAS ADMIN */
 /* =============================== */
+
+router.post(
+  '/:id/importar-ejercicios',
+  authenticateToken,
+  requireAdmin,
+  uploadCsvFile,
+  handleMulterError,
+  importQuestionnaireExercises
+);
 
 router.post(
   '/',

@@ -97,3 +97,68 @@
   gap: 8px;
   flex-shrink: 0;
 }
+
+/* =============================== */
+/* IMPORTADOR CSV EN PANEL ADMIN */
+/* =============================== */
+
+.questionnaire-csv-panel {
+  background: transparent;
+}
+
+.questionnaire-csv-form {
+  margin-top: 18px;
+}
+
+.questionnaire-csv-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1.3fr auto;
+  gap: 14px;
+  align-items: end;
+}
+
+.questionnaire-csv-grid label {
+  display: grid;
+  gap: 7px;
+  color: #334155;
+  font-weight: 800;
+}
+
+.questionnaire-csv-grid select,
+.questionnaire-csv-grid input {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid #dbe4ef;
+  border-radius: 12px;
+  padding: 8px 12px;
+  background: #f8fafc;
+  color: #111827;
+}
+
+.questionnaire-csv-grid button {
+  min-height: 42px;
+  border: 0;
+  border-radius: 12px;
+  padding: 0 18px;
+  font-weight: 900;
+  cursor: pointer;
+  color: #ffffff;
+  background: linear-gradient(90deg, #4dd0e1, #0d47a1);
+}
+
+.questionnaire-csv-grid button:disabled,
+.questionnaire-csv-grid select:disabled,
+.questionnaire-csv-grid input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 767px) {
+  .questionnaire-csv-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .questionnaire-csv-grid button {
+    width: 100%;
+  }
+}

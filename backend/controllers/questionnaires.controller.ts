@@ -41,7 +41,30 @@ interface CuestionarioDB {
   archivo_url: string | null;
   archivo_nombre: string | null;
   archivo_tipo: string | null;
-  imagenes: string[] | null;
+  imagenes: Array<string | QuestionnaireImage> | null;
+  creado_en?: string | null;
+}
+
+interface EjercicioCuestionarioDB {
+  id: string;
+  pregunta: string;
+  respuesta: string;
+  alternativas: string[];
+  cuestionario_id: string | null;
+  puntaje: number;
+  orden: number;
+}
+
+interface RespuestaDetalle {
+  ejercicio_id: string;
+  pregunta: string;
+  alternativas: string[];
+  respuesta_usuario: string;
+  respuesta_correcta: string;
+  correcta: boolean;
+  puntaje: number;
+  puntaje_obtenido: number;
+  orden: number;
 }
 
 interface CuestionarioUsuarioDB {
@@ -50,7 +73,20 @@ interface CuestionarioUsuarioDB {
   cuestionario_id: string;
   fecha_respuesta: string;
   puntaje_obtenido: number | null;
-  estatus: string | null;
+  estatus: string;
+  respuestas?: RespuestaDetalle[] | null;
+}
+
+interface RespuestaUsuarioPayload {
+  ejercicio_id?: string;
+  ejercicioId?: string;
+  id?: string;
+  respuesta?: string;
+  respuesta_usuario?: string;
+  respuestaUsuario?: string;
+  alternativa?: string;
+  alternativa_id?: string;
+  alternativaId?: string;
 }
 
 interface AuthenticatedUser {
@@ -62,14 +98,14 @@ interface AuthenticatedUser {
 const QUESTIONNAIRES_TABLE =
   process.env.SUPABASE_QUESTIONNAIRES_TABLE || 'cuestionario';
 
+const EJERCICIO_CUESTIONARIO_TABLE = 'ejercicio_cuestionario';
 const CUESTIONARIO_USUARIO_TABLE = 'cuestionario_usuario';
 
 const STORAGE_BUCKET =
   process.env.SUPABASE_STORAGE_BUCKET?.trim() || 'municipal-files';
 
-/* =============================== */
-/* HELPERS GENERALES */
-/* =============================== */
+const DEFAULT_COVER_IMAGE =
+  'https://images.unsplash.com/photo-1563986768494-4dee2763ff3f?auto=format&fit=crop&w=1200&q=80';
 
 const getAuthenticatedUser = (req: Request): AuthenticatedUser | null => {
   const user = (req as any).user;
@@ -81,6 +117,21 @@ const getAuthenticatedUser = (req: Request): AuthenticatedUser | null => {
     email: String(user.email || ''),
     role: user.role === 'admin' ? 'admin' : 'user'
   };
+};
+
+const normalizeText = (value?: string | null): string => {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ');
+};
+
+const normalizeHeader = (value?: string | null): string => {
+  return normalizeText(value)
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
 };
 
 const buildStoragePathFromPublicUrl = (url?: string | null): string => {
@@ -119,11 +170,7 @@ const parseJsonArray = <T>(value: unknown): T[] => {
 };
 
 const normalizeRiskForDB = (value?: string): string => {
-  const normalized = String(value || '')
-    .trim()
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '');
+  const normalized = normalizeText(value);
 
   if (normalized === 'alto') return 'alto';
   if (normalized === 'bajo') return 'bajo';
@@ -140,12 +187,8 @@ const normalizeRiskForFrontend = (value?: string | null): string => {
   return 'MEDIO';
 };
 
-const normalizeQuestionnaireStatus = (value?: string | null): string => {
-  const normalized = String(value || '')
-    .trim()
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '');
+const normalizeStatus = (value?: string | null): string => {
+  const normalized = normalizeText(value);
 
   if (normalized === 'pendiente') return 'pendiente';
   if (normalized === 'en proceso' || normalized === 'en_proceso') {
@@ -153,22 +196,6 @@ const normalizeQuestionnaireStatus = (value?: string | null): string => {
   }
 
   return 'completado';
-};
-
-const normalizeScore = (
-  value: unknown,
-  fallbackValue: number
-): number => {
-  const parsed = Number(value);
-
-  if (!Number.isFinite(parsed)) return fallbackValue;
-
-  const rounded = Math.round(parsed);
-
-  if (rounded < 0) return 0;
-  if (rounded > fallbackValue) return fallbackValue;
-
-  return rounded;
 };
 
 const getFilesFromRequest = (req: Request) => {
@@ -185,90 +212,81 @@ const getFilesFromRequest = (req: Request) => {
   };
 };
 
-/* =============================== */
-/* IMÁGENES */
-/* =============================== */
+const getUploadedCsvFile = (req: Request): Express.Multer.File | null => {
+  if (req.file) return req.file;
 
-const normalizeImagesFromUrls = (
-  imageUrls: string[]
+  const files = req.files as
+    | {
+        [fieldname: string]: Express.Multer.File[];
+      }
+    | undefined;
+
+  return (
+    files?.csv?.[0] ||
+    files?.archivo_csv?.[0] ||
+    files?.preguntas?.[0] ||
+    files?.ejercicios?.[0] ||
+    null
+  );
+};
+
+const normalizeImagesFromDb = (
+  rawImages: Array<string | QuestionnaireImage> | null | undefined
 ): NormalizedQuestionnaireImage[] => {
-  return imageUrls
-    .filter(isNonEmptyString)
-    .map((imageUrl: string, index: number): NormalizedQuestionnaireImage => {
-      const imagePath = buildStoragePathFromPublicUrl(imageUrl);
-      const imageName = `imagen-${index + 1}`;
+  if (!Array.isArray(rawImages)) return [];
+
+  return rawImages
+    .map((imageItem, index): NormalizedQuestionnaireImage => {
+      if (typeof imageItem === 'string') {
+        const imageUrl = imageItem;
+        const imagePath = buildStoragePathFromPublicUrl(imageUrl);
+        const imageName = `imagen-${index + 1}`;
+
+        return {
+          id: `${index + 1}-${imageUrl || imageName}`,
+          name: imageName,
+          originalName: imageName,
+          previewUrl: imageUrl,
+          url: imageUrl,
+          path: imagePath,
+          type: '',
+          size: null,
+          order: index + 1
+        };
+      }
+
+      const imageUrl = imageItem.url || imageItem.previewUrl || '';
+      const imagePath =
+        imageItem.path || buildStoragePathFromPublicUrl(imageUrl);
+      const imageName =
+        imageItem.name || imageItem.originalName || `imagen-${index + 1}`;
 
       return {
-        id: `${index + 1}-${imageUrl}`,
+        id: imageItem.id || `${index + 1}-${imageUrl || imagePath || imageName}`,
         name: imageName,
-        originalName: imageName,
-        previewUrl: imageUrl,
+        originalName: imageItem.originalName || imageName,
+        previewUrl: imageItem.previewUrl || imageUrl,
         url: imageUrl,
         path: imagePath,
-        type: '',
-        size: null,
-        order: index + 1
+        type: imageItem.type || '',
+        size: typeof imageItem.size === 'number' ? imageItem.size : null,
+        order: imageItem.order || index + 1
       };
-    });
+    })
+    .filter((imageItem) => {
+      if (!imageItem.url && !imageItem.path) return false;
+      if (imageItem.url.startsWith('blob:')) return false;
+      if (imageItem.url.startsWith('data:')) return false;
+
+      return true;
+    })
+    .sort((a, b) => a.order - b.order);
 };
 
 const normalizeImagePayload = (
   images: Array<QuestionnaireImage | string>
 ): NormalizedQuestionnaireImage[] => {
-  return images
-    .map(
-      (
-        imageItem: QuestionnaireImage | string,
-        index: number
-      ): NormalizedQuestionnaireImage => {
-        if (typeof imageItem === 'string') {
-          const imageUrl = imageItem;
-          const imagePath = buildStoragePathFromPublicUrl(imageUrl);
-          const imageName = `imagen-${index + 1}`;
-
-          return {
-            id: `${index + 1}-${imageUrl || imageName}`,
-            name: imageName,
-            originalName: imageName,
-            previewUrl: imageUrl,
-            url: imageUrl,
-            path: imagePath,
-            type: '',
-            size: null,
-            order: index + 1
-          };
-        }
-
-        const imageUrl = imageItem.url || imageItem.previewUrl || '';
-        const imagePath =
-          imageItem.path || buildStoragePathFromPublicUrl(imageUrl);
-        const imageName =
-          imageItem.name || imageItem.originalName || `imagen-${index + 1}`;
-        const imageId =
-          imageItem.id || `${index + 1}-${imageUrl || imagePath || imageName}`;
-
-        return {
-          id: imageId,
-          name: imageName,
-          originalName: imageItem.originalName || imageName,
-          previewUrl: imageItem.previewUrl || imageUrl,
-          url: imageUrl,
-          path: imagePath,
-          type: imageItem.type || '',
-          size: typeof imageItem.size === 'number' ? imageItem.size : null,
-          order: index + 1
-        };
-      }
-    )
-    .filter((imageItem: NormalizedQuestionnaireImage): boolean => {
-      const imageUrl = imageItem.url || '';
-
-      if (!imageUrl) return false;
-      if (imageUrl.startsWith('blob:')) return false;
-      if (imageUrl.startsWith('data:')) return false;
-
-      return true;
-    });
+  return normalizeImagesFromDb(images);
 };
 
 const mapUploadedFileToQuestionnaireImage = (
@@ -292,12 +310,8 @@ const mapUploadedFileToQuestionnaireImage = (
   };
 };
 
-/* =============================== */
-/* MAPPERS */
-/* =============================== */
-
 const mapQuestionnaireResponse = (item: CuestionarioDB) => {
-  const images = normalizeImagesFromUrls(item.imagenes || []);
+  const images = normalizeImagesFromDb(item.imagenes || []);
   const risk = normalizeRiskForFrontend(item.riesgo);
 
   return {
@@ -315,10 +329,10 @@ const mapQuestionnaireResponse = (item: CuestionarioDB) => {
 
     category: 'General',
 
-    questionsCount: item.puntaje_maximo || 10,
-    questions_count: item.puntaje_maximo || 10,
-    puntajeMaximo: item.puntaje_maximo || 10,
-    puntaje_maximo: item.puntaje_maximo || 10,
+    questionsCount: item.puntaje_maximo || 0,
+    questions_count: item.puntaje_maximo || 0,
+    puntajeMaximo: item.puntaje_maximo || 0,
+    puntaje_maximo: item.puntaje_maximo || 0,
 
     coverUrl: item.cover_img || '',
     cover_img: item.cover_img || '',
@@ -331,12 +345,16 @@ const mapQuestionnaireResponse = (item: CuestionarioDB) => {
     archivo_tipo: item.archivo_tipo || '',
 
     images,
-    imagenes: images
+    imagenes: images,
+
+    createdAt: item.creado_en || null,
+    creado_en: item.creado_en || null
   };
 };
 
-const mapCuestionarioUsuarioResponse = (item: CuestionarioUsuarioDB) => {
-  const estatus = normalizeQuestionnaireStatus(item.estatus);
+const mapProgressResponse = (item: CuestionarioUsuarioDB) => {
+  const estatus = normalizeStatus(item.estatus);
+  const respuestas = Array.isArray(item.respuestas) ? item.respuestas : [];
 
   return {
     id: item.id,
@@ -356,13 +374,11 @@ const mapCuestionarioUsuarioResponse = (item: CuestionarioUsuarioDB) => {
     score: item.puntaje_obtenido || 0,
 
     estatus,
-    status: estatus === 'completado' ? 'Completado' : 'Pendiente'
+    status: estatus === 'completado' ? 'Completado' : 'Pendiente',
+
+    respuestas
   };
 };
-
-/* =============================== */
-/* CONSULTAS AUXILIARES */
-/* =============================== */
 
 const getCurrentQuestionnaire = async (
   id: string
@@ -378,9 +394,232 @@ const getCurrentQuestionnaire = async (
   return data as CuestionarioDB;
 };
 
-/* =============================== */
-/* CUESTIONARIOS - CRUD */
-/* =============================== */
+const getQuestionnaireExercises = async (
+  questionnaireId: string
+): Promise<EjercicioCuestionarioDB[]> => {
+  const { data, error } = await supabase
+    .from(EJERCICIO_CUESTIONARIO_TABLE)
+    .select('id, pregunta, respuesta, alternativas, cuestionario_id, puntaje, orden')
+    .eq('cuestionario_id', questionnaireId)
+    .order('orden', { ascending: true });
+
+  if (error) {
+    throw error;
+  }
+
+  return (data || []) as EjercicioCuestionarioDB[];
+};
+
+const getUserQuestionnaireProgress = async (
+  userId: string,
+  questionnaireId: string
+): Promise<CuestionarioUsuarioDB | null> => {
+  const { data, error } = await supabase
+    .from(CUESTIONARIO_USUARIO_TABLE)
+    .select(
+      'id, usuario_id, cuestionario_id, fecha_respuesta, puntaje_obtenido, estatus, respuestas'
+    )
+    .eq('usuario_id', userId)
+    .eq('cuestionario_id', questionnaireId)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return data as CuestionarioUsuarioDB | null;
+};
+
+const parseCsvLine = (line: string, separator = ';'): string[] => {
+  const result: string[] = [];
+  let current = '';
+  let inQuotes = false;
+
+  for (let index = 0; index < line.length; index += 1) {
+    const char = line[index];
+    const next = line[index + 1];
+
+    if (char === '"' && inQuotes && next === '"') {
+      current += '"';
+      index += 1;
+      continue;
+    }
+
+    if (char === '"') {
+      inQuotes = !inQuotes;
+      continue;
+    }
+
+    if (char === separator && !inQuotes) {
+      result.push(current.trim());
+      current = '';
+      continue;
+    }
+
+    current += char;
+  }
+
+  result.push(current.trim());
+
+  return result;
+};
+
+const resolveCorrectAnswer = (
+  rawValue: string,
+  alternatives: string[],
+  rowNumber: number
+): string => {
+  const value = String(rawValue || '').trim();
+
+  if (!value) {
+    throw new Error(`Fila ${rowNumber}: falta respuesta_correcta.`);
+  }
+
+  const normalized = normalizeText(value);
+
+  const letterMap: Record<string, number> = {
+    a: 0,
+    b: 1,
+    c: 2,
+    d: 3,
+    e: 4,
+    f: 5
+  };
+
+  if (typeof letterMap[normalized] === 'number') {
+    const index = letterMap[normalized];
+
+    if (!alternatives[index]) {
+      throw new Error(
+        `Fila ${rowNumber}: respuesta_correcta "${value}" no tiene alternativa asociada.`
+      );
+    }
+
+    return alternatives[index];
+  }
+
+  const numberValue = Number(normalized);
+
+  if (Number.isInteger(numberValue) && numberValue >= 1) {
+    const index = numberValue - 1;
+
+    if (!alternatives[index]) {
+      throw new Error(
+        `Fila ${rowNumber}: respuesta_correcta "${value}" no tiene alternativa asociada.`
+      );
+    }
+
+    return alternatives[index];
+  }
+
+  const exactAlternative = alternatives.find(
+    (alternative) => normalizeText(alternative) === normalized
+  );
+
+  if (exactAlternative) {
+    return exactAlternative;
+  }
+
+  throw new Error(
+    `Fila ${rowNumber}: respuesta_correcta "${value}" no coincide con ninguna alternativa.`
+  );
+};
+
+const parseExercisesCsv = (
+  file: Express.Multer.File,
+  questionnaireId: string
+) => {
+  const csvText = file.buffer.toString('utf8').replace(/^\uFEFF/, '');
+  const rawLines = csvText
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  if (rawLines.length < 2) {
+    throw new Error(
+      'El CSV debe incluir una fila de encabezados y al menos una pregunta.'
+    );
+  }
+
+  const headers = parseCsvLine(rawLines[0]).map(normalizeHeader);
+
+  const getCell = (cells: string[], aliases: string[]) => {
+    for (const alias of aliases.map(normalizeHeader)) {
+      const index = headers.indexOf(alias);
+
+      if (index !== -1) {
+        return cells[index] || '';
+      }
+    }
+
+    return '';
+  };
+
+  return rawLines.slice(1).map((line, index) => {
+    const rowNumber = index + 2;
+    const cells = parseCsvLine(line);
+
+    const pregunta = getCell(cells, ['pregunta', 'enunciado']).trim();
+
+    const alternatives = [
+      getCell(cells, ['alternativa_a', 'opcion_a', 'a']),
+      getCell(cells, ['alternativa_b', 'opcion_b', 'b']),
+      getCell(cells, ['alternativa_c', 'opcion_c', 'c']),
+      getCell(cells, ['alternativa_d', 'opcion_d', 'd']),
+      getCell(cells, ['alternativa_e', 'opcion_e', 'e']),
+      getCell(cells, ['alternativa_f', 'opcion_f', 'f'])
+    ]
+      .map((value) => value.trim())
+      .filter(Boolean);
+
+    const respuestaCorrectaRaw = getCell(cells, [
+      'respuesta_correcta',
+      'respuesta',
+      'correcta'
+    ]);
+
+    const puntajeRaw = getCell(cells, ['puntaje', 'puntos']);
+    const ordenRaw = getCell(cells, ['orden']);
+
+    if (!pregunta) {
+      throw new Error(`Fila ${rowNumber}: falta la pregunta.`);
+    }
+
+    if (alternatives.length < 2) {
+      throw new Error(
+        `Fila ${rowNumber}: cada pregunta debe tener al menos 2 alternativas.`
+      );
+    }
+
+    const respuesta = resolveCorrectAnswer(
+      respuestaCorrectaRaw,
+      alternatives,
+      rowNumber
+    );
+
+    const parsedScore = Number(puntajeRaw || 1);
+    const parsedOrder = Number(ordenRaw || index + 1);
+
+    const puntaje =
+      Number.isFinite(parsedScore) && parsedScore > 0
+        ? Math.round(parsedScore)
+        : 1;
+
+    const orden =
+      Number.isFinite(parsedOrder) && parsedOrder > 0
+        ? Math.round(parsedOrder)
+        : index + 1;
+
+    return {
+      pregunta,
+      respuesta,
+      alternativas: alternatives,
+      cuestionario_id: questionnaireId,
+      puntaje,
+      orden
+    };
+  });
+};
 
 export const getQuestionnaires = async (_req: Request, res: Response) => {
   try {
@@ -389,9 +628,7 @@ export const getQuestionnaires = async (_req: Request, res: Response) => {
       .select('*')
       .order('titulo', { ascending: true });
 
-    if (error) {
-      throw error;
-    }
+    if (error) throw error;
 
     const questionnaires = (data || []) as CuestionarioDB[];
 
@@ -443,11 +680,11 @@ export const createQuestionnaire = async (req: Request, res: Response) => {
     const finalRisk = normalizeRiskForDB(risk || riesgo || difficulty);
 
     const score = Number(
-      puntajeMaximo || puntaje_maximo || questionsCount || questions_count || 10
+      puntajeMaximo || puntaje_maximo || questionsCount || questions_count || 0
     );
 
     const finalScore =
-      Number.isFinite(score) && score > 0 ? Math.round(score) : 10;
+      Number.isFinite(score) && score >= 0 ? Math.round(score) : 0;
 
     if (!finalTitle || !finalDescription) {
       return res.status(400).json({
@@ -477,10 +714,7 @@ export const createQuestionnaire = async (req: Request, res: Response) => {
     );
 
     uploadedImagesPayload = uploadedImages.map(
-      (
-        uploadedFile: UploadedStorageFile,
-        index: number
-      ): NormalizedQuestionnaireImage =>
+      (uploadedFile: UploadedStorageFile, index: number) =>
         mapUploadedFileToQuestionnaireImage(uploadedFile, index)
     );
 
@@ -493,10 +727,10 @@ export const createQuestionnaire = async (req: Request, res: Response) => {
 
     const existingImages = normalizeImagePayload(parsedImages);
 
-    const finalImages = [...existingImages, ...uploadedImagesPayload].slice(
-      0,
-      10
-    );
+    const finalImages = [
+      ...existingImages,
+      ...uploadedImagesPayload
+    ].slice(0, 10);
 
     const imageUrls = finalImages
       .map((imageItem: NormalizedQuestionnaireImage): string => imageItem.url)
@@ -506,7 +740,7 @@ export const createQuestionnaire = async (req: Request, res: Response) => {
       titulo: finalTitle,
       resumen: finalDescription,
       riesgo: finalRisk,
-      cover_img: uploadedCover?.url || coverUrl || cover_img || null,
+      cover_img: uploadedCover?.url || coverUrl || cover_img || DEFAULT_COVER_IMAGE,
       puntaje_maximo: finalScore,
       archivo_url: uploadedDocument?.url || fileUrl || archivo_url || null,
       archivo_nombre:
@@ -525,9 +759,7 @@ export const createQuestionnaire = async (req: Request, res: Response) => {
       await deleteFilesFromStorage([
         uploadedCover?.path,
         uploadedDocument?.path,
-        ...uploadedImagesPayload.map(
-          (imageItem: NormalizedQuestionnaireImage): string => imageItem.path
-        )
+        ...uploadedImagesPayload.map((imageItem) => imageItem.path)
       ]);
 
       throw error;
@@ -540,9 +772,7 @@ export const createQuestionnaire = async (req: Request, res: Response) => {
     await deleteFilesFromStorage([
       uploadedCover?.path,
       uploadedDocument?.path,
-      ...uploadedImagesPayload.map(
-        (imageItem: NormalizedQuestionnaireImage): string => imageItem.path
-      )
+      ...uploadedImagesPayload.map((imageItem) => imageItem.path)
     ]);
 
     console.error('Error en createQuestionnaire:', error);
@@ -611,11 +841,11 @@ export const updateQuestionnaire = async (req: Request, res: Response) => {
         questionsCount ||
         questions_count ||
         actual.puntaje_maximo ||
-        10
+        0
     );
 
     const finalScore =
-      Number.isFinite(score) && score > 0 ? Math.round(score) : 10;
+      Number.isFinite(score) && score >= 0 ? Math.round(score) : 0;
 
     if (!finalTitle || !finalDescription) {
       return res.status(400).json({
@@ -625,7 +855,7 @@ export const updateQuestionnaire = async (req: Request, res: Response) => {
 
     const { portada, archivo, imagenes } = getFilesFromRequest(req);
 
-    let finalCoverUrl = actual.cover_img;
+    let finalCoverUrl = actual.cover_img || DEFAULT_COVER_IMAGE;
     let finalFileUrl = actual.archivo_url;
     let finalFileName = actual.archivo_nombre;
     let finalFileType = actual.archivo_tipo;
@@ -635,7 +865,7 @@ export const updateQuestionnaire = async (req: Request, res: Response) => {
 
     if (removeCover === 'true') {
       oldCoverPathToDelete = buildStoragePathFromPublicUrl(actual.cover_img);
-      finalCoverUrl = null;
+      finalCoverUrl = DEFAULT_COVER_IMAGE;
     }
 
     if (portada) {
@@ -670,13 +900,13 @@ export const updateQuestionnaire = async (req: Request, res: Response) => {
       finalFileType = uploadedDocument.type;
     }
 
-    if (!archivo && !removeFile && (fileUrl || archivo_url)) {
+    if (!archivo && removeFile !== 'true' && (fileUrl || archivo_url)) {
       finalFileUrl = fileUrl || archivo_url;
       finalFileName = fileName || archivo_nombre || finalFileName;
       finalFileType = archivo_tipo || finalFileType;
     }
 
-    if (!portada && !removeCover && (coverUrl || cover_img)) {
+    if (!portada && removeCover !== 'true' && (coverUrl || cover_img)) {
       finalCoverUrl = coverUrl || cover_img;
     }
 
@@ -691,7 +921,7 @@ export const updateQuestionnaire = async (req: Request, res: Response) => {
             images || req.body.imagenes || imagenesOrden
           )
         )
-      : normalizeImagesFromUrls(actual.imagenes || []);
+      : normalizeImagesFromDb(actual.imagenes || []);
 
     const uploadedImages = await uploadFilesToStorage(
       imagenes,
@@ -699,10 +929,7 @@ export const updateQuestionnaire = async (req: Request, res: Response) => {
     );
 
     uploadedImagesPayload = uploadedImages.map(
-      (
-        uploadedFile: UploadedStorageFile,
-        index: number
-      ): NormalizedQuestionnaireImage =>
+      (uploadedFile: UploadedStorageFile, index: number) =>
         mapUploadedFileToQuestionnaireImage(
           uploadedFile,
           requestedExistingImages.length + index
@@ -716,7 +943,7 @@ export const updateQuestionnaire = async (req: Request, res: Response) => {
       .map((imageItem: NormalizedQuestionnaireImage): string => imageItem.url)
       .filter(isNonEmptyString);
 
-    const currentImagePaths = normalizeImagesFromUrls(actual.imagenes || [])
+    const currentImagePaths = normalizeImagesFromDb(actual.imagenes || [])
       .map((imageItem: NormalizedQuestionnaireImage): string => {
         return imageItem.path || buildStoragePathFromPublicUrl(imageItem.url);
       })
@@ -736,7 +963,7 @@ export const updateQuestionnaire = async (req: Request, res: Response) => {
       titulo: finalTitle,
       resumen: finalDescription,
       riesgo: finalRisk,
-      cover_img: finalCoverUrl,
+      cover_img: finalCoverUrl || DEFAULT_COVER_IMAGE,
       puntaje_maximo: finalScore,
       archivo_url: finalFileUrl,
       archivo_nombre: finalFileName,
@@ -755,9 +982,7 @@ export const updateQuestionnaire = async (req: Request, res: Response) => {
       await deleteFilesFromStorage([
         uploadedCover?.path,
         uploadedDocument?.path,
-        ...uploadedImagesPayload.map(
-          (imageItem: NormalizedQuestionnaireImage): string => imageItem.path
-        )
+        ...uploadedImagesPayload.map((imageItem) => imageItem.path)
       ]);
 
       throw error;
@@ -774,9 +999,7 @@ export const updateQuestionnaire = async (req: Request, res: Response) => {
     await deleteFilesFromStorage([
       uploadedCover?.path,
       uploadedDocument?.path,
-      ...uploadedImagesPayload.map(
-        (imageItem: NormalizedQuestionnaireImage): string => imageItem.path
-      )
+      ...uploadedImagesPayload.map((imageItem) => imageItem.path)
     ]);
 
     console.error('Error en updateQuestionnaire:', error);
@@ -805,6 +1028,11 @@ export const deleteQuestionnaire = async (req: Request, res: Response) => {
       .delete()
       .eq('cuestionario_id', questionnaireId);
 
+    await supabase
+      .from(EJERCICIO_CUESTIONARIO_TABLE)
+      .delete()
+      .eq('cuestionario_id', questionnaireId);
+
     const { error } = await supabase
       .from(QUESTIONNAIRES_TABLE)
       .delete()
@@ -818,7 +1046,7 @@ export const deleteQuestionnaire = async (req: Request, res: Response) => {
       const coverPath = buildStoragePathFromPublicUrl(actual.cover_img);
       const documentPath = buildStoragePathFromPublicUrl(actual.archivo_url);
 
-      const imagePaths = normalizeImagesFromUrls(actual.imagenes || [])
+      const imagePaths = normalizeImagesFromDb(actual.imagenes || [])
         .map((imageItem: NormalizedQuestionnaireImage): string => {
           return (
             imageItem.path || buildStoragePathFromPublicUrl(imageItem.url)
@@ -842,10 +1070,6 @@ export const deleteQuestionnaire = async (req: Request, res: Response) => {
   }
 };
 
-/* =============================== */
-/* CUESTIONARIOS - PROGRESO REAL */
-/* =============================== */
-
 export const getMyQuestionnaireProgress = async (
   req: Request,
   res: Response
@@ -863,7 +1087,7 @@ export const getMyQuestionnaireProgress = async (
     const { data, error } = await supabase
       .from(CUESTIONARIO_USUARIO_TABLE)
       .select(
-        'id, usuario_id, cuestionario_id, fecha_respuesta, puntaje_obtenido, estatus'
+        'id, usuario_id, cuestionario_id, fecha_respuesta, puntaje_obtenido, estatus, respuestas'
       )
       .eq('usuario_id', user.id)
       .order('fecha_respuesta', { ascending: false });
@@ -873,7 +1097,7 @@ export const getMyQuestionnaireProgress = async (
     }
 
     const progreso = ((data || []) as CuestionarioUsuarioDB[]).map(
-      mapCuestionarioUsuarioResponse
+      mapProgressResponse
     );
 
     const completedIds = progreso
@@ -882,13 +1106,10 @@ export const getMyQuestionnaireProgress = async (
 
     return res.status(200).json({
       ok: true,
-
       progreso,
       progress: progreso,
-
       completados: completedIds,
       completedIds,
-
       totalCompletados: completedIds.length,
       total_completed: completedIds.length
     });
@@ -915,6 +1136,70 @@ export const completeQuestionnaire = async (req: Request, res: Response) => {
       });
     }
 
+    const questionnaire = await getCurrentQuestionnaire(questionnaireId);
+
+    if (!questionnaire) {
+      return res.status(404).json({
+        ok: false,
+        message: 'Cuestionario no encontrado.'
+      });
+    }
+
+    const finalScore = Number(
+      req.body?.score ??
+        req.body?.puntaje_obtenido ??
+        req.body?.puntajeObtenido ??
+        questionnaire.puntaje_maximo ??
+        0
+    );
+
+    const payload = {
+      usuario_id: user.id,
+      cuestionario_id: questionnaireId,
+      fecha_respuesta: new Date().toISOString(),
+      puntaje_obtenido: Number.isFinite(finalScore) ? Math.round(finalScore) : 0,
+      estatus: 'completado',
+      respuestas: []
+    };
+
+    const { data, error } = await supabase
+      .from(CUESTIONARIO_USUARIO_TABLE)
+      .upsert(payload, {
+        onConflict: 'usuario_id,cuestionario_id'
+      })
+      .select(
+        'id, usuario_id, cuestionario_id, fecha_respuesta, puntaje_obtenido, estatus, respuestas'
+      )
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    return res.status(200).json({
+      ok: true,
+      message: 'Cuestionario marcado como completado.',
+      progreso: mapProgressResponse(data as CuestionarioUsuarioDB),
+      progress: mapProgressResponse(data as CuestionarioUsuarioDB)
+    });
+  } catch (error: any) {
+    console.error('Error en completeQuestionnaire:', error);
+
+    return res.status(500).json({
+      ok: false,
+      message: 'Error al completar cuestionario.',
+      error: error.message || 'Error desconocido'
+    });
+  }
+};
+
+export const importQuestionnaireExercises = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const questionnaireId = String(req.params.id || '').trim();
+
     if (!questionnaireId) {
       return res.status(400).json({
         ok: false,
@@ -931,24 +1216,238 @@ export const completeQuestionnaire = async (req: Request, res: Response) => {
       });
     }
 
-    const maxScore = Number(questionnaire.puntaje_maximo || 100);
-    const safeMaxScore =
-      Number.isFinite(maxScore) && maxScore > 0 ? Math.round(maxScore) : 100;
+    const csvFile = getUploadedCsvFile(req);
 
-    const requestScore =
-      req.body?.score ??
-      req.body?.puntaje_obtenido ??
-      req.body?.puntajeObtenido ??
-      safeMaxScore;
+    if (!csvFile) {
+      return res.status(400).json({
+        ok: false,
+        message: 'Debes subir un archivo CSV en el campo "csv".'
+      });
+    }
 
-    const finalScore = normalizeScore(requestScore, safeMaxScore);
+    const exercises = parseExercisesCsv(csvFile, questionnaireId);
+    const puntajeTotal = exercises.reduce(
+      (total, item) => total + item.puntaje,
+      0
+    );
+
+    await supabase
+      .from(CUESTIONARIO_USUARIO_TABLE)
+      .delete()
+      .eq('cuestionario_id', questionnaireId);
+
+    await supabase
+      .from(EJERCICIO_CUESTIONARIO_TABLE)
+      .delete()
+      .eq('cuestionario_id', questionnaireId);
+
+    const { data, error } = await supabase
+      .from(EJERCICIO_CUESTIONARIO_TABLE)
+      .insert(exercises)
+      .select('id, pregunta, alternativas, cuestionario_id, puntaje, orden');
+
+    if (error) {
+      throw error;
+    }
+
+    const { error: updateError } = await supabase
+      .from(QUESTIONNAIRES_TABLE)
+      .update({
+        puntaje_maximo: puntajeTotal
+      })
+      .eq('id', questionnaireId);
+
+    if (updateError) {
+      throw updateError;
+    }
+
+    return res.status(200).json({
+      ok: true,
+      message: 'Preguntas importadas correctamente.',
+      totalPreguntas: exercises.length,
+      total_preguntas: exercises.length,
+      puntajeMaximo: puntajeTotal,
+      puntaje_maximo: puntajeTotal,
+      ejercicios: data || []
+    });
+  } catch (error: any) {
+    console.error('Error en importQuestionnaireExercises:', error);
+
+    return res.status(500).json({
+      ok: false,
+      message: 'Error al importar preguntas del cuestionario.',
+      error: error.message || 'Error desconocido'
+    });
+  }
+};
+
+export const getQuestionnaireToResolve = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const user = getAuthenticatedUser(req);
+    const questionnaireId = String(req.params.id || '').trim();
+
+    if (!user) {
+      return res.status(401).json({
+        ok: false,
+        message: 'Usuario no autenticado.'
+      });
+    }
+
+    const questionnaire = await getCurrentQuestionnaire(questionnaireId);
+
+    if (!questionnaire) {
+      return res.status(404).json({
+        ok: false,
+        message: 'Cuestionario no encontrado.'
+      });
+    }
+
+    const exercises = await getQuestionnaireExercises(questionnaireId);
+
+    const existingProgress = await getUserQuestionnaireProgress(
+      user.id,
+      questionnaireId
+    );
+
+    return res.status(200).json({
+      ok: true,
+      cuestionario: mapQuestionnaireResponse(questionnaire),
+      questionnaire: mapQuestionnaireResponse(questionnaire),
+      ejercicios: exercises.map((exercise) => ({
+        id: exercise.id,
+        pregunta: exercise.pregunta,
+        alternativas: exercise.alternativas || [],
+        puntaje: exercise.puntaje || 1,
+        orden: exercise.orden || 1
+      })),
+      resultado: existingProgress ? mapProgressResponse(existingProgress) : null,
+      result: existingProgress ? mapProgressResponse(existingProgress) : null
+    });
+  } catch (error: any) {
+    console.error('Error en getQuestionnaireToResolve:', error);
+
+    return res.status(500).json({
+      ok: false,
+      message: 'Error al cargar cuestionario para resolver.',
+      error: error.message || 'Error desconocido'
+    });
+  }
+};
+
+export const respondQuestionnaire = async (req: Request, res: Response) => {
+  try {
+    const user = getAuthenticatedUser(req);
+    const questionnaireId = String(req.params.id || '').trim();
+
+    if (!user) {
+      return res.status(401).json({
+        ok: false,
+        message: 'Usuario no autenticado.'
+      });
+    }
+
+    const questionnaire = await getCurrentQuestionnaire(questionnaireId);
+
+    if (!questionnaire) {
+      return res.status(404).json({
+        ok: false,
+        message: 'Cuestionario no encontrado.'
+      });
+    }
+
+    const exercises = await getQuestionnaireExercises(questionnaireId);
+
+    if (exercises.length === 0) {
+      return res.status(400).json({
+        ok: false,
+        message:
+          'Este cuestionario todavía no tiene preguntas importadas desde CSV.'
+      });
+    }
+
+    const respuestasUsuario = Array.isArray(req.body?.respuestas)
+      ? (req.body.respuestas as RespuestaUsuarioPayload[])
+      : [];
+
+    if (respuestasUsuario.length === 0) {
+      return res.status(400).json({
+        ok: false,
+        message: 'Debes enviar al menos una respuesta.'
+      });
+    }
+
+    const respuestasMap = new Map<string, string>();
+
+    respuestasUsuario.forEach((item) => {
+      const exerciseId = String(
+        item.ejercicio_id || item.ejercicioId || item.id || ''
+      );
+
+      const answer = String(
+        item.respuesta ||
+          item.respuesta_usuario ||
+          item.respuestaUsuario ||
+          item.alternativa ||
+          item.alternativa_id ||
+          item.alternativaId ||
+          ''
+      );
+
+      if (exerciseId) {
+        respuestasMap.set(exerciseId, answer);
+      }
+    });
+
+    const respuestasDetalle: RespuestaDetalle[] = exercises.map((exercise) => {
+      const respuestaUsuario = respuestasMap.get(exercise.id) || '';
+      const correcta =
+        normalizeText(respuestaUsuario) === normalizeText(exercise.respuesta);
+
+      const puntaje = Number(exercise.puntaje || 1);
+      const puntajeObtenido = correcta ? puntaje : 0;
+
+      return {
+        ejercicio_id: exercise.id,
+        pregunta: exercise.pregunta,
+        alternativas: exercise.alternativas || [],
+        respuesta_usuario: respuestaUsuario,
+        respuesta_correcta: exercise.respuesta,
+        correcta,
+        puntaje,
+        puntaje_obtenido: puntajeObtenido,
+        orden: exercise.orden || 1
+      };
+    });
+
+    const puntajeObtenido = respuestasDetalle.reduce(
+      (total, item) => total + item.puntaje_obtenido,
+      0
+    );
+
+    const puntajeMaximo = exercises.reduce(
+      (total, item) => total + Number(item.puntaje || 1),
+      0
+    );
+
+    if (puntajeMaximo !== Number(questionnaire.puntaje_maximo || 0)) {
+      await supabase
+        .from(QUESTIONNAIRES_TABLE)
+        .update({
+          puntaje_maximo: puntajeMaximo
+        })
+        .eq('id', questionnaireId);
+    }
 
     const payload = {
       usuario_id: user.id,
       cuestionario_id: questionnaireId,
       fecha_respuesta: new Date().toISOString(),
-      puntaje_obtenido: finalScore,
-      estatus: 'completado'
+      puntaje_obtenido: puntajeObtenido,
+      estatus: 'completado',
+      respuestas: respuestasDetalle
     };
 
     const { data, error } = await supabase
@@ -957,7 +1456,7 @@ export const completeQuestionnaire = async (req: Request, res: Response) => {
         onConflict: 'usuario_id,cuestionario_id'
       })
       .select(
-        'id, usuario_id, cuestionario_id, fecha_respuesta, puntaje_obtenido, estatus'
+        'id, usuario_id, cuestionario_id, fecha_respuesta, puntaje_obtenido, estatus, respuestas'
       )
       .single();
 
@@ -965,31 +1464,25 @@ export const completeQuestionnaire = async (req: Request, res: Response) => {
       throw error;
     }
 
-    const progreso = mapCuestionarioUsuarioResponse(
-      data as CuestionarioUsuarioDB
-    );
+    const resultado = {
+      ...mapProgressResponse(data as CuestionarioUsuarioDB),
+      puntajeMaximo,
+      puntaje_maximo: puntajeMaximo,
+      respuestas: respuestasDetalle
+    };
 
     return res.status(200).json({
       ok: true,
-      message: 'Cuestionario marcado como completado.',
-
-      progreso,
-      progress: progreso,
-
-      cuestionario: {
-        ...mapQuestionnaireResponse(questionnaire),
-        status: 'Completado',
-        estatus: 'completado',
-        score: finalScore,
-        puntaje_obtenido: finalScore
-      }
+      message: 'Cuestionario respondido correctamente.',
+      resultado,
+      result: resultado
     });
   } catch (error: any) {
-    console.error('Error en completeQuestionnaire:', error);
+    console.error('Error en respondQuestionnaire:', error);
 
     return res.status(500).json({
       ok: false,
-      message: 'Error al completar cuestionario.',
+      message: 'Error al responder cuestionario.',
       error: error.message || 'Error desconocido'
     });
   }

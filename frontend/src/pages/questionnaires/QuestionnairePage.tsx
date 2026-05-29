@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { IonContent, IonPage } from '@ionic/react';
+import { useHistory } from 'react-router-dom';
 import {
   Navbar,
   QuestionnaireCard,
@@ -169,6 +170,7 @@ const getProgressScore = (item?: QuestionnaireProgressItem) => {
 };
 
 export const QuestionnairePage: React.FC = () => {
+  const history = useHistory();
   const { user, token } = useAuth();
   const isAdmin = user?.role === 'admin';
 
@@ -176,7 +178,6 @@ export const QuestionnairePage: React.FC = () => {
     []
   );
   const [isLoading, setIsLoading] = useState(false);
-  const [isCompleting, setIsCompleting] = useState<string | null>(null);
 
   const getAuthHeaders = (
     includeJsonContentType = false
@@ -325,29 +326,32 @@ export const QuestionnairePage: React.FC = () => {
       const normalizedQuestionnaires: QuestionnaireModule[] = Array.isArray(
         questionnairesData
       )
-        ? questionnairesData.map((item: BackendQuestionnaire): QuestionnaireModule => {
-            const normalized = normalizeQuestionnaire(item);
-            const progress = progressMap.get(String(normalized.id));
+        ? questionnairesData.map(
+            (item: BackendQuestionnaire): QuestionnaireModule => {
+              const normalized = normalizeQuestionnaire(item);
+              const progress = progressMap.get(String(normalized.id));
 
-            const isCompleted =
-              Boolean(progress) &&
-              normalizeStatus(progress?.estatus || progress?.status) === 'Completado';
+              const isCompleted =
+                Boolean(progress) &&
+                normalizeStatus(progress?.estatus || progress?.status) ===
+                  'Completado';
 
-            const nextStatus: QuestionnaireStatus = isCompleted
-              ? 'Completado'
-              : 'Pendiente';
+              const nextStatus: QuestionnaireStatus = isCompleted
+                ? 'Completado'
+                : 'Pendiente';
 
-            const progressScore = getProgressScore(progress);
+              const progressScore = getProgressScore(progress) ?? 0;
 
-            return {
-              ...normalized,
-              status: nextStatus,
-              score: isCompleted ? progressScore : normalized.score,
-              puntaje_obtenido: isCompleted
-                ? progressScore
-                : normalized.puntaje_obtenido
-            };
-          })
+              return {
+                ...normalized,
+                status: nextStatus,
+                score: isCompleted ? progressScore : normalized.score,
+                puntaje_obtenido: isCompleted
+                  ? progressScore
+                  : normalized.puntaje_obtenido
+              };
+            }
+          )
         : [];
 
       setQuestionnaires(normalizedQuestionnaires);
@@ -390,76 +394,14 @@ export const QuestionnairePage: React.FC = () => {
         )
       : 0;
 
-  const markQuestionnaireAsCompleted = async (questionnaireId: string) => {
+  const openQuestionnaire = (questionnaireId: string) => {
     if (!token) {
-      alert('Debes iniciar sesión para guardar tu progreso.');
+      alert('Debes iniciar sesión para responder cuestionarios.');
+      history.push('/login');
       return;
     }
 
-    const selectedQuestionnaire = questionnaires.find(
-      (item) => item.id === questionnaireId
-    );
-
-    const maxScore =
-      selectedQuestionnaire?.puntajeMaximo ||
-      selectedQuestionnaire?.puntaje_maximo ||
-      selectedQuestionnaire?.questionsCount ||
-      selectedQuestionnaire?.questions_count ||
-      100;
-
-    try {
-      setIsCompleting(questionnaireId);
-
-      const response = await fetch(
-        `${API_URL}/api/questionnaires/${questionnaireId}/complete`,
-        {
-          method: 'POST',
-          headers: getAuthHeaders(true),
-          body: JSON.stringify({
-            puntaje_obtenido: maxScore
-          })
-        }
-      );
-
-      const data = await response.json().catch(() => null);
-
-      if (!response.ok) {
-        console.error('Error backend completeQuestionnaire:', data);
-
-        throw new Error(
-          data?.message ||
-            data?.error ||
-            'No se pudo marcar el cuestionario como completado'
-        );
-      }
-
-      const savedProgress =
-        data?.progreso || data?.progress || data?.cuestionario || null;
-
-      const savedScore =
-        savedProgress?.score ||
-        savedProgress?.puntaje_obtenido ||
-        savedProgress?.puntajeObtenido ||
-        maxScore;
-
-      setQuestionnaires((prevQuestionnaires) =>
-        prevQuestionnaires.map((questionnaire) =>
-          questionnaire.id === questionnaireId
-            ? {
-                ...questionnaire,
-                status: 'Completado',
-                score: Number(savedScore),
-                puntaje_obtenido: Number(savedScore)
-              }
-            : questionnaire
-        )
-      );
-    } catch (error: any) {
-      console.error('Error al completar cuestionario:', error);
-      alert(error.message || 'Error al completar cuestionario.');
-    } finally {
-      setIsCompleting(null);
-    }
+    history.push(`/cuestionarios/${questionnaireId}/resolver`);
   };
 
   return (
@@ -501,7 +443,7 @@ export const QuestionnairePage: React.FC = () => {
 
                 <div className="summary-score-card">
                   <span>Promedio</span>
-                  <strong>{averageScore}/100</strong>
+                  <strong>{averageScore}</strong>
                 </div>
               </div>
 
@@ -531,10 +473,11 @@ export const QuestionnairePage: React.FC = () => {
                     risk={item.risk}
                     status="Completado"
                     score={Number(item.score || 0)}
+                    maxScore={Number(
+                      item.puntajeMaximo || item.puntaje_maximo || 100
+                    )}
                     bgImage={item.img}
-                    onViewResults={() => {
-                      console.log('Ver resultados:', item.title);
-                    }}
+                    onViewResults={() => openQuestionnaire(item.id)}
                   />
                 ))}
               </div>
@@ -571,8 +514,7 @@ export const QuestionnairePage: React.FC = () => {
                     risk={item.risk}
                     status="Pendiente"
                     bgImage={item.img}
-                    isLoading={isCompleting === item.id}
-                    onComplete={() => markQuestionnaireAsCompleted(item.id)}
+                    onComplete={() => openQuestionnaire(item.id)}
                   />
                 ))}
               </div>

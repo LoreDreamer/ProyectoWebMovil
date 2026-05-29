@@ -114,9 +114,14 @@ export const QuestionnairesPanel: React.FC = () => {
     QuestionnaireImage[]
   >([]);
 
+  const [cuestionarioCsvId, setCuestionarioCsvId] = useState('');
+  const [archivoCsv, setArchivoCsv] = useState<File | null>(null);
+  const [estaImportandoCsv, setEstaImportandoCsv] = useState(false);
+
   const portadaInputRef = useRef<HTMLInputElement | null>(null);
   const archivoInputRef = useRef<HTMLInputElement | null>(null);
   const questionnaireImagesInputRef = useRef<HTMLInputElement | null>(null);
+  const csvInputRef = useRef<HTMLInputElement | null>(null);
 
   const questionnaireImagesRef = useRef<QuestionnaireImage[]>([]);
   const portadaRef = useRef<File | null>(null);
@@ -193,6 +198,10 @@ export const QuestionnairesPanel: React.FC = () => {
     if (questionnaireImagesInputRef.current) {
       questionnaireImagesInputRef.current.value = '';
     }
+
+    if (csvInputRef.current) {
+      csvInputRef.current.value = '';
+    }
   };
 
   const clearLocalPreviewUrls = () => {
@@ -227,6 +236,9 @@ export const QuestionnairesPanel: React.FC = () => {
 
     setQuestionnaireImages([]);
     setEditingQuestionnaire(null);
+
+    setCuestionarioCsvId('');
+    setArchivoCsv(null);
 
     resetInputs();
   };
@@ -278,7 +290,7 @@ export const QuestionnairesPanel: React.FC = () => {
     };
   };
 
-  const loadQuestionnaires = async () => {
+  const loadQuestionnaires = async (cuestionarioCsvIdDeseado = '') => {
     try {
       const response = await fetch(`${API_URL}/api/questionnaires`);
 
@@ -288,11 +300,26 @@ export const QuestionnairesPanel: React.FC = () => {
 
       const data = await response.json();
 
-      setQuestionnaires(
-        Array.isArray(data)
-          ? data.map((item) => normalizeQuestionnaireFromApi(item))
-          : []
-      );
+      const cuestionariosNormalizados: Questionnaire[] = Array.isArray(data)
+        ? data.map((item) => normalizeQuestionnaireFromApi(item))
+        : [];
+
+      setQuestionnaires(cuestionariosNormalizados);
+
+      setCuestionarioCsvId((actual) => {
+        const idParaMantener = cuestionarioCsvIdDeseado || actual;
+
+        if (
+          idParaMantener &&
+          cuestionariosNormalizados.some(
+            (cuestionario) => cuestionario.id === idParaMantener
+          )
+        ) {
+          return idParaMantener;
+        }
+
+        return '';
+      });
     } catch (error) {
       console.error('Error al cargar cuestionarios:', error);
       setQuestionnaires([]);
@@ -595,14 +622,20 @@ export const QuestionnairesPanel: React.FC = () => {
         );
       }
 
+      const cuestionarioGuardado = await response.json().catch(() => null);
+      const cuestionarioGuardadoId = String(
+        cuestionarioGuardado?.id || editingQuestionnaire?.id || ''
+      );
+      const estabaEditando = Boolean(editingQuestionnaire);
+
       resetForm();
-      await loadQuestionnaires();
+      await loadQuestionnaires(cuestionarioGuardadoId);
       window.dispatchEvent(new Event('questionnaires-updated'));
 
       alert(
-        editingQuestionnaire
+        estabaEditando
           ? 'Cuestionario actualizado correctamente.'
-          : 'Cuestionario creado correctamente.'
+          : 'Cuestionario creado correctamente. Ahora puedes importar el CSV para este cuestionario.'
       );
     } catch (error: any) {
       console.error('Error al guardar cuestionario:', error);
@@ -647,6 +680,13 @@ export const QuestionnairesPanel: React.FC = () => {
     setRemoveCover(false);
 
     setQuestionnaireImages(normalizedQuestionnaire.images || []);
+
+    setCuestionarioCsvId(normalizedQuestionnaire.id);
+    setArchivoCsv(null);
+
+    if (csvInputRef.current) {
+      csvInputRef.current.value = '';
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -682,6 +722,71 @@ export const QuestionnairesPanel: React.FC = () => {
     } catch (error: any) {
       console.error('Error al eliminar cuestionario:', error);
       alert(error.message || 'Error al eliminar el cuestionario.');
+    }
+  };
+
+  const manejarImportacionCsv = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    if (!token) {
+      alert('Debes iniciar sesión como administrador.');
+      return;
+    }
+
+    if (!cuestionarioCsvId) {
+      alert('Selecciona un cuestionario para importar preguntas.');
+      return;
+    }
+
+    if (!archivoCsv) {
+      alert('Selecciona un archivo CSV con preguntas.');
+      return;
+    }
+
+    try {
+      setEstaImportandoCsv(true);
+
+      const formData = new FormData();
+      formData.append('csv', archivoCsv);
+
+      const response = await fetch(
+        `${API_URL}/api/questionnaires/${cuestionarioCsvId}/importar-ejercicios`,
+        {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          body: formData
+        }
+      );
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(
+          data?.message ||
+            data?.error ||
+            'No se pudieron importar las preguntas.'
+        );
+      }
+
+      setArchivoCsv(null);
+
+      if (csvInputRef.current) {
+        csvInputRef.current.value = '';
+      }
+
+      await loadQuestionnaires();
+      window.dispatchEvent(new Event('questionnaires-updated'));
+
+      alert(
+        `CSV importado correctamente. Preguntas: ${
+          data?.totalPreguntas || data?.total_preguntas || 0
+        }. Puntaje total: ${data?.puntajeMaximo || data?.puntaje_maximo || 0}.`
+      );
+    } catch (error: any) {
+      console.error('Error al importar CSV:', error);
+      alert(error.message || 'Error al importar CSV.');
+    } finally {
+      setEstaImportandoCsv(false);
     }
   };
 
@@ -1006,6 +1111,78 @@ export const QuestionnairesPanel: React.FC = () => {
                 {editingQuestionnaire
                   ? 'Guardar Cambios'
                   : 'Crear Cuestionario'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <section className="panel-form-section questionnaire-csv-panel">
+        <div className="admin-form-card">
+          <div className="form-header-inline">
+            <div className="icon-square">
+              <IonIcon icon={documentOutline} />
+            </div>
+
+            <div className="header-text-container">
+              <h2>Importar preguntas por CSV</h2>
+
+              <p>
+                Sube un CSV con preguntas, alternativas, respuesta correcta y
+                puntaje. Al importarlo se reemplazan las preguntas anteriores y
+                se recalcula el puntaje máximo.
+              </p>
+            </div>
+          </div>
+
+          <form className="questionnaire-csv-form" onSubmit={manejarImportacionCsv}>
+            <div className="questionnaire-csv-grid">
+              <label>
+                Cuestionario
+
+                <select
+                  value={cuestionarioCsvId}
+                  onChange={(e) => setCuestionarioCsvId(e.target.value)}
+                  disabled={questionnaires.length === 0 || estaImportandoCsv}
+                >
+                  {questionnaires.length === 0 ? (
+                    <option value="">No hay cuestionarios disponibles</option>
+                  ) : (
+                    <>
+                      <option value="">Selecciona un cuestionario</option>
+
+                      {questionnaires.map((questionnaire) => (
+                        <option key={questionnaire.id} value={questionnaire.id}>
+                          {questionnaire.title}
+                        </option>
+                      ))}
+                    </>
+                  )}
+                </select>
+              </label>
+
+              <label>
+                Archivo CSV
+
+                <input
+                  ref={csvInputRef}
+                  type="file"
+                  accept=".csv,text/csv,text/plain"
+                  disabled={estaImportandoCsv}
+                  onChange={(e) => setArchivoCsv(e.target.files?.[0] || null)}
+                />
+              </label>
+
+              <button
+                type="submit"
+                disabled={
+                  estaImportandoCsv ||
+                  questionnaires.length === 0 ||
+                  !cuestionarioCsvId ||
+                  !archivoCsv
+                }
+              >
+                {estaImportandoCsv ? 'Importando...' : 'Importar CSV'}
               </button>
             </div>
           </form>
