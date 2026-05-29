@@ -19,3 +19,6 @@ export { ProtocolsPanel } from './adminPanel/protocolsPanel';
 export { AlertsPanel } from './adminPanel/alertsPanel';
 export { QuestionnairesPanel } from './adminPanel/questionnairesPanel';
 export { ActivityPanel } from './adminPanel/activityPanel';
+export { EducacionHeader } from './educationModule/EducacionHeader';
+export { EducacionSlider } from './educationModule/EducacionSlider';
+export { ResourceCard } from './educationModule/ResourceCard';

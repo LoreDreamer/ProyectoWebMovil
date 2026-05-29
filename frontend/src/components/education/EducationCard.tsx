@@ -67,7 +67,7 @@ export const EducationCard: React.FC<CardProps> = ({
             ? 'Módulo completado'
             : isLoading
               ? 'Guardando...'
-              : 'Marcar como completado'}
+              : 'Ver módulo'}
         </IonButton>
       </div>
     </div>

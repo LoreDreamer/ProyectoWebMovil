@@ -9,3 +9,4 @@ export { ProtocolsPage } from './protocols/Protocols';
 export { NewsPage } from './news/newsPage';
 export { InicioPage } from './inicio/InicioPage';
 export { AdminPage } from './admin/AdminPage';
+export { EducationModulePage } from './educationModule/EducationModulePage';

@@ -1,0 +1,76 @@
+.edu-header-card {
+  background: linear-gradient(90deg, #4dd0e1 0%, #0d47a1 100%);
+  
+  width: 100%; 
+  margin: 20px 0 36px 0; /* Control de espacios arriba y abajo */
+  
+  border-radius: 25px; /* Misma curvatura que el Advice */
+  color: white;
+  display: flex;
+  align-items: center;
+  padding: 30px 40px; 
+  box-sizing: border-box;
+  
+  /* Sombra idéntica con profundidad azulada */
+  box-shadow: 0 10px 20px rgba(13, 71, 161, 0.2);
+}
+
+.edu-header-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* Alinea los textos a la izquierda */
+}
+
+/* --- CUADRADO DE CATEGORÍA MEJORADO (Se nota mucho más) --- */
+.edu-badge {
+  display: inline-block;
+  /* Fondo blanco translúcido con más opacidad para que resalte sobre el gradiente */
+  background: rgba(255, 255, 255, 0.22);
+  /* Letra en blanco puro para máxima nitidez */
+  color: #ffffff; 
+  padding: 6px 16px;
+  border-radius: 30px;
+  
+  /* Tipografía y bordes definidos */
+  font-family: 'Archivo', sans-serif;
+  font-size: clamp(0.75rem, 1.8vw, 0.85rem);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* --- TÍTULO CON FORMATO ARCHIVO BLACK --- */
+.edu-title {
+  margin: 0;
+  color: #ffffff;
+  /* Mismo escalado tipográfico y tracking que el h3 del Advice */
+  font-size: clamp(1.4rem, 4vw, 2.1rem); 
+  letter-spacing: 1px;
+  font-family: 'Archivo Black', sans-serif;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+/* --- AJUSTES RESPONSIVOS IDÉNTICOS --- */
+@media (max-width: 768px) {
+  .edu-header-card {
+    padding: 25px;
+    border-radius: 20px;
+    margin-bottom: 24px;
+  }
+}
+
+@media (max-width: 600px) {
+  .edu-header-card {
+    text-align: center;
+    padding: 30px 20px;
+  }
+
+  .edu-header-content {
+    align-items: center; /* Centra la categoría y título en pantallas chicas */
+  }
+}

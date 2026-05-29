@@ -850,33 +850,54 @@ export const completeEducationModule = async (req: Request, res: Response) => {
       });
     }
 
-    const payload = {
-      usuario_id: user.id,
-      educacion_id: moduleId,
-      fecha_lectura: new Date().toISOString()
-    };
-
-    const { data, error } = await supabase
+    // 1. Verificar si el usuario ya registró progreso en este módulo
+    const { data: existente, error: selectError } = await supabase
       .from(EDUCACION_USUARIO_TABLE)
-      .upsert(payload, {
-        onConflict: 'usuario_id,educacion_id'
-      })
-      .select('id, usuario_id, educacion_id, fecha_lectura')
-      .single();
+      .select('*')
+      .eq('usuario_id', user.id)
+      .eq('educacion_id', moduleId)
+      .maybeSingle();
 
-    if (error) {
-      throw error;
+    if (selectError) {
+      throw selectError;
     }
 
-    const progreso = mapEducacionUsuarioResponse(data as EducacionUsuarioDB);
+    let registroFinal = existente;
+
+    // 2. Si no existe, creamos el registro de lectura con la hora local ajustada
+    if (!existente) {
+      // CORRECCIÓN HORARIA: Forzamos el cálculo restando el desfase local de minutos a milisegundos
+      const tzoffset = (new Date()).getTimezoneOffset() * 60000;
+      const localISODate = new Date(Date.now() - tzoffset).toISOString();
+
+      const payload = {
+        usuario_id: user.id,
+        educacion_id: moduleId,
+        fecha_lectura: localISODate
+      };
+
+      const { data: insertado, error: insertError } = await supabase
+        .from(EDUCACION_USUARIO_TABLE)
+        .insert(payload)
+        .select('id, usuario_id, educacion_id, fecha_lectura')
+        .single();
+
+      if (insertError) {
+        throw insertError;
+      }
+      
+      registroFinal = insertado;
+    }
+
+    const progreso = mapEducacionUsuarioResponse(registroFinal as EducacionUsuarioDB);
 
     return res.status(200).json({
       ok: true,
-      message: 'Módulo educativo marcado como completado.',
-
+      message: existente 
+        ? 'El módulo ya estaba marcado como completado.' 
+        : 'Módulo educativo marcado como completado exitosamente.',
       progreso,
       progress: progreso,
-
       modulo: {
         ...mapEducationResponse(module),
         status: 'Completado',

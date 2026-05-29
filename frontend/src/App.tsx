@@ -34,7 +34,8 @@ import {
   QuestionnairePage,
   NewsPage,
   InicioPage,
-  AdminPage
+  AdminPage,
+  EducationModulePage 
 } from './pages';
 
 import { QuestionnaireTakePage } from './pages/questionnaires/QuestionnaireTakePage';
@@ -119,6 +120,10 @@ const AppRoutes: React.FC = () => {
           <Route exact path="/login" component={LoginPage} />
           <Route exact path="/register" component={RegisterPage} />
           <Route exact path="/educacion" component={EducationPage} />
+          
+          {/* Ruta corregida con /modulo/:id para calzar con tu botón */}
+          <Route exact path="/educacion/modulo/:id" component={EducationModulePage} />
+          
           <Route exact path="/denuncias" component={ComplaintsPage} />
           <Route exact path="/cuestionarios" component={QuestionnairePage} />
 
