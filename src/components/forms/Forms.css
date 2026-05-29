@@ -354,3 +354,65 @@
   display: block;
   text-decoration: none;
 }
+
+/* =============================== */
+/* FIX CURSOR / TEXTO LOGIN REGISTER */
+/* =============================== */
+
+.auth-input,
+.auth-select {
+  --background: #f4f7fb;
+  --color: #111827;
+  --placeholder-color: #6b7280;
+  --placeholder-opacity: 0.8;
+
+  --highlight-color-focused: #006aa8;
+  --highlight-color-valid: #006aa8;
+  --highlight-color-invalid: #dc2626;
+
+  color: #111827 !important;
+  caret-color: #006aa8 !important;
+
+  background: #f4f7fb;
+  border: 1px solid #d7e0ea;
+  border-radius: 12px;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+/* Para el input interno de Ionic */
+.auth-input::part(native) {
+  color: #111827 !important;
+  caret-color: #006aa8 !important;
+  background: transparent !important;
+}
+
+/* Fallback por si algún navegador no toma ::part */
+.auth-input input {
+  color: #111827 !important;
+  caret-color: #006aa8 !important;
+}
+
+/* Placeholder más visible */
+.auth-input::part(native)::placeholder {
+  color: #6b7280 !important;
+  opacity: 0.8 !important;
+}
+
+/* Estado focus */
+.auth-input.ion-focused,
+.auth-select.ion-focused,
+.auth-field:focus-within .auth-input,
+.auth-field:focus-within .auth-select {
+  background: #ffffff;
+  border-color: rgba(0, 106, 168, 0.65);
+  box-shadow: 0 0 0 3px rgba(0, 106, 168, 0.14);
+}
+
+/* Label activo cuando estás escribiendo */
+.auth-field:focus-within .auth-label {
+  color: #006aa8 !important;
+}

@@ -322,21 +322,29 @@ export const QuestionnairePage: React.FC = () => {
         }
       });
 
-      const normalizedQuestionnaires = Array.isArray(questionnairesData)
-        ? questionnairesData.map((item) => {
+      const normalizedQuestionnaires: QuestionnaireModule[] = Array.isArray(
+        questionnairesData
+      )
+        ? questionnairesData.map((item: BackendQuestionnaire): QuestionnaireModule => {
             const normalized = normalizeQuestionnaire(item);
             const progress = progressMap.get(String(normalized.id));
+
             const isCompleted =
-              progress && normalizeStatus(progress.estatus || progress.status) === 'Completado';
+              Boolean(progress) &&
+              normalizeStatus(progress?.estatus || progress?.status) === 'Completado';
+
+            const nextStatus: QuestionnaireStatus = isCompleted
+              ? 'Completado'
+              : 'Pendiente';
+
+            const progressScore = getProgressScore(progress);
 
             return {
               ...normalized,
-              status: isCompleted ? 'Completado' : 'Pendiente',
-              score: isCompleted
-                ? getProgressScore(progress)
-                : normalized.score,
+              status: nextStatus,
+              score: isCompleted ? progressScore : normalized.score,
               puntaje_obtenido: isCompleted
-                ? getProgressScore(progress)
+                ? progressScore
                 : normalized.puntaje_obtenido
             };
           })

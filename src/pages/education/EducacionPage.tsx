@@ -8,7 +8,6 @@ import {
   EducationPanel
 } from '../../components';
 import { useAuth } from '../../context/AuthContext';
-
 import pishing from '../../assets/education/pishing.png';
 
 import './EducationPage.css';
