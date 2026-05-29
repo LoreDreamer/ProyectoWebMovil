@@ -162,3 +162,35 @@
     width: 100%;
   }
 }
+
+
+/* =============================== */
+/* ARCHIVO CSV IMPORTADO */
+/* =============================== */
+
+.questionnaire-csv-current-box {
+  margin-top: 14px;
+  padding: 13px 14px;
+  border-radius: 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+}
+
+.questionnaire-csv-current-box p {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.questionnaire-csv-current-box strong {
+  color: #102033;
+}
+
+.questionnaire-csv-current-box span {
+  color: #64748b;
+}
+
+.questionnaire-csv-new-file {
+  margin-top: 8px !important;
+  color: #0d47a1 !important;
+}
