@@ -80,8 +80,33 @@ interface BackendQuestionnaire {
   estatus?: string;
 }
 
+interface QuestionnaireProgressItem {
+  id?: string;
+  usuario_id?: string;
+  usuarioId?: string;
+  cuestionario_id?: string;
+  cuestionarioId?: string;
+  questionnaireId?: string;
+  fecha_respuesta?: string;
+  fechaRespuesta?: string;
+  puntaje_obtenido?: number;
+  puntajeObtenido?: number;
+  score?: number;
+  estatus?: string;
+  status?: string;
+}
+
+interface QuestionnaireProgressResponse {
+  ok?: boolean;
+  progreso?: QuestionnaireProgressItem[];
+  progress?: QuestionnaireProgressItem[];
+  completados?: string[];
+  completedIds?: string[];
+  totalCompletados?: number;
+  total_completed?: number;
+}
+
 const API_URL = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
-const DEV_PREVIEW_COMPLETED_QUESTIONNAIRES = false;
 
 const normalizeRisk = (risk?: string) => {
   const normalized = String(risk || '')
@@ -114,14 +139,60 @@ const normalizeStatus = (status?: string): QuestionnaireStatus => {
   return 'Pendiente';
 };
 
+const getProgressItems = (
+  progressData: QuestionnaireProgressResponse | null
+): QuestionnaireProgressItem[] => {
+  if (!progressData) return [];
+
+  if (Array.isArray(progressData.progreso)) return progressData.progreso;
+  if (Array.isArray(progressData.progress)) return progressData.progress;
+
+  return [];
+};
+
+const getProgressQuestionnaireId = (item: QuestionnaireProgressItem) => {
+  return String(
+    item.cuestionario_id ||
+      item.cuestionarioId ||
+      item.questionnaireId ||
+      ''
+  );
+};
+
+const getProgressScore = (item?: QuestionnaireProgressItem) => {
+  if (!item) return undefined;
+
+  const score =
+    item.score ?? item.puntaje_obtenido ?? item.puntajeObtenido ?? undefined;
+
+  return typeof score === 'number' ? score : Number(score || 0);
+};
+
 export const QuestionnairePage: React.FC = () => {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const isAdmin = user?.role === 'admin';
 
   const [questionnaires, setQuestionnaires] = useState<QuestionnaireModule[]>(
     []
   );
   const [isLoading, setIsLoading] = useState(false);
+  const [isCompleting, setIsCompleting] = useState<string | null>(null);
+
+  const getAuthHeaders = (
+    includeJsonContentType = false
+  ): Record<string, string> => {
+    const headers: Record<string, string> = {};
+
+    if (includeJsonContentType) {
+      headers['Content-Type'] = 'application/json';
+    }
+
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    return headers;
+  };
 
   const buildFileUrl = (url?: string) => {
     if (!url) return '';
@@ -168,7 +239,6 @@ export const QuestionnairePage: React.FC = () => {
       'Evalúa tus conocimientos de ciberseguridad.';
 
     const coverUrl = item.coverUrl || item.cover_img || '';
-    const status = normalizeStatus(item.status || item.estatus);
 
     const maxScore =
       item.puntajeMaximo ||
@@ -193,7 +263,7 @@ export const QuestionnairePage: React.FC = () => {
       puntaje_maximo: maxScore,
       score: rawScore,
       puntaje_obtenido: rawScore,
-      status,
+      status: normalizeStatus(item.status || item.estatus),
       img: coverUrl ? buildFileUrl(coverUrl) : getFallbackImage(item)
     };
   };
@@ -202,33 +272,73 @@ export const QuestionnairePage: React.FC = () => {
     try {
       setIsLoading(true);
 
-      const response = await fetch(`${API_URL}/api/questionnaires`);
-      const data = await response.json().catch(() => null);
+      const questionnairesRequest = fetch(`${API_URL}/api/questionnaires`);
 
-      if (!response.ok) {
-        console.error('Error backend /api/questionnaires:', data);
+      const progressRequest = token
+        ? fetch(`${API_URL}/api/questionnaires/progress/me`, {
+            headers: getAuthHeaders()
+          })
+        : Promise.resolve(null);
+
+      const [questionnairesResponse, progressResponse] = await Promise.all([
+        questionnairesRequest,
+        progressRequest
+      ]);
+
+      const questionnairesData = await questionnairesResponse
+        .json()
+        .catch(() => null);
+
+      if (!questionnairesResponse.ok) {
+        console.error('Error backend /api/questionnaires:', questionnairesData);
 
         throw new Error(
-          data?.message ||
-            data?.error ||
+          questionnairesData?.message ||
+            questionnairesData?.error ||
             'No se pudieron cargar los cuestionarios'
         );
       }
 
-      const normalizedQuestionnaires = Array.isArray(data)
-        ? data.map((item, index) => {
+      const progressItems =
+        progressResponse && progressResponse.ok
+          ? getProgressItems(await progressResponse.json().catch(() => null))
+          : [];
+
+      if (progressResponse && !progressResponse.ok) {
+        const progressError = await progressResponse.json().catch(() => null);
+        console.error(
+          'Error backend /api/questionnaires/progress/me:',
+          progressError
+        );
+      }
+
+      const progressMap = new Map<string, QuestionnaireProgressItem>();
+
+      progressItems.forEach((item) => {
+        const id = getProgressQuestionnaireId(item);
+
+        if (id) {
+          progressMap.set(id, item);
+        }
+      });
+
+      const normalizedQuestionnaires = Array.isArray(questionnairesData)
+        ? questionnairesData.map((item) => {
             const normalized = normalizeQuestionnaire(item);
+            const progress = progressMap.get(String(normalized.id));
+            const isCompleted =
+              progress && normalizeStatus(progress.estatus || progress.status) === 'Completado';
 
-            if (DEV_PREVIEW_COMPLETED_QUESTIONNAIRES && index === 0) {
-              return {
-                ...normalized,
-                status: 'Completado' as QuestionnaireStatus,
-                score: 86,
-                puntaje_obtenido: 86
-              };
-            }
-
-            return normalized;
+            return {
+              ...normalized,
+              status: isCompleted ? 'Completado' : 'Pendiente',
+              score: isCompleted
+                ? getProgressScore(progress)
+                : normalized.score,
+              puntaje_obtenido: isCompleted
+                ? getProgressScore(progress)
+                : normalized.puntaje_obtenido
+            };
           })
         : [];
 
@@ -250,7 +360,7 @@ export const QuestionnairePage: React.FC = () => {
     return () => {
       window.removeEventListener('questionnaires-updated', handler);
     };
-  }, []);
+  }, [token]);
 
   const completedQuestionnaires = questionnaires.filter(
     (item) => item.status === 'Completado'
@@ -272,19 +382,76 @@ export const QuestionnairePage: React.FC = () => {
         )
       : 0;
 
-  const markQuestionnaireAsCompleted = (questionnaireId: string) => {
-    setQuestionnaires((prevQuestionnaires) =>
-      prevQuestionnaires.map((questionnaire) =>
-        questionnaire.id === questionnaireId
-          ? {
-              ...questionnaire,
-              status: 'Completado' as QuestionnaireStatus,
-              score: questionnaire.score || 86,
-              puntaje_obtenido: questionnaire.puntaje_obtenido || 86
-            }
-          : questionnaire
-      )
+  const markQuestionnaireAsCompleted = async (questionnaireId: string) => {
+    if (!token) {
+      alert('Debes iniciar sesión para guardar tu progreso.');
+      return;
+    }
+
+    const selectedQuestionnaire = questionnaires.find(
+      (item) => item.id === questionnaireId
     );
+
+    const maxScore =
+      selectedQuestionnaire?.puntajeMaximo ||
+      selectedQuestionnaire?.puntaje_maximo ||
+      selectedQuestionnaire?.questionsCount ||
+      selectedQuestionnaire?.questions_count ||
+      100;
+
+    try {
+      setIsCompleting(questionnaireId);
+
+      const response = await fetch(
+        `${API_URL}/api/questionnaires/${questionnaireId}/complete`,
+        {
+          method: 'POST',
+          headers: getAuthHeaders(true),
+          body: JSON.stringify({
+            puntaje_obtenido: maxScore
+          })
+        }
+      );
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        console.error('Error backend completeQuestionnaire:', data);
+
+        throw new Error(
+          data?.message ||
+            data?.error ||
+            'No se pudo marcar el cuestionario como completado'
+        );
+      }
+
+      const savedProgress =
+        data?.progreso || data?.progress || data?.cuestionario || null;
+
+      const savedScore =
+        savedProgress?.score ||
+        savedProgress?.puntaje_obtenido ||
+        savedProgress?.puntajeObtenido ||
+        maxScore;
+
+      setQuestionnaires((prevQuestionnaires) =>
+        prevQuestionnaires.map((questionnaire) =>
+          questionnaire.id === questionnaireId
+            ? {
+                ...questionnaire,
+                status: 'Completado',
+                score: Number(savedScore),
+                puntaje_obtenido: Number(savedScore)
+              }
+            : questionnaire
+        )
+      );
+    } catch (error: any) {
+      console.error('Error al completar cuestionario:', error);
+      alert(error.message || 'Error al completar cuestionario.');
+    } finally {
+      setIsCompleting(null);
+    }
   };
 
   return (
@@ -384,7 +551,7 @@ export const QuestionnairePage: React.FC = () => {
               </div>
             ) : availableQuestionnaires.length === 0 ? (
               <div className="questionnaire-empty-state">
-                No hay cuestionarios disponibles por el momento.
+                No hay cuestionarios pendientes por el momento.
               </div>
             ) : (
               <div className="cuestionarios-grid">
@@ -396,6 +563,7 @@ export const QuestionnairePage: React.FC = () => {
                     risk={item.risk}
                     status="Pendiente"
                     bgImage={item.img}
+                    isLoading={isCompleting === item.id}
                     onComplete={() => markQuestionnaireAsCompleted(item.id)}
                   />
                 ))}

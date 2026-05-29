@@ -5,7 +5,9 @@ import {
   getQuestionnaires,
   createQuestionnaire,
   updateQuestionnaire,
-  deleteQuestionnaire
+  deleteQuestionnaire,
+  getMyQuestionnaireProgress,
+  completeQuestionnaire
 } from '../controllers/questionnaires.controller';
 
 import {
@@ -126,7 +128,23 @@ const handleMulterError = (
   });
 };
 
+/* =============================== */
+/* RUTAS PÚBLICAS */
+/* =============================== */
+
 router.get('/', getQuestionnaires);
+
+/* =============================== */
+/* RUTAS DE PROGRESO USUARIO */
+/* =============================== */
+
+router.get('/progress/me', authenticateToken, getMyQuestionnaireProgress);
+
+router.post('/:id/complete', authenticateToken, completeQuestionnaire);
+
+/* =============================== */
+/* RUTAS ADMIN */
+/* =============================== */
 
 router.post(
   '/',

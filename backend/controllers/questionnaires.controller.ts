@@ -44,11 +44,44 @@ interface CuestionarioDB {
   imagenes: string[] | null;
 }
 
+interface CuestionarioUsuarioDB {
+  id: string;
+  usuario_id: string;
+  cuestionario_id: string;
+  fecha_respuesta: string;
+  puntaje_obtenido: number | null;
+  estatus: string | null;
+}
+
+interface AuthenticatedUser {
+  id: string;
+  email: string;
+  role: 'admin' | 'user';
+}
+
 const QUESTIONNAIRES_TABLE =
   process.env.SUPABASE_QUESTIONNAIRES_TABLE || 'cuestionario';
 
+const CUESTIONARIO_USUARIO_TABLE = 'cuestionario_usuario';
+
 const STORAGE_BUCKET =
   process.env.SUPABASE_STORAGE_BUCKET?.trim() || 'municipal-files';
+
+/* =============================== */
+/* HELPERS GENERALES */
+/* =============================== */
+
+const getAuthenticatedUser = (req: Request): AuthenticatedUser | null => {
+  const user = (req as any).user;
+
+  if (!user?.id) return null;
+
+  return {
+    id: String(user.id),
+    email: String(user.email || ''),
+    role: user.role === 'admin' ? 'admin' : 'user'
+  };
+};
 
 const buildStoragePathFromPublicUrl = (url?: string | null): string => {
   if (!url) return '';
@@ -107,6 +140,37 @@ const normalizeRiskForFrontend = (value?: string | null): string => {
   return 'MEDIO';
 };
 
+const normalizeQuestionnaireStatus = (value?: string | null): string => {
+  const normalized = String(value || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+
+  if (normalized === 'pendiente') return 'pendiente';
+  if (normalized === 'en proceso' || normalized === 'en_proceso') {
+    return 'en proceso';
+  }
+
+  return 'completado';
+};
+
+const normalizeScore = (
+  value: unknown,
+  fallbackValue: number
+): number => {
+  const parsed = Number(value);
+
+  if (!Number.isFinite(parsed)) return fallbackValue;
+
+  const rounded = Math.round(parsed);
+
+  if (rounded < 0) return 0;
+  if (rounded > fallbackValue) return fallbackValue;
+
+  return rounded;
+};
+
 const getFilesFromRequest = (req: Request) => {
   const files = req.files as
     | {
@@ -120,6 +184,10 @@ const getFilesFromRequest = (req: Request) => {
     imagenes: files?.imagenes || []
   };
 };
+
+/* =============================== */
+/* IMÁGENES */
+/* =============================== */
 
 const normalizeImagesFromUrls = (
   imageUrls: string[]
@@ -224,6 +292,10 @@ const mapUploadedFileToQuestionnaireImage = (
   };
 };
 
+/* =============================== */
+/* MAPPERS */
+/* =============================== */
+
 const mapQuestionnaireResponse = (item: CuestionarioDB) => {
   const images = normalizeImagesFromUrls(item.imagenes || []);
   const risk = normalizeRiskForFrontend(item.riesgo);
@@ -263,6 +335,35 @@ const mapQuestionnaireResponse = (item: CuestionarioDB) => {
   };
 };
 
+const mapCuestionarioUsuarioResponse = (item: CuestionarioUsuarioDB) => {
+  const estatus = normalizeQuestionnaireStatus(item.estatus);
+
+  return {
+    id: item.id,
+
+    usuarioId: item.usuario_id,
+    usuario_id: item.usuario_id,
+
+    questionnaireId: item.cuestionario_id,
+    cuestionarioId: item.cuestionario_id,
+    cuestionario_id: item.cuestionario_id,
+
+    fechaRespuesta: item.fecha_respuesta,
+    fecha_respuesta: item.fecha_respuesta,
+
+    puntajeObtenido: item.puntaje_obtenido || 0,
+    puntaje_obtenido: item.puntaje_obtenido || 0,
+    score: item.puntaje_obtenido || 0,
+
+    estatus,
+    status: estatus === 'completado' ? 'Completado' : 'Pendiente'
+  };
+};
+
+/* =============================== */
+/* CONSULTAS AUXILIARES */
+/* =============================== */
+
 const getCurrentQuestionnaire = async (
   id: string
 ): Promise<CuestionarioDB | null> => {
@@ -276,6 +377,10 @@ const getCurrentQuestionnaire = async (
 
   return data as CuestionarioDB;
 };
+
+/* =============================== */
+/* CUESTIONARIOS - CRUD */
+/* =============================== */
 
 export const getQuestionnaires = async (_req: Request, res: Response) => {
   try {
@@ -341,9 +446,8 @@ export const createQuestionnaire = async (req: Request, res: Response) => {
       puntajeMaximo || puntaje_maximo || questionsCount || questions_count || 10
     );
 
-    const finalScore = Number.isFinite(score) && score > 0
-      ? Math.round(score)
-      : 10;
+    const finalScore =
+      Number.isFinite(score) && score > 0 ? Math.round(score) : 10;
 
     if (!finalTitle || !finalDescription) {
       return res.status(400).json({
@@ -389,10 +493,10 @@ export const createQuestionnaire = async (req: Request, res: Response) => {
 
     const existingImages = normalizeImagePayload(parsedImages);
 
-    const finalImages = [
-      ...existingImages,
-      ...uploadedImagesPayload
-    ].slice(0, 10);
+    const finalImages = [...existingImages, ...uploadedImagesPayload].slice(
+      0,
+      10
+    );
 
     const imageUrls = finalImages
       .map((imageItem: NormalizedQuestionnaireImage): string => imageItem.url)
@@ -510,9 +614,8 @@ export const updateQuestionnaire = async (req: Request, res: Response) => {
         10
     );
 
-    const finalScore = Number.isFinite(score) && score > 0
-      ? Math.round(score)
-      : 10;
+    const finalScore =
+      Number.isFinite(score) && score > 0 ? Math.round(score) : 10;
 
     if (!finalTitle || !finalDescription) {
       return res.status(400).json({
@@ -606,10 +709,8 @@ export const updateQuestionnaire = async (req: Request, res: Response) => {
         )
     );
 
-    const finalImages = [
-      ...requestedExistingImages,
-      ...uploadedImagesPayload
-    ].slice(0, 10);
+    const finalImages = [...requestedExistingImages, ...uploadedImagesPayload]
+      .slice(0, 10);
 
     const finalImageUrls = finalImages
       .map((imageItem: NormalizedQuestionnaireImage): string => imageItem.url)
@@ -699,6 +800,11 @@ export const deleteQuestionnaire = async (req: Request, res: Response) => {
 
     const actual = await getCurrentQuestionnaire(questionnaireId);
 
+    await supabase
+      .from(CUESTIONARIO_USUARIO_TABLE)
+      .delete()
+      .eq('cuestionario_id', questionnaireId);
+
     const { error } = await supabase
       .from(QUESTIONNAIRES_TABLE)
       .delete()
@@ -731,6 +837,159 @@ export const deleteQuestionnaire = async (req: Request, res: Response) => {
 
     return res.status(500).json({
       message: 'Error al eliminar cuestionario.',
+      error: error.message || 'Error desconocido'
+    });
+  }
+};
+
+/* =============================== */
+/* CUESTIONARIOS - PROGRESO REAL */
+/* =============================== */
+
+export const getMyQuestionnaireProgress = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const user = getAuthenticatedUser(req);
+
+    if (!user) {
+      return res.status(401).json({
+        ok: false,
+        message: 'Usuario no autenticado.'
+      });
+    }
+
+    const { data, error } = await supabase
+      .from(CUESTIONARIO_USUARIO_TABLE)
+      .select(
+        'id, usuario_id, cuestionario_id, fecha_respuesta, puntaje_obtenido, estatus'
+      )
+      .eq('usuario_id', user.id)
+      .order('fecha_respuesta', { ascending: false });
+
+    if (error) {
+      throw error;
+    }
+
+    const progreso = ((data || []) as CuestionarioUsuarioDB[]).map(
+      mapCuestionarioUsuarioResponse
+    );
+
+    const completedIds = progreso
+      .filter((item) => item.estatus === 'completado')
+      .map((item) => item.cuestionario_id);
+
+    return res.status(200).json({
+      ok: true,
+
+      progreso,
+      progress: progreso,
+
+      completados: completedIds,
+      completedIds,
+
+      totalCompletados: completedIds.length,
+      total_completed: completedIds.length
+    });
+  } catch (error: any) {
+    console.error('Error en getMyQuestionnaireProgress:', error);
+
+    return res.status(500).json({
+      ok: false,
+      message: 'Error al obtener progreso de cuestionarios.',
+      error: error.message || 'Error desconocido'
+    });
+  }
+};
+
+export const completeQuestionnaire = async (req: Request, res: Response) => {
+  try {
+    const user = getAuthenticatedUser(req);
+    const questionnaireId = String(req.params.id || '').trim();
+
+    if (!user) {
+      return res.status(401).json({
+        ok: false,
+        message: 'Usuario no autenticado.'
+      });
+    }
+
+    if (!questionnaireId) {
+      return res.status(400).json({
+        ok: false,
+        message: 'ID de cuestionario no proporcionado.'
+      });
+    }
+
+    const questionnaire = await getCurrentQuestionnaire(questionnaireId);
+
+    if (!questionnaire) {
+      return res.status(404).json({
+        ok: false,
+        message: 'Cuestionario no encontrado.'
+      });
+    }
+
+    const maxScore = Number(questionnaire.puntaje_maximo || 100);
+    const safeMaxScore =
+      Number.isFinite(maxScore) && maxScore > 0 ? Math.round(maxScore) : 100;
+
+    const requestScore =
+      req.body?.score ??
+      req.body?.puntaje_obtenido ??
+      req.body?.puntajeObtenido ??
+      safeMaxScore;
+
+    const finalScore = normalizeScore(requestScore, safeMaxScore);
+
+    const payload = {
+      usuario_id: user.id,
+      cuestionario_id: questionnaireId,
+      fecha_respuesta: new Date().toISOString(),
+      puntaje_obtenido: finalScore,
+      estatus: 'completado'
+    };
+
+    const { data, error } = await supabase
+      .from(CUESTIONARIO_USUARIO_TABLE)
+      .upsert(payload, {
+        onConflict: 'usuario_id,cuestionario_id'
+      })
+      .select(
+        'id, usuario_id, cuestionario_id, fecha_respuesta, puntaje_obtenido, estatus'
+      )
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    const progreso = mapCuestionarioUsuarioResponse(
+      data as CuestionarioUsuarioDB
+    );
+
+    return res.status(200).json({
+      ok: true,
+      message: 'Cuestionario marcado como completado.',
+
+      progreso,
+      progress: progreso,
+
+      cuestionario: {
+        ...mapQuestionnaireResponse(questionnaire),
+        status: 'Completado',
+        estatus: 'completado',
+        score: finalScore,
+        puntaje_obtenido: finalScore
+      }
+    });
+  } catch (error: any) {
+    console.error('Error en completeQuestionnaire:', error);
+
+    return res.status(500).json({
+      ok: false,
+      message: 'Error al completar cuestionario.',
       error: error.message || 'Error desconocido'
     });
   }

@@ -4,7 +4,9 @@ import {
   getEducationModules,
   createEducationModule,
   updateEducationModule,
-  deleteEducationModule
+  deleteEducationModule,
+  getMyEducationProgress,
+  completeEducationModule
 } from '../controllers/education.controller';
 import {
   authenticateToken,
@@ -124,7 +126,23 @@ const handleMulterError = (
   });
 };
 
+/* =============================== */
+/* RUTAS PÚBLICAS */
+/* =============================== */
+
 router.get('/', getEducationModules);
+
+/* =============================== */
+/* RUTAS DE PROGRESO USUARIO */
+/* =============================== */
+
+router.get('/progress/me', authenticateToken, getMyEducationProgress);
+
+router.post('/:id/complete', authenticateToken, completeEducationModule);
+
+/* =============================== */
+/* RUTAS ADMIN */
+/* =============================== */
 
 router.post(
   '/',

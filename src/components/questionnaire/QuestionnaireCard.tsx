@@ -8,6 +8,7 @@ interface QuestionnaireCardProps {
   status: 'Completado' | 'Pendiente';
   score?: number;
   bgImage: string;
+  isLoading?: boolean;
   onComplete?: () => void;
   onViewResults?: () => void;
 }
@@ -19,6 +20,7 @@ export const QuestionnaireCard: React.FC<QuestionnaireCardProps> = ({
   status,
   score,
   bgImage,
+  isLoading = false,
   onComplete,
   onViewResults
 }) => {
@@ -38,7 +40,6 @@ export const QuestionnaireCard: React.FC<QuestionnaireCardProps> = ({
       <div className="card-body-content">
         <div className="card-meta-row">
           <span>Riesgo: {risk}</span>
-
           <span className={`status-badge ${status.toLowerCase()}`}>
             {status}
           </span>
@@ -62,9 +63,14 @@ export const QuestionnaireCard: React.FC<QuestionnaireCardProps> = ({
         <button
           type="button"
           className="card-btn-action"
+          disabled={isLoading}
           onClick={handleAction}
         >
-          {isComplete ? 'Ver resultados' : 'Completar cuestionario'}
+          {isComplete
+            ? 'Ver resultados'
+            : isLoading
+              ? 'Guardando...'
+              : 'Completar cuestionario'}
         </button>
       </div>
     </article>

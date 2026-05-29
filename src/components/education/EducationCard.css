@@ -1,23 +1,26 @@
-/* Archivo: src/components/EducationCard/EducationCard.css */
+/* Archivo: src/components/education/EducationCard.css */
 
 .edu-card {
   background: white;
-  /* Bordes redondeados más pronunciados como en la imagen original */
-  border-radius: 25px; 
+  border-radius: 25px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-  
-  overflow: hidden; 
+
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   transition: transform 0.2s ease;
-  border: 1px solid #f0f0f0; /* Borde sutil para definir la tarjeta */
+  border: 1px solid #f0f0f0;
 }
 
 .edu-card:hover {
   transform: translateY(-5px);
 }
 
-/* Contenedor de la imagen real */
+.edu-card-completed {
+  border-color: rgba(22, 163, 74, 0.22);
+  box-shadow: 0 14px 32px rgba(22, 163, 74, 0.08);
+}
+
 .card-image-container {
   height: 160px;
   position: relative;
@@ -27,14 +30,14 @@
 .card-top-img {
   width: 100%;
   height: 100%;
-  object-fit: cover; /* Mantiene la proporción sin deformar */
+  object-fit: cover;
 }
 
 .card-tag {
   position: absolute;
   top: 15px;
   left: 15px;
-  background: rgba(0, 0, 0, 0.4); /* Fondo oscuro translúcido de la imagen original */
+  background: rgba(0, 0, 0, 0.4);
   color: white;
   padding: 5px 14px;
   border-radius: 15px;
@@ -42,6 +45,28 @@
   font-family: 'Archivo', sans-serif;
   backdrop-filter: blur(4px);
   z-index: 2;
+}
+
+.card-status-pill {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  z-index: 2;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 6px 12px;
+  border-radius: 999px;
+
+  background: rgba(22, 163, 74, 0.92);
+  color: #ffffff;
+
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 800;
+  backdrop-filter: blur(4px);
 }
 
 .card-info {
@@ -54,7 +79,7 @@
 .card-meta {
   display: flex;
   gap: 15px;
-  color: #888; /* Gris más claro para los iconos */
+  color: #888;
   font-size: 0.8rem;
   margin-bottom: 12px;
   align-items: center;
@@ -70,8 +95,7 @@
 .card-info h4 {
   margin: 5px 0 10px 0;
   color: #333;
-  /* Aplicación de la tipografía de Canva */
-  font-family: 'Archivo Black', sans-serif; 
+  font-family: 'Archivo Black', sans-serif;
   font-size: 1.3rem;
   line-height: 1.2;
 }
@@ -86,14 +110,13 @@
 }
 
 .card-button {
-  /* Variables base */
   --border-radius: 10px;
   --color: #333;
   --background: #ffffff;
-  --border-color: #f0f0f0; 
+  --border-color: #f0f0f0;
   --border-style: solid;
   --border-width: 1px;
-  
+
   font-family: 'Archivo', sans-serif;
   font-weight: 700;
   text-transform: none;
@@ -102,25 +125,25 @@
   height: 38px;
   font-size: 0.85rem;
 
-  /* Transición */
   transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
-  
-  /* Esto quita cualquier sombra por defecto que traiga el componente */
   box-shadow: none;
 }
 
-/* En Ionic, el hover se controla mejor con estas propiedades */
 .card-button:hover {
-  /* Cambiamos las variables internas de Ionic */
   --color: #0d47a1;
   --background: #ffffff;
   --border-color: rgba(77, 208, 225, 0.8);
 
-  /* El truco: Aplicamos el neón al elemento pero forzamos el radio */
-  border-radius: 10px; 
-  box-shadow: 
-    0 0 10px rgba(7, 50, 124, 0.5), 
-    0 0 20px rgba(37, 52, 138, 0.2);   /* Aura azul profunda */
+  border-radius: 10px;
+  box-shadow:
+    0 0 10px rgba(7, 50, 124, 0.5),
+    0 0 20px rgba(37, 52, 138, 0.2);
 
   transform: translateY(-2px);
+}
+
+.card-button-completed {
+  --color: #15803d;
+  --background: #f0fdf4;
+  --border-color: rgba(22, 163, 74, 0.25);
 }

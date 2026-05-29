@@ -1,5 +1,6 @@
+import React from 'react';
 import './EducationCard.css';
-import { timeOutline, starOutline } from 'ionicons/icons';
+import { timeOutline, starOutline, checkmarkCircleOutline } from 'ionicons/icons';
 import { IonIcon, IonButton } from '@ionic/react';
 
 interface CardProps {
@@ -10,6 +11,7 @@ interface CardProps {
   level: string;
   image: string;
   status?: 'Completado' | 'Pendiente';
+  isLoading?: boolean;
   onComplete?: () => void;
 }
 
@@ -21,14 +23,23 @@ export const EducationCard: React.FC<CardProps> = ({
   level,
   image,
   status = 'Pendiente',
+  isLoading = false,
   onComplete
 }) => {
-  const isCompleted = status === 'Completado';
+  const isComplete = status === 'Completado';
 
   return (
-    <div className="edu-card">
+    <div className={`edu-card ${isComplete ? 'edu-card-completed' : ''}`}>
       <div className="card-image-container">
         <span className="card-tag">{tag}</span>
+
+        {isComplete && (
+          <span className="card-status-pill">
+            <IonIcon icon={checkmarkCircleOutline} />
+            Completado
+          </span>
+        )}
+
         <img src={image} className="card-top-img" alt={title} />
       </div>
 
@@ -47,13 +58,16 @@ export const EducationCard: React.FC<CardProps> = ({
         <p>{description}</p>
 
         <IonButton
-          fill={isCompleted ? 'solid' : 'outline'}
-          className="card-button"
-          color={isCompleted ? 'success' : undefined}
-          disabled={isCompleted}
+          fill="outline"
+          className={`card-button ${isComplete ? 'card-button-completed' : ''}`}
+          disabled={isComplete || isLoading}
           onClick={onComplete}
         >
-          {isCompleted ? 'Completado ✓' : 'Ver módulo →'}
+          {isComplete
+            ? 'Módulo completado'
+            : isLoading
+              ? 'Guardando...'
+              : 'Marcar como completado'}
         </IonButton>
       </div>
     </div>

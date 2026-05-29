@@ -44,14 +44,28 @@ interface EducationModule {
   estatus?: string;
 }
 
-const API_URL = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
+interface EducationProgressItem {
+  id?: string;
+  usuario_id?: string;
+  usuarioId?: string;
+  educacion_id?: string;
+  educacionId?: string;
+  educationId?: string;
+  fecha_lectura?: string;
+  fechaLectura?: string;
+}
 
-/*
-  Modo de prueba:
-  true  = marca temporalmente el primer módulo como completado.
-  false = comportamiento normal.
-*/
-const DEV_PREVIEW_COMPLETED_EDUCATION = false;
+interface EducationProgressResponse {
+  ok?: boolean;
+  progreso?: EducationProgressItem[];
+  progress?: EducationProgressItem[];
+  completados?: string[];
+  completedIds?: string[];
+  totalCompletados?: number;
+  total_completed?: number;
+}
+
+const API_URL = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
 
 const normalizeDifficultyLabel = (value?: string) => {
   const normalized = String(value || '')
@@ -97,12 +111,48 @@ const normalizeStatus = (value?: string): EducationStatus => {
   return 'Pendiente';
 };
 
+const getEducationCompletedIds = (
+  progressData: EducationProgressResponse | null
+) => {
+  if (!progressData) return [];
+
+  if (Array.isArray(progressData.completedIds)) {
+    return progressData.completedIds.map(String);
+  }
+
+  if (Array.isArray(progressData.completados)) {
+    return progressData.completados.map(String);
+  }
+
+  const progressItems = Array.isArray(progressData.progreso)
+    ? progressData.progreso
+    : Array.isArray(progressData.progress)
+      ? progressData.progress
+      : [];
+
+  return progressItems
+    .map((item) => item.educacion_id || item.educacionId || item.educationId)
+    .filter(Boolean)
+    .map(String);
+};
+
 export const EducationPage: React.FC = () => {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const isAdmin = user?.role === 'admin';
 
   const [modules, setModules] = useState<EducationModule[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isCompleting, setIsCompleting] = useState<string | null>(null);
+
+  const getAuthHeaders = (): Record<string, string> => {
+    const headers: Record<string, string> = {};
+
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    return headers;
+  };
 
   const buildFileUrl = (url?: string) => {
     if (!url) return '';
@@ -146,33 +196,55 @@ export const EducationPage: React.FC = () => {
     try {
       setIsLoading(true);
 
-      const response = await fetch(`${API_URL}/api/education`);
-      const data = await response.json().catch(() => null);
+      const modulesRequest = fetch(`${API_URL}/api/education`);
 
-      if (!response.ok) {
-        console.error('Error backend /api/education:', data);
+      const progressRequest = token
+        ? fetch(`${API_URL}/api/education/progress/me`, {
+            headers: getAuthHeaders()
+          })
+        : Promise.resolve(null);
+
+      const [modulesResponse, progressResponse] = await Promise.all([
+        modulesRequest,
+        progressRequest
+      ]);
+
+      const modulesData = await modulesResponse.json().catch(() => null);
+
+      if (!modulesResponse.ok) {
+        console.error('Error backend /api/education:', modulesData);
 
         throw new Error(
-          data?.message ||
-            data?.error ||
+          modulesData?.message ||
+            modulesData?.error ||
             'No se pudieron cargar los módulos educativos'
         );
       }
 
-      const backendModules: EducationModule[] = Array.isArray(data)
-        ? data.map((module, index) => {
-            const normalized = normalizeBackendModule(module);
+      let completedIds: string[] = [];
 
-            if (DEV_PREVIEW_COMPLETED_EDUCATION && index === 0) {
-              return {
-                ...normalized,
-                status: 'Completado'
-              };
-            }
+      if (progressResponse && progressResponse.ok) {
+        const progressData: EducationProgressResponse = await progressResponse
+          .json()
+          .catch(() => null);
+
+        completedIds = getEducationCompletedIds(progressData);
+      }
+
+      if (progressResponse && !progressResponse.ok) {
+        const progressError = await progressResponse.json().catch(() => null);
+        console.error('Error backend /api/education/progress/me:', progressError);
+      }
+
+      const backendModules: EducationModule[] = Array.isArray(modulesData)
+        ? modulesData.map((module) => {
+            const normalized = normalizeBackendModule(module);
 
             return {
               ...normalized,
-              status: normalized.status || 'Pendiente'
+              status: completedIds.includes(String(normalized.id))
+                ? 'Completado'
+                : 'Pendiente'
             };
           })
         : [];
@@ -195,26 +267,58 @@ export const EducationPage: React.FC = () => {
     return () => {
       window.removeEventListener('education-updated', handler);
     };
-  }, []);
+  }, [token]);
 
   const completedModules = modules.filter(
     (module) => module.status === 'Completado'
-    );
+  );
 
   const availableModules = modules.filter(
-    (module) => module.status !== 'Completado');
+    (module) => module.status !== 'Completado'
+  );
 
-  const markModuleAsCompleted = (moduleId: string) => {
-    setModules((prevModules) =>
-      prevModules.map((module) =>
-        module.id === moduleId
-          ? {
-              ...module,
-              status: 'Completado'
-            }
-          : module
-      )
-    );
+  const markModuleAsCompleted = async (moduleId: string) => {
+    if (!token) {
+      alert('Debes iniciar sesión para guardar tu progreso.');
+      return;
+    }
+
+    try {
+      setIsCompleting(moduleId);
+
+      const response = await fetch(`${API_URL}/api/education/${moduleId}/complete`, {
+        method: 'POST',
+        headers: getAuthHeaders()
+      });
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        console.error('Error backend completeEducationModule:', data);
+
+        throw new Error(
+          data?.message ||
+            data?.error ||
+            'No se pudo marcar el módulo como completado'
+        );
+      }
+
+      setModules((prevModules) =>
+        prevModules.map((module) =>
+          module.id === moduleId
+            ? {
+                ...module,
+                status: 'Completado'
+              }
+            : module
+        )
+      );
+    } catch (error: any) {
+      console.error('Error al completar módulo educativo:', error);
+      alert(error.message || 'Error al completar módulo educativo.');
+    } finally {
+      setIsCompleting(null);
+    }
   };
 
   return (
@@ -264,8 +368,8 @@ export const EducationPage: React.FC = () => {
                   <span className="section-eyebrow">Completados</span>
                   <h2>Módulos educativos completados</h2>
                   <p>
-                    Aquí puedes revisar los módulos educativos que ya fueron
-                    completados por el usuario.
+                    Aquí puedes revisar los módulos educativos que ya guardaste
+                    como completados.
                   </p>
                 </div>
 
@@ -304,7 +408,7 @@ export const EducationPage: React.FC = () => {
               </div>
 
               <div className="education-count-card">
-                <span>Total</span>
+                <span>Pendientes</span>
                 <strong>{availableModules.length}</strong>
               </div>
             </div>
@@ -315,7 +419,7 @@ export const EducationPage: React.FC = () => {
               </div>
             ) : availableModules.length === 0 ? (
               <div className="education-empty-state">
-                No hay módulos educativos disponibles por el momento.
+                No hay módulos educativos pendientes por el momento.
               </div>
             ) : (
               <div className="cards-grid">
@@ -329,6 +433,7 @@ export const EducationPage: React.FC = () => {
                     level={module.level || 'Intermedio'}
                     image={module.image || pishing}
                     status="Pendiente"
+                    isLoading={isCompleting === module.id}
                     onComplete={() => markModuleAsCompleted(module.id)}
                   />
                 ))}

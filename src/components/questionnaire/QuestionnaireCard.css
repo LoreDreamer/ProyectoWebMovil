@@ -8,10 +8,8 @@
   height: 100%;
   box-shadow: 0 10px 25px rgba(0,0,0,0.05);
   transition: transform 0.2s ease;
-  color: #333333; /* Aplica el color a todo el texto interno por defecto */
+  color: #333333;
 }
-
-
 
 .cuestionario-card-modular:hover {
   transform: translateY(-5px);
@@ -27,21 +25,28 @@
 .card-meta-row {
   display: flex;
   justify-content: space-between;
+  gap: 12px;
   font-size: 0.85rem;
   color: #333;
   font-family: 'Archivo', sans-serif;
 }
 
-/* Badge de estado estilo imagen */
 .status-badge {
   padding: 4px 12px;
   border-radius: 10px;
   font-weight: 700;
   color: white;
+  white-space: nowrap;
 }
 
-.status-badge.completado { background: linear-gradient(to right, #4ed3e6, #0052cc); }
-.status-badge.pendiente { background: #d1d5db; color: #666; }
+.status-badge.completado {
+  background: linear-gradient(to right, #4ed3e6, #0052cc);
+}
+
+.status-badge.pendiente {
+  background: #d1d5db;
+  color: #666;
+}
 
 .cuestionario-card-modular h3 {
   font-family: 'Archivo Black', sans-serif;
@@ -49,7 +54,6 @@
   margin: 15px 0 10px 0;
   line-height: 1.2;
 }
-
 
 .cuestionario-card-modular p {
   font-family: 'Archivo', sans-serif;
@@ -60,6 +64,7 @@
   flex-grow: 1;
 }
 
+.card-score-info,
 .score-display {
   display: flex;
   align-items: baseline;
@@ -67,7 +72,11 @@
   font-family: 'Archivo Black', sans-serif;
 }
 
-.score-display span { font-size: 0.8rem; color: #999; }
+.card-score-info span,
+.score-display span {
+  font-size: 0.8rem;
+  color: #999;
+}
 
 .card-visual-footer {
   height: 100px;
@@ -90,35 +99,26 @@
   position: relative;
   background: #ffffff;
   color: #333333;
-  border: none;
   padding: 8px 18px;
   border-radius: 10px;
   font-family: 'Archivo', sans-serif;
   font-weight: 700;
   cursor: pointer;
 
-  /* Agregamos una transición más 'suave' para el neón */
-  /* Propiedad | Duración | Curva (cubic-bezier para un arranque rápido y suavizado lento) */
   transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
-  
-  /* Borde base transparente para que al activarse no 'empuje' al texto */
-  border: 1px solid transparent; 
+  border: 1px solid transparent;
 }
 
 .card-btn-action:hover {
-  /* PASO 1: Activamos un borde de color */
-  border: 1px solid rgba(77, 208, 225, 0.8); /* Celeste principal */
-  
-  /* PASO 2: EL EFECTO NEÓN (Múltiples sombras) */
-  /* Sombra 1 (Interna): Brillo tenue hacia adentro */
-  /* Sombra 2 (Externa): Brillo fuerte y difuminado (Celeste) */
-  /* Sombra 3 (Externa): Resplandor más profundo (Azul) */
-  box-shadow: 
-    0 0 10px rgba(7, 50, 124, 0.5), 
+  border: 1px solid rgba(77, 208, 225, 0.8);
+  box-shadow:
+    0 0 10px rgba(7, 50, 124, 0.5),
     0 0 20px rgba(37, 52, 138, 0.2);
-
-  /* PASO 3: Ajustes de color para contraste */
-  /* Oscurecemos el fondo y el texto para que el neón destaque */
   background: #fcfdfe;
-  color: #0d47a1; /* Azul profundo en el texto para el hover */
+  color: #0d47a1;
+}
+
+.card-btn-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
 }

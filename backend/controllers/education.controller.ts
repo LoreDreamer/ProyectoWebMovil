@@ -46,9 +46,40 @@ interface EducationDB {
   creado_en?: string | null;
 }
 
+interface EducacionUsuarioDB {
+  id: string;
+  usuario_id: string;
+  educacion_id: string;
+  fecha_lectura: string;
+}
+
+interface AuthenticatedUser {
+  id: string;
+  email: string;
+  role: 'admin' | 'user';
+}
+
 const EDUCATION_TABLE = process.env.SUPABASE_EDUCATION_TABLE || 'educacion';
+const EDUCACION_USUARIO_TABLE = 'educacion_usuario';
+
 const STORAGE_BUCKET =
   process.env.SUPABASE_STORAGE_BUCKET?.trim() || 'municipal-files';
+
+/* =============================== */
+/* HELPERS GENERALES */
+/* =============================== */
+
+const getAuthenticatedUser = (req: Request): AuthenticatedUser | null => {
+  const user = (req as any).user;
+
+  if (!user?.id) return null;
+
+  return {
+    id: String(user.id),
+    email: String(user.email || ''),
+    role: user.role === 'admin' ? 'admin' : 'user'
+  };
+};
 
 const buildStoragePathFromPublicUrl = (url?: string | null): string => {
   if (!url) return '';
@@ -156,6 +187,10 @@ const getFilesFromRequest = (req: Request) => {
   };
 };
 
+/* =============================== */
+/* IMÁGENES */
+/* =============================== */
+
 const normalizeImages = (
   images: Array<EducationImage | string>
 ): NormalizedEducationImage[] => {
@@ -187,8 +222,10 @@ const normalizeImages = (
       const imageUrl = imageItem.url || imageItem.previewUrl || '';
       const imagePath =
         imageItem.path || buildStoragePathFromPublicUrl(imageUrl);
+
       const imageName =
         imageItem.name || imageItem.originalName || `imagen-${index + 1}`;
+
       const imageId =
         imageItem.id || `${index + 1}-${imageUrl || imagePath || imageName}`;
 
@@ -212,18 +249,16 @@ const filterValidExistingImages = (
 ): NormalizedEducationImage[] => {
   const normalizedImages = normalizeImages(images);
 
-  return normalizedImages.filter(
-    (imageItem: NormalizedEducationImage): boolean => {
-      const imageUrl = imageItem.url || '';
-      const imagePath = imageItem.path || '';
+  return normalizedImages.filter((imageItem) => {
+    const imageUrl = imageItem.url || '';
+    const imagePath = imageItem.path || '';
 
-      if (!imageUrl && !imagePath) return false;
-      if (imageUrl.startsWith('blob:')) return false;
-      if (imageUrl.startsWith('data:')) return false;
+    if (!imageUrl && !imagePath) return false;
+    if (imageUrl.startsWith('blob:')) return false;
+    if (imageUrl.startsWith('data:')) return false;
 
-      return true;
-    }
-  );
+    return true;
+  });
 };
 
 const mapUploadedFileToEducationImage = (
@@ -246,6 +281,10 @@ const mapUploadedFileToEducationImage = (
     order: index + 1
   };
 };
+
+/* =============================== */
+/* MAPPERS */
+/* =============================== */
 
 const mapEducationResponse = (item: EducationDB) => {
   const images = normalizeImages(item.imagenes || []);
@@ -283,9 +322,31 @@ const mapEducationResponse = (item: EducationDB) => {
     images,
     imagenes: images,
 
-    createdAt: item.creado_en || null
+    createdAt: item.creado_en || null,
+    created_at: item.creado_en || null,
+    creado_en: item.creado_en || null
   };
 };
+
+const mapEducacionUsuarioResponse = (item: EducacionUsuarioDB) => {
+  return {
+    id: item.id,
+
+    usuarioId: item.usuario_id,
+    usuario_id: item.usuario_id,
+
+    educationId: item.educacion_id,
+    educacionId: item.educacion_id,
+    educacion_id: item.educacion_id,
+
+    fechaLectura: item.fecha_lectura,
+    fecha_lectura: item.fecha_lectura
+  };
+};
+
+/* =============================== */
+/* CONSULTAS AUXILIARES */
+/* =============================== */
 
 const getCurrentEducationModule = async (
   id: string
@@ -300,6 +361,10 @@ const getCurrentEducationModule = async (
 
   return data as EducationDB;
 };
+
+/* =============================== */
+/* EDUCACIÓN - CRUD */
+/* =============================== */
 
 export const getEducationModules = async (_req: Request, res: Response) => {
   try {
@@ -383,12 +448,8 @@ export const createEducationModule = async (req: Request, res: Response) => {
     );
 
     uploadedImagesPayload = normalizeImages(
-      uploadedImages.map(
-        (
-          uploadedFile: UploadedStorageFile,
-          index: number
-        ): NormalizedEducationImage =>
-          mapUploadedFileToEducationImage(uploadedFile, index)
+      uploadedImages.map((uploadedFile, index) =>
+        mapUploadedFileToEducationImage(uploadedFile, index)
       )
     );
 
@@ -427,9 +488,7 @@ export const createEducationModule = async (req: Request, res: Response) => {
       await deleteFilesFromStorage([
         uploadedCover?.path,
         uploadedDocument?.path,
-        ...uploadedImagesPayload.map(
-          (imageItem: NormalizedEducationImage): string => imageItem.path
-        )
+        ...uploadedImagesPayload.map((imageItem) => imageItem.path)
       ]);
 
       throw error;
@@ -440,9 +499,7 @@ export const createEducationModule = async (req: Request, res: Response) => {
     await deleteFilesFromStorage([
       uploadedCover?.path,
       uploadedDocument?.path,
-      ...uploadedImagesPayload.map(
-        (imageItem: NormalizedEducationImage): string => imageItem.path
-      )
+      ...uploadedImagesPayload.map((imageItem) => imageItem.path)
     ]);
 
     console.error('Error en createEducationModule:', error);
@@ -489,7 +546,6 @@ export const updateEducationModule = async (req: Request, res: Response) => {
       nivel,
       image,
       fileUrl,
-      images = [],
       removeCover = 'false',
       removeFile = 'false'
     } = req.body;
@@ -579,15 +635,11 @@ export const updateEducationModule = async (req: Request, res: Response) => {
       'educacion/imagenes'
     );
 
-    uploadedImagesPayload = uploadedImages.map(
-      (
-        uploadedFile: UploadedStorageFile,
-        index: number
-      ): NormalizedEducationImage =>
-        mapUploadedFileToEducationImage(
-          uploadedFile,
-          requestedExistingImages.length + index
-        )
+    uploadedImagesPayload = uploadedImages.map((uploadedFile, index) =>
+      mapUploadedFileToEducationImage(
+        uploadedFile,
+        requestedExistingImages.length + index
+      )
     );
 
     const finalImages = normalizeImages([
@@ -596,19 +648,19 @@ export const updateEducationModule = async (req: Request, res: Response) => {
     ]).slice(0, 10);
 
     const currentImagePaths = normalizeImages(actual.imagenes || [])
-      .map((imageItem: NormalizedEducationImage): string => {
+      .map((imageItem) => {
         return imageItem.path || buildStoragePathFromPublicUrl(imageItem.url);
       })
       .filter(isNonEmptyString);
 
     const finalImagePaths = finalImages
-      .map((imageItem: NormalizedEducationImage): string => {
+      .map((imageItem) => {
         return imageItem.path || buildStoragePathFromPublicUrl(imageItem.url);
       })
       .filter(isNonEmptyString);
 
     const imagePathsToDelete = currentImagePaths.filter(
-      (storagePath: string): boolean => !finalImagePaths.includes(storagePath)
+      (storagePath) => !finalImagePaths.includes(storagePath)
     );
 
     const payload = {
@@ -635,9 +687,7 @@ export const updateEducationModule = async (req: Request, res: Response) => {
       await deleteFilesFromStorage([
         uploadedCover?.path,
         uploadedDocument?.path,
-        ...uploadedImagesPayload.map(
-          (imageItem: NormalizedEducationImage): string => imageItem.path
-        )
+        ...uploadedImagesPayload.map((imageItem) => imageItem.path)
       ]);
 
       throw error;
@@ -654,9 +704,7 @@ export const updateEducationModule = async (req: Request, res: Response) => {
     await deleteFilesFromStorage([
       uploadedCover?.path,
       uploadedDocument?.path,
-      ...uploadedImagesPayload.map(
-        (imageItem: NormalizedEducationImage): string => imageItem.path
-      )
+      ...uploadedImagesPayload.map((imageItem) => imageItem.path)
     ]);
 
     console.error('Error en updateEducationModule:', error);
@@ -680,6 +728,11 @@ export const deleteEducationModule = async (req: Request, res: Response) => {
 
     const actual = await getCurrentEducationModule(moduleId);
 
+    await supabase
+      .from(EDUCACION_USUARIO_TABLE)
+      .delete()
+      .eq('educacion_id', moduleId);
+
     const { error } = await supabase
       .from(EDUCATION_TABLE)
       .delete()
@@ -694,10 +747,8 @@ export const deleteEducationModule = async (req: Request, res: Response) => {
       const documentPath = buildStoragePathFromPublicUrl(actual.archivo_url);
 
       const imagePaths = normalizeImages(actual.imagenes || [])
-        .map((imageItem: NormalizedEducationImage): string => {
-          return (
-            imageItem.path || buildStoragePathFromPublicUrl(imageItem.url)
-          );
+        .map((imageItem) => {
+          return imageItem.path || buildStoragePathFromPublicUrl(imageItem.url);
         })
         .filter(isNonEmptyString);
 
@@ -712,6 +763,132 @@ export const deleteEducationModule = async (req: Request, res: Response) => {
 
     return res.status(500).json({
       message: 'Error al eliminar módulo educativo.',
+      error: error.message || 'Error desconocido'
+    });
+  }
+};
+
+/* =============================== */
+/* EDUCACIÓN - PROGRESO REAL */
+/* =============================== */
+
+export const getMyEducationProgress = async (req: Request, res: Response) => {
+  try {
+    const user = getAuthenticatedUser(req);
+
+    if (!user) {
+      return res.status(401).json({
+        ok: false,
+        message: 'Usuario no autenticado.'
+      });
+    }
+
+    const { data, error } = await supabase
+      .from(EDUCACION_USUARIO_TABLE)
+      .select('id, usuario_id, educacion_id, fecha_lectura')
+      .eq('usuario_id', user.id)
+      .order('fecha_lectura', { ascending: false });
+
+    if (error) {
+      throw error;
+    }
+
+    const progreso = ((data || []) as EducacionUsuarioDB[]).map(
+      mapEducacionUsuarioResponse
+    );
+
+    const completedIds = progreso.map((item) => item.educacion_id);
+
+    return res.status(200).json({
+      ok: true,
+
+      progreso,
+      progress: progreso,
+
+      completados: completedIds,
+      completedIds,
+
+      totalCompletados: completedIds.length,
+      total_completed: completedIds.length
+    });
+  } catch (error: any) {
+    console.error('Error en getMyEducationProgress:', error);
+
+    return res.status(500).json({
+      ok: false,
+      message: 'Error al obtener progreso educativo.',
+      error: error.message || 'Error desconocido'
+    });
+  }
+};
+
+export const completeEducationModule = async (req: Request, res: Response) => {
+  try {
+    const user = getAuthenticatedUser(req);
+    const moduleId = String(req.params.id || '').trim();
+
+    if (!user) {
+      return res.status(401).json({
+        ok: false,
+        message: 'Usuario no autenticado.'
+      });
+    }
+
+    if (!moduleId) {
+      return res.status(400).json({
+        ok: false,
+        message: 'ID de módulo no proporcionado.'
+      });
+    }
+
+    const module = await getCurrentEducationModule(moduleId);
+
+    if (!module) {
+      return res.status(404).json({
+        ok: false,
+        message: 'Módulo educativo no encontrado.'
+      });
+    }
+
+    const payload = {
+      usuario_id: user.id,
+      educacion_id: moduleId,
+      fecha_lectura: new Date().toISOString()
+    };
+
+    const { data, error } = await supabase
+      .from(EDUCACION_USUARIO_TABLE)
+      .upsert(payload, {
+        onConflict: 'usuario_id,educacion_id'
+      })
+      .select('id, usuario_id, educacion_id, fecha_lectura')
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    const progreso = mapEducacionUsuarioResponse(data as EducacionUsuarioDB);
+
+    return res.status(200).json({
+      ok: true,
+      message: 'Módulo educativo marcado como completado.',
+
+      progreso,
+      progress: progreso,
+
+      modulo: {
+        ...mapEducationResponse(module),
+        status: 'Completado',
+        estatus: 'Completado'
+      }
+    });
+  } catch (error: any) {
+    console.error('Error en completeEducationModule:', error);
+
+    return res.status(500).json({
+      ok: false,
+      message: 'Error al completar módulo educativo.',
       error: error.message || 'Error desconocido'
     });
   }
