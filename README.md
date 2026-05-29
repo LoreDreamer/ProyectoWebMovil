@@ -2,6 +2,77 @@
 
 Aplicación web desarrollada con **Ionic + React** orientada a la educación, prevención y gestión básica de ciberseguridad. La plataforma permite a los usuarios revisar información educativa, noticias, protocolos, cuestionarios y realizar denuncias. Además, contempla un acceso administrativo para gestionar información y revisar datos generales del sistema.
 
+## Estructura del Proyecto
+
+```
+ProyectoWebMovil/
+├── frontend/                 # Código fuente del frontend (Ionic + React)
+│   ├── src/                 # Código TypeScript/React
+│   │   ├── assets/          # Imágenes y datos estáticos
+│   │   ├── components/      # Componentes reutilizables
+│   │   ├── pages/           # Páginas de la aplicación
+│   │   ├── context/         # Context API (ej. AuthContext)
+│   │   ├── theme/           # Estilos globales
+│   │   ├── App.tsx          # Componente principal
+│   │   └── main.tsx         # Punto de entrada
+│   ├── public/              # Archivos estáticos públicos
+│   ├── package.json         # Dependencias del frontend
+│   ├── vite.config.ts       # Configuración de Vite
+│   ├── tsconfig.json        # Configuración de TypeScript
+│   └── index.html           # HTML principal
+├── backend/                 # Servidor backend (Node.js + Express)
+│   ├── controllers/         # Controladores de rutas
+│   ├── routes/              # Definición de rutas API
+│   ├── middleware/          # Middleware personalizado
+│   ├── config/              # Configuración (JWT, Supabase)
+│   ├── src/                 # Código de servicios
+│   ├── package.json         # Dependencias del backend
+│   ├── server.ts            # Punto de entrada del servidor
+│   └── tsconfig.json        # Configuración de TypeScript
+├── package.json             # Scripts de gestión del proyecto
+├── tsconfig.json            # Referencias de TypeScript
+└── README.md                # Este archivo
+```
+
+## Guía de Instalación y Ejecución
+
+### Requisitos
+- Node.js v18 o superior
+- npm o yarn
+
+### Instalación de dependencias
+```bash
+# Instalar ambas (frontend y backend)
+npm run install:all
+
+# O instalar por separado
+npm run frontend:install
+npm run backend:install
+```
+
+### Ejecución local
+
+**Frontend (desarrollo):**
+```bash
+npm run frontend:dev
+# O directamente desde la carpeta frontend:
+cd frontend
+npm run dev
+```
+
+**Backend (desarrollo):**
+```bash
+npm run backend:dev
+# O directamente desde la carpeta backend:
+cd backend
+npm run dev
+```
+
+**Frontend (build para producción):**
+```bash
+npm run frontend:build
+```
+
 ## 1. Descripción general del proyecto
 
 La digitalización de servicios y procesos municipales aumenta la necesidad de contar con herramientas que ayuden a prevenir riesgos de ciberseguridad. Muchas personas utilizan plataformas digitales sin tener conocimientos suficientes para reconocer amenazas como phishing, estafas, robo de información o malas prácticas de seguridad.
