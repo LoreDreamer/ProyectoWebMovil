@@ -5,13 +5,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"cd frontend && npm run dev\" \"cd backend && npm run dev\"",
+    "dev": "node scripts/dev.mjs",
     "i": "npm run frontend:install && npm run backend:install",
-    "frontend:dev": "cd frontend && npm run dev",
-    "backend:dev": "cd backend && npm run dev",
-    "frontend:build": "cd frontend && npm run build",
-    "frontend:install": "cd frontend && npm install",
-    "backend:install": "cd backend && npm install"
+    "frontend:dev": "npm --prefix frontend run dev",
+    "backend:dev": "npm --prefix backend run dev",
+    "frontend:build": "npm --prefix frontend run build",
+    "frontend:install": "npm --prefix frontend install",
+    "backend:install": "npm --prefix backend install"
   },
   "keywords": [],
   "author": "",
