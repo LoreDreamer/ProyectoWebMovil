@@ -5,18 +5,15 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "start": "node scripts/dev.mjs",
     "dev": "node scripts/dev.mjs",
-    "i": "npm run frontend:install && npm run backend:install",
-    "frontend:dev": "npm --prefix frontend run dev",
-    "backend:dev": "npm --prefix backend run dev",
-    "frontend:build": "npm --prefix frontend run build",
-    "frontend:install": "npm --prefix frontend install",
-    "backend:install": "npm --prefix backend install"
+
+    "setup": "npm --prefix frontend install && npm --prefix backend install",
+    "f": "npm --prefix frontend run dev",
+    "b": "npm --prefix backend run dev",
+    "build": "npm --prefix frontend run build"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "concurrently": "^10.0.0"
-  }
+  "license": "ISC"
 }
