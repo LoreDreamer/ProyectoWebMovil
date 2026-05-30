@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { IonContent, IonPage } from '@ionic/react';
+import { IonContent, IonPage, IonToast } from '@ionic/react';
 import { useHistory } from 'react-router-dom';
 import {
   Navbar,
@@ -119,6 +119,7 @@ export const EducationPage: React.FC = () => {
 
   const [modules, setModules] = useState<EducationModule[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [showLoginToast, setShowLoginToast] = useState(false);
 
   const obtenerCabeceras = (): Record<string, string> => {
     const cabeceras: Record<string, string> = {};
@@ -216,8 +217,11 @@ export const EducationPage: React.FC = () => {
   const availableModules = modules.filter((module) => module.status !== 'Completado');
 
   const handleCardClick = (module: EducationModule) => {
-    // CORREGIDO: Únicamente maneja la redirección limpia de la ruta. No efectúa llamadas POST a la base de datos.
-    history.push(`/educacion/modulo/${module.id}`, { module });
+    if (!user) {
+      setShowLoginToast(true);
+    } else {
+      history.push(`/educacion/modulo/${module.id}`, { module });
+    }
   };
 
   return (
@@ -330,6 +334,15 @@ export const EducationPage: React.FC = () => {
           </section>
         </div>
         <Footer />
+        
+        <IonToast
+          isOpen={showLoginToast}
+          onDidDismiss={() => setShowLoginToast(false)}
+          message="Debes iniciar sesión para acceder a los módulos"
+          duration={2500}
+          color="warning"
+          position="bottom"
+        />
       </IonContent>
     </IonPage>
   );

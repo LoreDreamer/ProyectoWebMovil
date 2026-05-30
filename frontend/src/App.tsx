@@ -1,3 +1,4 @@
+import React from 'react';
 import { Route, Redirect } from 'react-router-dom';
 import {
   IonApp,
@@ -39,8 +40,8 @@ import {
 } from './pages';
 
 import { QuestionnaireTakePage } from './pages/questionnaires/QuestionnaireTakePage';
-
 import { AuthProvider, useAuth } from './context/AuthContext';
+
 import '@ionic/react/css/core.css';
 import '@ionic/react/css/normalize.css';
 import '@ionic/react/css/structure.css';
@@ -62,7 +63,7 @@ const AppRoutes: React.FC = () => {
   const { user, isLoading } = useAuth();
 
   if (isLoading) {
-    return null;
+    return null; 
   }
 
   return (
@@ -115,17 +116,31 @@ const AppRoutes: React.FC = () => {
         </IonMenu>
 
         <IonRouterOutlet id="main-content">
+          <Route exact path="/" component={HomePage} />
           <Route exact path="/index" component={HomePage} />
-          <Route exact path="/inicio" component={InicioPage} />
           <Route exact path="/login" component={LoginPage} />
           <Route exact path="/register" component={RegisterPage} />
           <Route exact path="/educacion" component={EducationPage} />
-          
-          {/* Ruta corregida con /modulo/:id para calzar con tu botón */}
-          <Route exact path="/educacion/modulo/:id" component={EducationModulePage} />
-          
           <Route exact path="/denuncias" component={ComplaintsPage} />
-          <Route exact path="/cuestionarios" component={QuestionnairePage} />
+          <Route exact path="/alertas" component={NewsPage} />
+
+          <Route 
+            exact 
+            path="/educacion/modulo/:id" 
+            render={() => {
+              if (!user) return <Redirect to="/login" />;
+              return <EducationModulePage />;
+            }} 
+          />
+          
+          <Route 
+            exact 
+            path="/cuestionarios" 
+            render={() => {
+              if (!user) return <Redirect to="/login" />;
+              return <QuestionnairePage />;
+            }} 
+          />
 
           <Route
             exact
@@ -136,8 +151,25 @@ const AppRoutes: React.FC = () => {
             }}
           />
 
-          <Route exact path="/protocolos" component={ProtocolsPage} />
-          <Route exact path="/alertas" component={NewsPage} />
+          <Route 
+            path="/inicio" 
+            exact 
+            render={() => {
+              if (!user) {
+                return <Redirect to="/login" />;
+              }
+              return <InicioPage />; // Pon aquí el nombre exacto de tu componente de inicio
+            }} 
+          />
+
+          <Route 
+            exact 
+            path="/protocolos" 
+            render={() => {
+              if (!user) return <Redirect to="/login" />;
+              return <ProtocolsPage />;
+            }} 
+          />
 
           <Route
             exact
@@ -149,24 +181,27 @@ const AppRoutes: React.FC = () => {
             }}
           />
 
-          <Route exact path="/perfil" render={() => <PlaceholderPage title="Mi Perfil" />} />
-          <Route exact path="/configuracion" render={() => <PlaceholderPage title="Configuración" />} />
+          <Route 
+            exact 
+            path="/perfil" 
+            render={() => user ? <PlaceholderPage title="Mi Perfil" /> : <Redirect to="/login" />} 
+          />
+          <Route 
+            exact 
+            path="/configuracion" 
+            render={() => user ? <PlaceholderPage title="Configuración" /> : <Redirect to="/login" />} 
+          />
 
-          <Route exact path="/">
-            <HomePage />
-          </Route>
         </IonRouterOutlet>
       </IonReactRouter>
     </IonApp>
   );
 };
 
-const App: React.FC = () => {
+export default function App() {
   return (
     <AuthProvider>
       <AppRoutes />
     </AuthProvider>
   );
-};
-
-export default App;
+}
