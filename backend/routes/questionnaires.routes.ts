@@ -63,7 +63,7 @@ const upload = multer({
   storage,
   limits: {
     fileSize: MAX_FILE_SIZE_MB * 1024 * 1024,
-    files: MAX_IMAGES + 2
+    files: MAX_IMAGES + 3
   },
   fileFilter: (_req, file, cb) => {
     const extension = getFileExtension(file.originalname);
@@ -73,6 +73,12 @@ const upload = multer({
 
     const isDocumentField = file.fieldname === 'archivo';
 
+    const isCsvField =
+      file.fieldname === 'csv' ||
+      file.fieldname === 'archivo_csv' ||
+      file.fieldname === 'preguntas' ||
+      file.fieldname === 'ejercicios';
+
     const isValidImage =
       allowedImageMimeTypes.includes(file.mimetype) ||
       allowedImageExtensions.includes(extension);
@@ -80,6 +86,10 @@ const upload = multer({
     const isValidDocument =
       allowedDocumentMimeTypes.includes(file.mimetype) ||
       allowedDocumentExtensions.includes(extension);
+
+    const isValidCsv =
+      allowedCsvMimeTypes.includes(file.mimetype) ||
+      allowedCsvExtensions.includes(extension);
 
     if (isImageField && !isValidImage) {
       return cb(
@@ -97,7 +107,15 @@ const upload = multer({
       );
     }
 
-    if (!isImageField && !isDocumentField) {
+    if (isCsvField && !isValidCsv) {
+      return cb(
+        new Error(
+          'Formato de CSV no permitido. Solo se permiten archivos CSV o TXT.'
+        )
+      );
+    }
+
+    if (!isImageField && !isDocumentField && !isCsvField) {
       return cb(new Error(`Campo de archivo no permitido: ${file.fieldname}`));
     }
 
@@ -133,6 +151,7 @@ const uploadCsv = multer({
 const uploadQuestionnaireFiles = upload.fields([
   { name: 'portada', maxCount: 1 },
   { name: 'archivo', maxCount: 1 },
+  { name: 'csv', maxCount: 1 },
   { name: 'imagenes', maxCount: MAX_IMAGES }
 ]);
 

@@ -500,6 +500,10 @@ export const QuestionnairePage: React.FC = () => {
               <div className="questionnaire-empty-state">
                 Cargando cuestionarios...
               </div>
+            ) : questionnaires.length === 0 ? (
+              <div className="questionnaire-empty-state">
+                Aún no hay un cuestionario disponible por el momento.
+              </div>
             ) : availableQuestionnaires.length === 0 ? (
               <div className="questionnaire-empty-state">
                 No hay cuestionarios pendientes por el momento.

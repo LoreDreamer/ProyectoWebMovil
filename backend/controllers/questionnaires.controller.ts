@@ -42,6 +42,8 @@ interface CuestionarioDB {
   archivo_nombre: string | null;
   archivo_tipo: string | null;
   imagenes: Array<string | QuestionnaireImage> | null;
+  archivo_csv_nombre?: string | null;
+  archivo_csv_importado_en?: string | null;
   creado_en?: string | null;
 }
 
@@ -151,6 +153,22 @@ const buildStoragePathFromPublicUrl = (url?: string | null): string => {
 
 const isNonEmptyString = (value: unknown): value is string => {
   return typeof value === 'string' && value.trim().length > 0;
+};
+
+const getClientErrorStatus = (error: any) => {
+  const message = String(error?.message || '');
+
+  if (
+    message.includes('CSV') ||
+    message.startsWith('Fila ') ||
+    message.includes('respuesta_correcta') ||
+    message.includes('alternativa') ||
+    message.includes('pregunta')
+  ) {
+    return 400;
+  }
+
+  return 500;
 };
 
 const parseJsonArray = <T>(value: unknown): T[] => {
@@ -347,6 +365,11 @@ const mapQuestionnaireResponse = (item: CuestionarioDB) => {
     images,
     imagenes: images,
 
+    archivoCsvNombre: item.archivo_csv_nombre || '',
+    archivo_csv_nombre: item.archivo_csv_nombre || '',
+    archivoCsvImportadoEn: item.archivo_csv_importado_en || null,
+    archivo_csv_importado_en: item.archivo_csv_importado_en || null,
+
     createdAt: item.creado_en || null,
     creado_en: item.creado_en || null
   };
@@ -481,48 +504,24 @@ const resolveCorrectAnswer = (
     a: 0,
     b: 1,
     c: 2,
-    d: 3,
-    e: 4,
-    f: 5
+    d: 3
   };
 
-  if (typeof letterMap[normalized] === 'number') {
-    const index = letterMap[normalized];
-
-    if (!alternatives[index]) {
-      throw new Error(
-        `Fila ${rowNumber}: respuesta_correcta "${value}" no tiene alternativa asociada.`
-      );
-    }
-
-    return alternatives[index];
+  if (typeof letterMap[normalized] !== 'number') {
+    throw new Error(
+      `Fila ${rowNumber}: respuesta_correcta debe ser solo a, b, c o d.`
+    );
   }
 
-  const numberValue = Number(normalized);
+  const index = letterMap[normalized];
 
-  if (Number.isInteger(numberValue) && numberValue >= 1) {
-    const index = numberValue - 1;
-
-    if (!alternatives[index]) {
-      throw new Error(
-        `Fila ${rowNumber}: respuesta_correcta "${value}" no tiene alternativa asociada.`
-      );
-    }
-
-    return alternatives[index];
+  if (!alternatives[index]) {
+    throw new Error(
+      `Fila ${rowNumber}: respuesta_correcta "${value}" no tiene alternativa asociada.`
+    );
   }
 
-  const exactAlternative = alternatives.find(
-    (alternative) => normalizeText(alternative) === normalized
-  );
-
-  if (exactAlternative) {
-    return exactAlternative;
-  }
-
-  throw new Error(
-    `Fila ${rowNumber}: respuesta_correcta "${value}" no coincide con ninguna alternativa.`
-  );
+  return alternatives[index];
 };
 
 const parseExercisesCsv = (
@@ -543,6 +542,28 @@ const parseExercisesCsv = (
 
   const headers = parseCsvLine(rawLines[0]).map(normalizeHeader);
 
+  const requiredHeaders = [
+    'pregunta',
+    'alternativa_a',
+    'alternativa_b',
+    'alternativa_c',
+    'alternativa_d',
+    'respuesta_correcta',
+    'puntaje'
+  ];
+
+  const missingHeaders = requiredHeaders.filter(
+    (header) => !headers.includes(header)
+  );
+
+  if (missingHeaders.length > 0) {
+    throw new Error(
+      `El CSV debe tener exactamente estas columnas separadas por punto y coma: ${requiredHeaders.join(
+        ';'
+      )}. Faltan: ${missingHeaders.join(', ')}.`
+    );
+  }
+
   const getCell = (cells: string[], aliases: string[]) => {
     for (const alias of aliases.map(normalizeHeader)) {
       const index = headers.indexOf(alias);
@@ -562,15 +583,11 @@ const parseExercisesCsv = (
     const pregunta = getCell(cells, ['pregunta', 'enunciado']).trim();
 
     const alternatives = [
-      getCell(cells, ['alternativa_a', 'opcion_a', 'a']),
-      getCell(cells, ['alternativa_b', 'opcion_b', 'b']),
-      getCell(cells, ['alternativa_c', 'opcion_c', 'c']),
-      getCell(cells, ['alternativa_d', 'opcion_d', 'd']),
-      getCell(cells, ['alternativa_e', 'opcion_e', 'e']),
-      getCell(cells, ['alternativa_f', 'opcion_f', 'f'])
-    ]
-      .map((value) => value.trim())
-      .filter(Boolean);
+      getCell(cells, ['alternativa_a']),
+      getCell(cells, ['alternativa_b']),
+      getCell(cells, ['alternativa_c']),
+      getCell(cells, ['alternativa_d'])
+    ].map((value) => value.trim());
 
     const respuestaCorrectaRaw = getCell(cells, [
       'respuesta_correcta',
@@ -585,9 +602,9 @@ const parseExercisesCsv = (
       throw new Error(`Fila ${rowNumber}: falta la pregunta.`);
     }
 
-    if (alternatives.length < 2) {
+    if (alternatives.some((alternative) => !alternative)) {
       throw new Error(
-        `Fila ${rowNumber}: cada pregunta debe tener al menos 2 alternativas.`
+        `Fila ${rowNumber}: debes completar alternativa_a, alternativa_b, alternativa_c y alternativa_d.`
       );
     }
 
@@ -621,6 +638,81 @@ const parseExercisesCsv = (
   });
 };
 
+type ParsedCsvExercise = ReturnType<typeof parseExercisesCsv>[number];
+
+const replaceQuestionnaireExercisesFromCsv = async ({
+  questionnaireId,
+  csvFile,
+  parsedExercises
+}: {
+  questionnaireId: string;
+  csvFile: Express.Multer.File;
+  parsedExercises?: ParsedCsvExercise[] | null;
+}) => {
+  const exercises = (parsedExercises || parseExercisesCsv(csvFile, questionnaireId))
+    .map((exercise) => ({
+      ...exercise,
+      cuestionario_id: questionnaireId
+    }))
+    .sort((a, b) => a.orden - b.orden);
+
+  if (exercises.length === 0) {
+    throw new Error('El CSV debe incluir al menos una pregunta válida.');
+  }
+
+  const puntajeTotal = exercises.reduce(
+    (total, item) => total + Number(item.puntaje || 0),
+    0
+  );
+
+  await supabase
+    .from(CUESTIONARIO_USUARIO_TABLE)
+    .delete()
+    .eq('cuestionario_id', questionnaireId);
+
+  await supabase
+    .from(EJERCICIO_CUESTIONARIO_TABLE)
+    .delete()
+    .eq('cuestionario_id', questionnaireId);
+
+  const { data, error } = await supabase
+    .from(EJERCICIO_CUESTIONARIO_TABLE)
+    .insert(exercises)
+    .select('id, pregunta, alternativas, cuestionario_id, puntaje, orden');
+
+  if (error) {
+    throw error;
+  }
+
+  const importedAt = new Date().toISOString();
+  const csvName = csvFile.originalname || 'preguntas.csv';
+
+  const { error: updateError } = await supabase
+    .from(QUESTIONNAIRES_TABLE)
+    .update({
+      puntaje_maximo: puntajeTotal,
+      archivo_csv_nombre: csvName,
+      archivo_csv_importado_en: importedAt
+    })
+    .eq('id', questionnaireId);
+
+  if (updateError) {
+    throw updateError;
+  }
+
+  return {
+    exercises: data || [],
+    totalPreguntas: exercises.length,
+    total_preguntas: exercises.length,
+    puntajeMaximo: puntajeTotal,
+    puntaje_maximo: puntajeTotal,
+    archivoCsvNombre: csvName,
+    archivo_csv_nombre: csvName,
+    archivoCsvImportadoEn: importedAt,
+    archivo_csv_importado_en: importedAt
+  };
+};
+
 export const getQuestionnaires = async (_req: Request, res: Response) => {
   try {
     const { data, error } = await supabase
@@ -651,6 +743,7 @@ export const createQuestionnaire = async (req: Request, res: Response) => {
   let uploadedCover: UploadedStorageFile | null = null;
   let uploadedDocument: UploadedStorageFile | null = null;
   let uploadedImagesPayload: NormalizedQuestionnaireImage[] = [];
+  let createdQuestionnaireId = '';
 
   try {
     const {
@@ -661,10 +754,6 @@ export const createQuestionnaire = async (req: Request, res: Response) => {
       risk,
       riesgo,
       difficulty,
-      questionsCount,
-      questions_count,
-      puntajeMaximo,
-      puntaje_maximo,
       coverUrl,
       cover_img,
       fileUrl,
@@ -679,18 +768,29 @@ export const createQuestionnaire = async (req: Request, res: Response) => {
     const finalDescription = String(description || resumen || '').trim();
     const finalRisk = normalizeRiskForDB(risk || riesgo || difficulty);
 
-    const score = Number(
-      puntajeMaximo || puntaje_maximo || questionsCount || questions_count || 0
-    );
-
-    const finalScore =
-      Number.isFinite(score) && score >= 0 ? Math.round(score) : 0;
-
     if (!finalTitle || !finalDescription) {
       return res.status(400).json({
         message: 'Título y descripción son obligatorios.'
       });
     }
+
+    const csvFile = getUploadedCsvFile(req);
+
+    if (!csvFile) {
+      return res.status(400).json({
+        message: 'Debes adjuntar un CSV de preguntas para crear el cuestionario.'
+      });
+    }
+
+    const parsedCsvExercises = parseExercisesCsv(
+      csvFile,
+      '__questionnaire_pending__'
+    );
+
+    const puntajeTotalCsv = parsedCsvExercises.reduce(
+      (total, item) => total + Number(item.puntaje || 0),
+      0
+    );
 
     const { portada, archivo, imagenes } = getFilesFromRequest(req);
 
@@ -740,13 +840,16 @@ export const createQuestionnaire = async (req: Request, res: Response) => {
       titulo: finalTitle,
       resumen: finalDescription,
       riesgo: finalRisk,
-      cover_img: uploadedCover?.url || coverUrl || cover_img || DEFAULT_COVER_IMAGE,
-      puntaje_maximo: finalScore,
+      cover_img:
+        uploadedCover?.url || coverUrl || cover_img || DEFAULT_COVER_IMAGE,
+      puntaje_maximo: puntajeTotalCsv,
       archivo_url: uploadedDocument?.url || fileUrl || archivo_url || null,
       archivo_nombre:
         uploadedDocument?.name || fileName || archivo_nombre || null,
       archivo_tipo: uploadedDocument?.type || archivo_tipo || null,
-      imagenes: imageUrls
+      imagenes: imageUrls,
+      archivo_csv_nombre: csvFile.originalname || 'preguntas.csv',
+      archivo_csv_importado_en: new Date().toISOString()
     };
 
     const { data, error } = await supabase
@@ -765,10 +868,39 @@ export const createQuestionnaire = async (req: Request, res: Response) => {
       throw error;
     }
 
+    createdQuestionnaireId = String((data as CuestionarioDB).id);
+
+    await replaceQuestionnaireExercisesFromCsv({
+      questionnaireId: createdQuestionnaireId,
+      csvFile,
+      parsedExercises: parsedCsvExercises
+    });
+
+    const savedQuestionnaire =
+      (await getCurrentQuestionnaire(createdQuestionnaireId)) ||
+      (data as CuestionarioDB);
+
     return res
       .status(201)
-      .json(mapQuestionnaireResponse(data as CuestionarioDB));
+      .json(mapQuestionnaireResponse(savedQuestionnaire as CuestionarioDB));
   } catch (error: any) {
+    if (createdQuestionnaireId) {
+      await supabase
+        .from(CUESTIONARIO_USUARIO_TABLE)
+        .delete()
+        .eq('cuestionario_id', createdQuestionnaireId);
+
+      await supabase
+        .from(EJERCICIO_CUESTIONARIO_TABLE)
+        .delete()
+        .eq('cuestionario_id', createdQuestionnaireId);
+
+      await supabase
+        .from(QUESTIONNAIRES_TABLE)
+        .delete()
+        .eq('id', createdQuestionnaireId);
+    }
+
     await deleteFilesFromStorage([
       uploadedCover?.path,
       uploadedDocument?.path,
@@ -777,7 +909,7 @@ export const createQuestionnaire = async (req: Request, res: Response) => {
 
     console.error('Error en createQuestionnaire:', error);
 
-    return res.status(500).json({
+    return res.status(getClientErrorStatus(error)).json({
       message: 'Error al crear cuestionario.',
       error: error.message || 'Error desconocido'
     });
@@ -854,6 +986,19 @@ export const updateQuestionnaire = async (req: Request, res: Response) => {
     }
 
     const { portada, archivo, imagenes } = getFilesFromRequest(req);
+    const csvFile = getUploadedCsvFile(req);
+    const tieneCsvImportado = Boolean(actual.archivo_csv_nombre);
+
+    if (!csvFile && !tieneCsvImportado) {
+      return res.status(400).json({
+        message:
+          'Este cuestionario no tiene CSV importado. Debes adjuntar un CSV para guardar los cambios.'
+      });
+    }
+
+    const parsedCsvExercises = csvFile
+      ? parseExercisesCsv(csvFile, questionnaireId)
+      : null;
 
     let finalCoverUrl = actual.cover_img || DEFAULT_COVER_IMAGE;
     let finalFileUrl = actual.archivo_url;
@@ -988,13 +1133,26 @@ export const updateQuestionnaire = async (req: Request, res: Response) => {
       throw error;
     }
 
+    if (csvFile) {
+      await replaceQuestionnaireExercisesFromCsv({
+        questionnaireId,
+        csvFile,
+        parsedExercises: parsedCsvExercises
+      });
+    }
+
     await deleteFilesFromStorage([
       oldCoverPathToDelete,
       oldFilePathToDelete,
       ...imagePathsToDelete
     ]);
 
-    return res.json(mapQuestionnaireResponse(data as CuestionarioDB));
+    const savedQuestionnaire = csvFile
+      ? (await getCurrentQuestionnaire(questionnaireId)) ||
+        (data as CuestionarioDB)
+      : (data as CuestionarioDB);
+
+    return res.json(mapQuestionnaireResponse(savedQuestionnaire as CuestionarioDB));
   } catch (error: any) {
     await deleteFilesFromStorage([
       uploadedCover?.path,
@@ -1004,7 +1162,7 @@ export const updateQuestionnaire = async (req: Request, res: Response) => {
 
     console.error('Error en updateQuestionnaire:', error);
 
-    return res.status(500).json({
+    return res.status(getClientErrorStatus(error)).json({
       message: 'Error al actualizar cuestionario.',
       error: error.message || 'Error desconocido'
     });
@@ -1225,55 +1383,21 @@ export const importQuestionnaireExercises = async (
       });
     }
 
-    const exercises = parseExercisesCsv(csvFile, questionnaireId);
-    const puntajeTotal = exercises.reduce(
-      (total, item) => total + item.puntaje,
-      0
-    );
-
-    await supabase
-      .from(CUESTIONARIO_USUARIO_TABLE)
-      .delete()
-      .eq('cuestionario_id', questionnaireId);
-
-    await supabase
-      .from(EJERCICIO_CUESTIONARIO_TABLE)
-      .delete()
-      .eq('cuestionario_id', questionnaireId);
-
-    const { data, error } = await supabase
-      .from(EJERCICIO_CUESTIONARIO_TABLE)
-      .insert(exercises)
-      .select('id, pregunta, alternativas, cuestionario_id, puntaje, orden');
-
-    if (error) {
-      throw error;
-    }
-
-    const { error: updateError } = await supabase
-      .from(QUESTIONNAIRES_TABLE)
-      .update({
-        puntaje_maximo: puntajeTotal
-      })
-      .eq('id', questionnaireId);
-
-    if (updateError) {
-      throw updateError;
-    }
+    const importResult = await replaceQuestionnaireExercisesFromCsv({
+      questionnaireId,
+      csvFile
+    });
 
     return res.status(200).json({
       ok: true,
       message: 'Preguntas importadas correctamente.',
-      totalPreguntas: exercises.length,
-      total_preguntas: exercises.length,
-      puntajeMaximo: puntajeTotal,
-      puntaje_maximo: puntajeTotal,
-      ejercicios: data || []
+      ...importResult,
+      ejercicios: importResult.exercises
     });
   } catch (error: any) {
     console.error('Error en importQuestionnaireExercises:', error);
 
-    return res.status(500).json({
+    return res.status(getClientErrorStatus(error)).json({
       ok: false,
       message: 'Error al importar preguntas del cuestionario.',
       error: error.message || 'Error desconocido'

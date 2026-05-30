@@ -68,6 +68,11 @@ interface Questionnaire {
   images?: QuestionnaireImage[];
   imagenes?: string[];
 
+  archivoCsvNombre?: string | null;
+  archivo_csv_nombre?: string | null;
+  archivoCsvImportadoEn?: string | null;
+  archivo_csv_importado_en?: string | null;
+
   publicado_por?: string | null;
 }
 
@@ -105,6 +110,8 @@ export const QuestionnairesPanel: React.FC = () => {
   const [archivoNombre, setArchivoNombre] = useState('');
   const [removeFile, setRemoveFile] = useState(false);
 
+  const [csvFormulario, setCsvFormulario] = useState<File | null>(null);
+
   const [portada, setPortada] = useState<File | null>(null);
   const [portadaPreview, setPortadaPreview] = useState('');
   const [portadaNombre, setPortadaNombre] = useState('');
@@ -120,6 +127,7 @@ export const QuestionnairesPanel: React.FC = () => {
 
   const portadaInputRef = useRef<HTMLInputElement | null>(null);
   const archivoInputRef = useRef<HTMLInputElement | null>(null);
+  const csvFormularioInputRef = useRef<HTMLInputElement | null>(null);
   const questionnaireImagesInputRef = useRef<HTMLInputElement | null>(null);
   const csvInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -199,6 +207,10 @@ export const QuestionnairesPanel: React.FC = () => {
       questionnaireImagesInputRef.current.value = '';
     }
 
+    if (csvFormularioInputRef.current) {
+      csvFormularioInputRef.current.value = '';
+    }
+
     if (csvInputRef.current) {
       csvInputRef.current.value = '';
     }
@@ -228,6 +240,7 @@ export const QuestionnairesPanel: React.FC = () => {
     setArchivo(null);
     setArchivoNombre('');
     setRemoveFile(false);
+    setCsvFormulario(null);
 
     setPortada(null);
     setPortadaPreview('');
@@ -286,7 +299,19 @@ export const QuestionnairesPanel: React.FC = () => {
       coverName: questionnaire.coverName || '',
       fileUrl: questionnaire.fileUrl || questionnaire.archivo_url || '',
       fileName: questionnaire.fileName || questionnaire.archivo_nombre || '',
-      images: normalizedImages
+      images: normalizedImages,
+      archivoCsvNombre:
+        questionnaire.archivoCsvNombre || questionnaire.archivo_csv_nombre || '',
+      archivo_csv_nombre:
+        questionnaire.archivo_csv_nombre || questionnaire.archivoCsvNombre || '',
+      archivoCsvImportadoEn:
+        questionnaire.archivoCsvImportadoEn ||
+        questionnaire.archivo_csv_importado_en ||
+        null,
+      archivo_csv_importado_en:
+        questionnaire.archivo_csv_importado_en ||
+        questionnaire.archivoCsvImportadoEn ||
+        null
     };
   };
 
@@ -346,6 +371,46 @@ export const QuestionnairesPanel: React.FC = () => {
     q.risk.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const cuestionarioCsvSeleccionado = questionnaires.find(
+    (questionnaire) => questionnaire.id === cuestionarioCsvId
+  );
+
+  const nombreArchivoCsvImportado =
+    cuestionarioCsvSeleccionado?.archivoCsvNombre ||
+    cuestionarioCsvSeleccionado?.archivo_csv_nombre ||
+    '';
+
+  const fechaArchivoCsvImportado =
+    cuestionarioCsvSeleccionado?.archivoCsvImportadoEn ||
+    cuestionarioCsvSeleccionado?.archivo_csv_importado_en ||
+    '';
+
+  const nombreCsvFormularioActual =
+    editingQuestionnaire?.archivoCsvNombre ||
+    editingQuestionnaire?.archivo_csv_nombre ||
+    '';
+
+  const fechaCsvFormularioActual =
+    editingQuestionnaire?.archivoCsvImportadoEn ||
+    editingQuestionnaire?.archivo_csv_importado_en ||
+    '';
+
+  const fechaCsvFormularioActualFormateada = fechaCsvFormularioActual
+    ? new Date(fechaCsvFormularioActual).toLocaleString('es-CL', {
+        dateStyle: 'short',
+        timeStyle: 'short'
+      })
+    : '';
+
+  const formularioTieneCsvValido = Boolean(csvFormulario || nombreCsvFormularioActual);
+
+  const fechaArchivoCsvImportadoFormateada = fechaArchivoCsvImportado
+    ? new Date(fechaArchivoCsvImportado).toLocaleString('es-CL', {
+        dateStyle: 'short',
+        timeStyle: 'short'
+      })
+    : '';
+
   const handlePortadaChange = (file?: File) => {
     if (!file) return;
 
@@ -383,6 +448,39 @@ export const QuestionnairesPanel: React.FC = () => {
     setArchivo(file);
     setArchivoNombre(file.name);
     setRemoveFile(false);
+  };
+
+  const handleCsvFormularioChange = (file?: File) => {
+    if (!file) return;
+
+    const extension = file.name.split('.').pop()?.toLowerCase() || '';
+    const allowedTypes = [
+      'text/csv',
+      'text/plain',
+      'application/csv',
+      'application/vnd.ms-excel'
+    ];
+
+    const isValidCsv =
+      allowedTypes.includes(file.type) || ['csv', 'txt'].includes(extension);
+
+    if (!isValidCsv) {
+      alert('El archivo de preguntas debe ser CSV o TXT.');
+      return;
+    }
+
+    setCsvFormulario(file);
+  };
+
+  const handleRemoveCsvFormulario = (
+    e: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    e.stopPropagation();
+    setCsvFormulario(null);
+
+    if (csvFormularioInputRef.current) {
+      csvFormularioInputRef.current.value = '';
+    }
   };
 
   const handleRemovePortada = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -545,6 +643,16 @@ export const QuestionnairesPanel: React.FC = () => {
       return;
     }
 
+    if (!editingQuestionnaire && !csvFormulario) {
+      alert('Debes adjuntar un CSV de preguntas para crear el cuestionario.');
+      return;
+    }
+
+    if (editingQuestionnaire && !formularioTieneCsvValido) {
+      alert('Este cuestionario no tiene CSV importado. Adjunta uno para guardar los cambios.');
+      return;
+    }
+
     const formData = new FormData();
 
     formData.append('title', title.trim());
@@ -559,6 +667,10 @@ export const QuestionnairesPanel: React.FC = () => {
 
     if (archivo) {
       formData.append('archivo', archivo);
+    }
+
+    if (csvFormulario) {
+      formData.append('csv', csvFormulario);
     }
 
     if (portada) {
@@ -627,6 +739,7 @@ export const QuestionnairesPanel: React.FC = () => {
         cuestionarioGuardado?.id || editingQuestionnaire?.id || ''
       );
       const estabaEditando = Boolean(editingQuestionnaire);
+      const seAdjuntoCsvEnFormulario = Boolean(csvFormulario);
 
       resetForm();
       await loadQuestionnaires(cuestionarioGuardadoId);
@@ -634,8 +747,10 @@ export const QuestionnairesPanel: React.FC = () => {
 
       alert(
         estabaEditando
-          ? 'Cuestionario actualizado correctamente.'
-          : 'Cuestionario creado correctamente. Ahora puedes importar el CSV para este cuestionario.'
+          ? seAdjuntoCsvEnFormulario
+            ? 'Cuestionario actualizado correctamente. El CSV de preguntas fue reemplazado.'
+            : 'Cuestionario actualizado correctamente.'
+          : 'Cuestionario creado correctamente con sus preguntas importadas desde CSV.'
       );
     } catch (error: any) {
       console.error('Error al guardar cuestionario:', error);
@@ -669,6 +784,7 @@ export const QuestionnairesPanel: React.FC = () => {
     setArchivo(null);
     setArchivoNombre(normalizedQuestionnaire.fileName || '');
     setRemoveFile(false);
+    setCsvFormulario(null);
 
     setPortada(null);
     setPortadaPreview(
@@ -770,11 +886,12 @@ export const QuestionnairesPanel: React.FC = () => {
 
       setArchivoCsv(null);
 
+      await loadQuestionnaires(cuestionarioCsvId);
+
       if (csvInputRef.current) {
         csvInputRef.current.value = '';
       }
 
-      await loadQuestionnaires();
       window.dispatchEvent(new Event('questionnaires-updated'));
 
       alert(
@@ -1064,6 +1181,84 @@ export const QuestionnairesPanel: React.FC = () => {
             </div>
 
             <div className="form-group">
+              <label>Preguntas CSV *</label>
+
+              <div
+                className={`file-drop-zone attachment-zone ${
+                  !formularioTieneCsvValido ? 'attachment-zone-removed' : ''
+                }`}
+                onClick={() => csvFormularioInputRef.current?.click()}
+              >
+                {csvFormulario && (
+                  <button
+                    type="button"
+                    className="attachment-remove-x"
+                    aria-label="Quitar CSV seleccionado"
+                    onClick={handleRemoveCsvFormulario}
+                  >
+                    ×
+                  </button>
+                )}
+
+                <div className="file-drop-content">
+                  <IonIcon icon={documentOutline} />
+
+                  <span>
+                    {csvFormulario?.name ||
+                      (editingQuestionnaire
+                        ? nombreCsvFormularioActual
+                          ? 'Seleccionar nuevo CSV para reemplazar preguntas'
+                          : 'Adjuntar CSV obligatorio de preguntas'
+                        : 'Adjuntar CSV obligatorio de preguntas')}
+                  </span>
+                </div>
+
+                <input
+                  ref={csvFormularioInputRef}
+                  type="file"
+                  accept=".csv,.txt,text/csv,text/plain"
+                  required={!editingQuestionnaire}
+                  style={{ display: 'none' }}
+                  onChange={(e) =>
+                    handleCsvFormularioChange(e.target.files?.[0])
+                  }
+                />
+              </div>
+
+              <div className="questionnaire-csv-current-box">
+                {editingQuestionnaire ? (
+                  nombreCsvFormularioActual ? (
+                    <p>
+                      CSV actual:{' '}
+                      <strong>{nombreCsvFormularioActual}</strong>
+                      {fechaCsvFormularioActualFormateada && (
+                        <span>
+                          {' '}· Importado el {fechaCsvFormularioActualFormateada}
+                        </span>
+                      )}
+                    </p>
+                  ) : (
+                    <p>
+                      Este cuestionario no tiene CSV importado. Para guardarlo,
+                      debes adjuntar uno.
+                    </p>
+                  )
+                ) : (
+                  <p>
+                    Obligatorio: el cuestionario se creará con las preguntas de
+                    este CSV.
+                  </p>
+                )}
+
+                {csvFormulario && (
+                  <p className="questionnaire-csv-new-file">
+                    Nuevo CSV seleccionado: <strong>{csvFormulario.name}</strong>
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="form-group">
               <label>Archivo adjunto</label>
 
               <div
@@ -1107,82 +1302,14 @@ export const QuestionnairesPanel: React.FC = () => {
             </div>
 
             <div className="form-footer">
-              <button type="submit" className="btn-submit">
+              <button
+                type="submit"
+                className="btn-submit"
+                disabled={!formularioTieneCsvValido}
+              >
                 {editingQuestionnaire
                   ? 'Guardar Cambios'
                   : 'Crear Cuestionario'}
-              </button>
-            </div>
-          </form>
-        </div>
-      </section>
-
-      <section className="panel-form-section questionnaire-csv-panel">
-        <div className="admin-form-card">
-          <div className="form-header-inline">
-            <div className="icon-square">
-              <IonIcon icon={documentOutline} />
-            </div>
-
-            <div className="header-text-container">
-              <h2>Importar preguntas por CSV</h2>
-
-              <p>
-                Sube un CSV con preguntas, alternativas, respuesta correcta y
-                puntaje. Al importarlo se reemplazan las preguntas anteriores y
-                se recalcula el puntaje máximo.
-              </p>
-            </div>
-          </div>
-
-          <form className="questionnaire-csv-form" onSubmit={manejarImportacionCsv}>
-            <div className="questionnaire-csv-grid">
-              <label>
-                Cuestionario
-
-                <select
-                  value={cuestionarioCsvId}
-                  onChange={(e) => setCuestionarioCsvId(e.target.value)}
-                  disabled={questionnaires.length === 0 || estaImportandoCsv}
-                >
-                  {questionnaires.length === 0 ? (
-                    <option value="">No hay cuestionarios disponibles</option>
-                  ) : (
-                    <>
-                      <option value="">Selecciona un cuestionario</option>
-
-                      {questionnaires.map((questionnaire) => (
-                        <option key={questionnaire.id} value={questionnaire.id}>
-                          {questionnaire.title}
-                        </option>
-                      ))}
-                    </>
-                  )}
-                </select>
-              </label>
-
-              <label>
-                Archivo CSV
-
-                <input
-                  ref={csvInputRef}
-                  type="file"
-                  accept=".csv,text/csv,text/plain"
-                  disabled={estaImportandoCsv}
-                  onChange={(e) => setArchivoCsv(e.target.files?.[0] || null)}
-                />
-              </label>
-
-              <button
-                type="submit"
-                disabled={
-                  estaImportandoCsv ||
-                  questionnaires.length === 0 ||
-                  !cuestionarioCsvId ||
-                  !archivoCsv
-                }
-              >
-                {estaImportandoCsv ? 'Importando...' : 'Importar CSV'}
               </button>
             </div>
           </form>
@@ -1260,6 +1387,14 @@ export const QuestionnairesPanel: React.FC = () => {
                             {questionnaire.images.length} imagen(es)
                           </span>
                         )}
+
+                      {(questionnaire.archivoCsvNombre ||
+                        questionnaire.archivo_csv_nombre) && (
+                        <span>
+                          CSV: {questionnaire.archivoCsvNombre ||
+                            questionnaire.archivo_csv_nombre}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
