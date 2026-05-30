@@ -730,7 +730,9 @@ export const QuestionnairesPanel: React.FC = () => {
         const errorData = await response.json().catch(() => null);
 
         throw new Error(
-          errorData?.message || 'Error al guardar el cuestionario'
+          errorData?.error ||
+            errorData?.message ||
+            'Error al guardar el cuestionario'
         );
       }
 

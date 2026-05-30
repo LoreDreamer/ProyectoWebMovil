@@ -536,7 +536,7 @@ const parseExercisesCsv = (
 
   if (rawLines.length < 2) {
     throw new Error(
-      'El CSV debe incluir una fila de encabezados y al menos una pregunta.'
+      'El archivo debe ser en formato CSV, incluyendo una fila de encabezados y al menos una pregunta.'
     );
   }
 
