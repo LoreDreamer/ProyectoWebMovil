@@ -12,13 +12,8 @@ export const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
 
   const handleLogout = () => {
-    // 1. Redireccionamos de inmediato al inicio (ruta pública)
+    logout();
     window.location.href = '/index';
-    
-    // 2. Esperamos un instante a que el navegador procese el cambio de página antes de borrar el token
-    setTimeout(() => {
-      logout();
-    }, 50);
   };
 
   const profileLink = user?.role === 'admin' ? '/admin' : '/inicio';
