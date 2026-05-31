@@ -12,7 +12,7 @@ import {
 
 const router = express.Router();
 
-router.get('/', getActivities);
+router.get('/', authenticateToken, getActivities);
 router.post('/', authenticateToken, requireAdmin, createActivity);
 router.put('/:id', authenticateToken, requireAdmin, updateActivity);
 router.delete('/:id', authenticateToken, requireAdmin, deleteActivity);

@@ -190,7 +190,7 @@ const handleMulterError = (
 /* RUTAS PÚBLICAS */
 /* =============================== */
 
-router.get('/', getQuestionnaires);
+router.get('/', authenticateToken, getQuestionnaires);
 
 /* =============================== */
 /* RUTAS DE PROGRESO Y RESOLUCIÓN */

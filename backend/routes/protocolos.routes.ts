@@ -114,7 +114,7 @@ const handleMulterError = (
   });
 };
 
-router.get('/', getProtocolos);
+router.get('/', authenticateToken, getProtocolos);
 
 router.post(
   '/',

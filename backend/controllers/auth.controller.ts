@@ -35,13 +35,11 @@ const normalizeUser = (user: any) => {
     name: user.nombre_completo || '',
     region: user.region || '',
     comuna: user.comuna || '',
-    correo: user.correo || '',
     email: user.correo || '',
     estatus,
     estado: estatus,
-    tipo_usuario: role,
     role,
-    craedo_en: user.creado_en || null
+    creado_en: user.creado_en || null
   };
 };
 
