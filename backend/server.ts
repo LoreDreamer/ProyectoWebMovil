@@ -12,6 +12,7 @@ import alertsRoutes from './routes/alerts.routes';
 import activitiesRoutes from './routes/activities.routes';
 import educationRoutes from './routes/education.routes';
 import questionnairesRoutes from './routes/questionnaires.routes';
+import subscriptionsRoutes from "./routes/questionnaires.routes";
 
 dotenv.config();
 
@@ -115,6 +116,7 @@ app.use('/api/protocolos', protocolsRoutes);
 app.use('/api/activities', activitiesRoutes);
 app.use('/api/education', educationRoutes);
 app.use('/api/questionnaires', questionnairesRoutes);
+app.use('/api/subscriptions', subscriptionsRoutes);
 
 /* =============================== */
 /* SERVER */

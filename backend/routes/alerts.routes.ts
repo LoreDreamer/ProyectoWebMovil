@@ -10,6 +10,7 @@ import {
   authenticateToken,
   requireAdmin
 } from '../middleware/auth.middleware';
+import { subscribeToAlerts } from '../controllers/subscriptions.controller';
 
 const router = express.Router();
 
@@ -96,6 +97,8 @@ const handleMulterError = (
 };
 
 router.get('/', getAlerts);
+
+router.post('/subscribe', subscribeToAlerts);
 
 router.post(
   '/',

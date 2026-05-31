@@ -7,7 +7,6 @@
   "scripts": {
     "start": "node scripts/dev.mjs",
     "dev": "node scripts/dev.mjs",
-
     "setup": "npm --prefix frontend install && npm --prefix backend install",
     "f": "npm --prefix frontend run dev",
     "b": "npm --prefix backend run dev",
@@ -15,5 +14,11 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "nodemailer": "^8.0.10"
+  },
+  "devDependencies": {
+    "@types/nodemailer": "^8.0.0"
+  }
 }

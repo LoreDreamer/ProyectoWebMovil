@@ -4,8 +4,9 @@ import {
   uploadFileToStorage,
   uploadFilesToStorage,
   deleteFilesFromStorage,
-  UploadedStorageFile
+  UploadedStorageFile,
 } from '../src/service/storage.service';
+import { notifySubscribersAboutAlert } from '../src/service/alert-notif.service';
 
 interface AlertImage {
   id?: string;
@@ -65,7 +66,7 @@ const isNonEmptyString = (value: unknown): value is string => {
   return typeof value === 'string' && value.trim().length > 0;
 };
 
-const parseJsonArray = <T>(value: unknown): T[] => {
+const parseJsonArray = <T,>(value: unknown): T[] => {
   if (!value) return [];
 
   if (Array.isArray(value)) return value as T[];
@@ -74,7 +75,6 @@ const parseJsonArray = <T>(value: unknown): T[] => {
 
   try {
     const parsed = JSON.parse(value);
-
     return Array.isArray(parsed) ? (parsed as T[]) : [];
   } catch {
     return [];
@@ -255,6 +255,7 @@ export const createAlert = async (req: Request, res: Response) => {
     const finalBody = String(body || cuerpo || '').trim();
     const finalDate = String(date || fecha || '').trim();
     const finalWrittenBy = String(writtenBy || escrito_por || '').trim();
+
     if (!finalTitle || !finalSummary || !finalBody) {
       return res.status(400).json({
         message: 'Título, resumen y cuerpo son obligatorios.'
@@ -320,7 +321,13 @@ export const createAlert = async (req: Request, res: Response) => {
       throw error;
     }
 
-    return res.status(201).json(mapAlertResponse(data as AlertaDB));
+    const mappedAlert = mapAlertResponse(data as AlertaDB);
+
+    notifySubscribersAboutAlert(mappedAlert).catch((emailError) => {
+      console.error('Error enviando emails de alerta:', emailError);
+    });
+
+    return res.status(201).json(mappedAlert);
   } catch (error: any) {
     console.error('Error en createAlert:', error);
 
@@ -366,7 +373,6 @@ export const updateAlert = async (req: Request, res: Response) => {
     const finalTitle = String(title || titulo || '').trim();
     const finalSummary = String(summary || resumen || '').trim();
     const finalBody = String(body || cuerpo || '').trim();
-    
     const finalDate = String(date || fecha || '').trim();
     const finalWrittenBy = String(writtenBy || escrito_por || '').trim();
 
@@ -483,10 +489,7 @@ export const updateAlert = async (req: Request, res: Response) => {
       throw error;
     }
 
-    await deleteFilesFromStorage([
-      oldCoverPathToDelete,
-      ...imagePathsToDelete
-    ]);
+    await deleteFilesFromStorage([oldCoverPathToDelete, ...imagePathsToDelete]);
 
     return res.json(mapAlertResponse(data as AlertaDB));
   } catch (error: any) {
@@ -511,10 +514,7 @@ export const deleteAlert = async (req: Request, res: Response) => {
 
     const currentAlert = await getCurrentAlert(alertId);
 
-    const { error } = await supabase
-      .from(ALERTS_TABLE)
-      .delete()
-      .eq('id', alertId);
+    const { error } = await supabase.from(ALERTS_TABLE).delete().eq('id', alertId);
 
     if (error) {
       throw error;
@@ -525,9 +525,7 @@ export const deleteAlert = async (req: Request, res: Response) => {
 
       const imagePaths = normalizeImagesOrder(currentAlert.imagenes || [])
         .map((imageItem: NormalizedAlertImage): string => {
-          return (
-            imageItem.path || buildStoragePathFromPublicUrl(imageItem.url)
-          );
+          return imageItem.path || buildStoragePathFromPublicUrl(imageItem.url);
         })
         .filter(isNonEmptyString);
 
