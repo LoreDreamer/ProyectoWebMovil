@@ -644,7 +644,7 @@ El sistema debe permitir consultar protocolos de actuación o documentos relacio
 
 ### RF13. Alertas
 
-El sistema debe mostrar alertas o noticias relevantes sobre ciberseguridad.
+El sistema debe mostrar alertas o noticias relevantes sobre ciberseguridad. 
 
 ### RF14. Suscripciones
 
@@ -1043,7 +1043,7 @@ Esto evita escribir manualmente región y comuna, reduciendo errores de digitaci
 
 ---
 
-## Notas de seguridad
+## Notas finales
 
 - No subir `config/.env` al repositorio.
 - No exponer `SUPABASE_SERVICE_ROLE_KEY` en el frontend.
@@ -1051,6 +1051,12 @@ Esto evita escribir manualmente región y comuna, reduciendo errores de digitaci
 - Cambiar `JWT_SECRET` antes de desplegar.
 - Validar permisos administrativos tanto en frontend como en backend.
 - Mantener activas las reglas de seguridad correspondientes en Supabase.
+
+Cabe destacar unos detalles bien importantes con respecto a la seguridad, especialmente por el lado de la **Inyección SQL**. Debido a que no hacen consultas directas mediante el uso de SQL, sino que mediante el uso de la API de Supabase para estos casos, hay una protección básica en caso de inyecciones SQL. Esto esta demostrado en la sección de pruebas SQL, donde es necesario tener los datos directos del usuario/administrador para poder realizar acciones dentro de la página web.
+
+Por otro lado, la presencia de encriptación dentro de la misma base de datos presenta otra barrera en caso de fallos de seguridad.
+
+Finalmente, en la sección de alertas se detalla el uso de un sistema de suscripción para alertas. Al ingresar un correo que se encuentra dentro de la BDD, el sistema lo dejará registrado dentro de la BDD para el envío de alertas, las cuales se "envían" mediante el uso de Ethereal emails, donde realmente no se mandan correos.
 
 ---
 
