@@ -1056,6 +1056,9 @@ Cabe destacar unos detalles bien importantes con respecto a la seguridad, especi
 
 Por otro lado, la presencia de encriptación dentro de la misma base de datos presenta otra barrera en caso de fallos de seguridad.
 
+<img width="1612" height="433" alt="image" src="https://github.com/user-attachments/assets/5b0927d8-a74d-4fa4-a5c6-e3620c7a177c" />
+
+
 Finalmente, en la sección de alertas se detalla el uso de un sistema de suscripción para alertas. Al ingresar un correo que se encuentra dentro de la BDD, el sistema lo dejará registrado dentro de la BDD para el envío de alertas, las cuales se "envían" mediante el uso de Ethereal emails, donde realmente no se mandan correos.
 
 ---
