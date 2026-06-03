@@ -1,5 +1,15 @@
 # Plataforma Municipal de Ciberseguridad
 
+---
+
+## Integrantes
+
+- Lucas Contreras
+- Eduardo Cordero
+- Constanza Suárez
+
+---
+
 Aplicación web municipal orientada a la educación, prevención, diagnóstico y gestión de riesgos de ciberseguridad para usuarios de la comunidad. El sistema permite acceder a módulos educativos, cuestionarios, protocolos, alertas, denuncias y un panel administrativo para gestionar usuarios y contenidos.
 
 El proyecto está construido con **Ionic React + TypeScript** en el frontend y **Node.js + Express + TypeScript** en el backend, utilizando **Supabase/PostgreSQL** como base de datos y almacenamiento de archivos.
@@ -20,14 +30,16 @@ El proyecto está construido con **Ionic React + TypeScript** en el frontend y *
 10. [Credenciales de prueba](#credenciales-de-prueba)
 11. [Requerimientos funcionales](#requerimientos-funcionales)
 12. [Requerimientos no funcionales](#requerimientos-no-funcionales)
-13. [Arquitectura general de navegación](#arquitectura-general-de-navegación)
-14. [Rutas principales del frontend](#rutas-principales-del-frontend)
-15. [Rutas principales del backend](#rutas-principales-del-backend)
-16. [Jerarquía de vistas](#jerarquía-de-vistas)
-17. [Flujo de navegación](#flujo-de-navegación)
-18. [Diferenciación de acceso según roles](#diferenciación-de-acceso-según-roles)
-19. [Gestión administrativa](#gestión-administrativa)
-20. [Notas de seguridad](#notas-de-seguridad)
+13. [Base de Datos y Modelo Relacional](#base-de-datos-y-modelo-relacional)
+14. [Arquitectura general de navegación](#arquitectura-general-de-navegación)
+15. [Rutas principales del frontend](#rutas-principales-del-frontend)
+16. [Rutas principales del backend](#rutas-principales-del-backend)
+17. [Endpoints y Pruebas funcionales](#pruebas-funcionales)
+18. [Jerarquía de vistas](#jerarquía-de-vistas)
+19. [Flujo de navegación](#flujo-de-navegación)
+20. [Diferenciación de acceso según roles](#diferenciación-de-acceso-según-roles)
+21. [Gestión administrativa](#gestión-administrativa)
+22. [Notas de seguridad](#notas-de-seguridad)
 
 ---
 
@@ -92,14 +104,6 @@ Funcionario o encargado de la gestión de contenidos y usuarios dentro de la pla
 - Revisar datos generales de la plataforma.
 - Identificar niveles de riesgo de los usuarios.
 - Mantener actualizada la información disponible.
-
----
-
-## Integrantes
-
-- Lucas Contreras
-- Eduardo Cordero
-- Constanza Suárez
 
 ---
 
@@ -758,6 +762,20 @@ Administrador
 
 ---
 
+## Base de Datos y Modelo Relacional
+
+En este proyecto se hizo uso de Supabase mediante el uso se PostgreSQL para hostear la base datos donde se guardan todos los datos de usuarios, actividades, noticias y otras variables.
+
+### Modelo Relacional
+
+<img width="6546" height="2936" alt="mermaid-diagram" src="https://github.com/user-attachments/assets/78c9e0ab-bb6a-4bdd-831d-cbd75efd90e5" />
+
+### Integridad 
+
+Cada tabla tiene sus propias claves únicas, y aquellas tablas que necesitan de claves foraneas también poseen estas mismas, así evitando mixups mantiendo constancia a la hora de relacionar datos.
+
+---
+
 ## Rutas principales del frontend
 
 | Ruta | Vista | Acceso |
@@ -847,6 +865,11 @@ backend/src/routes/index.ts
 | `/api/protocolos` | Protocolos/documentos de actuación. |
 | `/api/denuncias` | Denuncias o reportes. |
 | `/api/subscriptions` | Suscripción por correo. |
+
+---
+
+## Pruebas funcionales
+
 
 ---
 
