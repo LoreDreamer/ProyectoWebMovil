@@ -1,76 +1,83 @@
+/* ========================================== */
+/* HEADER DEL MÓDULO EDUCATIVO                */
+/* ========================================== */
+
 .edu-header-card {
-  background: linear-gradient(90deg, #4dd0e1 0%, #0d47a1 100%);
-  
-  width: 100%; 
-  margin: 20px 0 36px 0; /* Control de espacios arriba y abajo */
-  
-  border-radius: 25px; /* Misma curvatura que el Advice */
-  color: white;
-  display: flex;
-  align-items: center;
-  padding: 30px 40px; 
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+
+  width: 100%;
+  margin: 0 0 clamp(22px, 3vw, 32px);
+  padding: clamp(24px, 4.2vw, 44px);
   box-sizing: border-box;
-  
-  /* Sombra idéntica con profundidad azulada */
-  box-shadow: 0 10px 20px rgba(13, 71, 161, 0.2);
+
+  border-radius: clamp(22px, 3vw, 32px);
+  background:
+    radial-gradient(circle at 92% 12%, rgba(255, 255, 255, 0.24), transparent 28%),
+    radial-gradient(circle at 12% 92%, rgba(77, 208, 225, 0.32), transparent 34%),
+    linear-gradient(135deg, #4dd0e1 0%, #0d47a1 74%, #082f6f 100%);
+  color: #ffffff;
+  box-shadow: 0 20px 44px rgba(13, 71, 161, 0.18);
+}
+
+.edu-header-card::after {
+  content: '';
+  position: absolute;
+  inset: auto -60px -80px auto;
+  width: 260px;
+  height: 260px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  z-index: -1;
 }
 
 .edu-header-content {
-  flex: 1;
+  width: 100%;
+  max-width: 940px;
   display: flex;
   flex-direction: column;
-  align-items: flex-start; /* Alinea los textos a la izquierda */
+  align-items: flex-start;
+  gap: 14px;
 }
 
-/* --- CUADRADO DE CATEGORÍA MEJORADO (Se nota mucho más) --- */
 .edu-badge {
-  display: inline-block;
-  /* Fondo blanco translúcido con más opacidad para que resalte sobre el gradiente */
-  background: rgba(255, 255, 255, 0.22);
-  /* Letra en blanco puro para máxima nitidez */
-  color: #ffffff; 
-  padding: 6px 16px;
-  border-radius: 30px;
-  
-  /* Tipografía y bordes definidos */
-  font-family: 'Archivo', sans-serif;
-  font-size: clamp(0.75rem, 1.8vw, 0.85rem);
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  margin-bottom: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 
-/* --- TÍTULO CON FORMATO ARCHIVO BLACK --- */
-.edu-title {
-  margin: 0;
+  max-width: 100%;
+  min-height: 34px;
+  padding: 7px 16px;
+  border-radius: 999px;
+
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.38);
   color: #ffffff;
-  /* Mismo escalado tipográfico y tracking que el h3 del Advice */
-  font-size: clamp(1.4rem, 4vw, 2.1rem); 
-  letter-spacing: 1px;
-  font-family: 'Archivo Black', sans-serif;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+
+  font-family: 'Archivo', sans-serif;
+  font-size: clamp(0.72rem, 1.8vw, 0.86rem);
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  line-height: 1.2;
+  text-align: center;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
-/* --- AJUSTES RESPONSIVOS IDÉNTICOS --- */
-@media (max-width: 768px) {
-  .edu-header-card {
-    padding: 25px;
-    border-radius: 20px;
-    margin-bottom: 24px;
-  }
-}
+.edu-title {
+  max-width: 100%;
+  margin: 0;
 
-@media (max-width: 600px) {
-  .edu-header-card {
-    text-align: center;
-    padding: 30px 20px;
-  }
-
-  .edu-header-content {
-    align-items: center; /* Centra la categoría y título en pantallas chicas */
-  }
+  color: #ffffff;
+  font-family: 'Archivo Black', 'Archivo', sans-serif;
+  font-size: clamp(1.65rem, 5vw, 3.05rem);
+  line-height: 1.03;
+  letter-spacing: -0.055em;
+  text-transform: uppercase;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
 }

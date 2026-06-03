@@ -46,7 +46,6 @@ interface ContentCounts {
   protocols: number;
 }
 
-const MAX_DASHBOARD_ACTIVITIES = 6;
 
 const formatDateForView = (date?: string) => {
   if (!date) return 'Sin fecha';
@@ -194,7 +193,7 @@ export const InicioPage: React.FC = () => {
   }, []);
 
   const upcomingActivities = useMemo(() => {
-    return activities.slice(0, MAX_DASHBOARD_ACTIVITIES);
+    return activities.slice(0, 6);
   }, [activities]);
 
   return (

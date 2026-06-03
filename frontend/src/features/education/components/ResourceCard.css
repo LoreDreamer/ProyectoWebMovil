@@ -1,16 +1,23 @@
+/* ========================================== */
+/* TARJETA DE MATERIAL COMPLEMENTARIO         */
+/* ========================================== */
+
 .edu-resource-card {
   display: flex;
   align-items: center;
+  gap: 16px;
+  width: 100%;
+  min-height: 86px;
+  padding: 18px 20px;
+  box-sizing: border-box;
+
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  padding: 18px 20px;
-  border-radius: 18px;
+  border-radius: 20px;
   text-decoration: none;
-  width: 100%;
   text-align: left;
-  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.02);
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  box-sizing: border-box;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
 }
 
 .edu-btn-link {
@@ -19,17 +26,19 @@
 }
 
 .edu-card-icon-box {
-  width: 46px;
-  height: 46px;
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
+  margin: 0;
+
   background: #f1f5f9;
   color: #475569;
-  border-radius: 14px;
+  border-radius: 16px;
   display: flex;
   justify-content: center;
   align-items: center;
   font-size: 22px;
-  margin-right: 16px;
-  transition: all 0.25s ease;
+  transition: background 0.25s ease, color 0.25s ease;
 }
 
 .edu-card-info {
@@ -38,30 +47,33 @@
 }
 
 .edu-card-info h4 {
-  margin: 0 0 3px 0;
-  font-size: 1.05rem;
-  font-weight: 700;
+  margin: 0 0 4px;
   color: #0f172a;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: clamp(0.98rem, 2.4vw, 1.06rem);
+  font-weight: 800;
+  line-height: 1.25;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .edu-card-info ion-text {
+  display: block;
   font-size: 0.88rem;
+  line-height: 1.35;
 }
 
 .edu-card-external {
-  font-size: 18px;
+  flex: 0 0 auto;
+  margin-left: 0;
   color: #94a3b8;
-  margin-left: 8px;
-  transition: all 0.25s ease;
+  font-size: 19px;
+  transition: color 0.25s ease, transform 0.25s ease;
 }
 
 .edu-resource-card:hover {
   border-color: #0ea5e9;
-  box-shadow: 0 12px 28px rgba(14, 165, 233, 0.08);
-  transform: translateY(-3px);
+  box-shadow: 0 16px 32px rgba(14, 165, 233, 0.09);
+  transform: translateY(-2px);
 }
 
 .edu-resource-card:hover .edu-card-icon-box {

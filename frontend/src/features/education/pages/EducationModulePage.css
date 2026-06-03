@@ -1,6 +1,8 @@
 /* ========================================== */
-/* CONFIGURACIÓN DE PÁGINA IONIC              */
+/* PÁGINA DETALLE DEL MÓDULO EDUCATIVO        */
+/* Diseño responsive desde 375px x 667px      */
 /* ========================================== */
+
 .edu-mod-page {
   --background: #f4f7f9;
 }
@@ -9,78 +11,162 @@
   --background: #f4f7f9;
 }
 
-/* Contenedor central que alinea todos los módulos */
+.edu-mod-content::part(scroll) {
+  overflow-x: hidden;
+}
+
 .edu-container {
-  max-width: 1040px;
+  width: min(1120px, calc(100% - 32px));
   margin: 0 auto;
-  padding: 32px 24px 80px 24px;
+  padding: clamp(18px, 3.2vw, 38px) 0 80px;
   font-family: 'Archivo', sans-serif;
   color: #1e293b;
   box-sizing: border-box;
 }
 
-/* Botón Volver */
+/* ========================================== */
+/* VOLVER                                     */
+/* ========================================== */
+
 .edu-back-nav {
-  margin-bottom: 24px;
+  margin-bottom: clamp(14px, 2.4vw, 22px);
 }
 
 .edu-back-link {
-  background: transparent;
-  border: none;
+  appearance: none;
+  border: 1px solid rgba(13, 71, 161, 0.12);
+  background: #ffffff;
+  color: #475569;
+  cursor: pointer;
+
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  color: #64748b;
-  font-size: 0.95rem;
-  font-weight: 700;
-  cursor: pointer;
-  padding: 0;
-  transition: color 0.2s ease;
+
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 999px;
+
+  font-size: 0.92rem;
+  font-weight: 800;
+  line-height: 1;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
+  transition: color 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .edu-back-link:hover {
   color: #0d47a1;
+  border-color: rgba(13, 71, 161, 0.24);
+  box-shadow: 0 12px 24px rgba(13, 71, 161, 0.08);
+  transform: translateY(-1px);
+}
+
+.edu-back-link ion-icon {
+  flex: 0 0 auto;
+  font-size: 1.05rem;
 }
 
 /* ========================================== */
-/* CUERPO DEL ARTÍCULO (TEXTOS)               */
+/* CUERPO DEL ARTÍCULO                        */
 /* ========================================== */
+
 .edu-body-text {
-  font-size: 1.1rem;
-  line-height: 1.8;
-  color: #334155;
-  margin-bottom: 48px;
+  width: 100%;
+  margin: 0 0 clamp(34px, 5vw, 52px);
+  padding: clamp(22px, 3.2vw, 36px);
+  border-radius: clamp(22px, 3vw, 30px);
+  background: #ffffff;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  box-shadow: 0 16px 38px rgba(15, 23, 42, 0.06);
+  box-sizing: border-box;
 }
 
-.edu-body-text p {
-  margin-bottom: 24px;
-}
-
-/* Párrafo destacado / Introducción */
 .edu-lead-paragraph {
-  font-size: 1.3rem;
-  line-height: 1.7;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
   color: #0f172a;
+  font-size: clamp(1rem, 2.4vw, 1.13rem);
+  line-height: 1.78;
   font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.edu-lead-paragraph p {
+  margin: 0 0 20px;
+  color: #334155;
+  font-size: clamp(0.98rem, 2.3vw, 1.08rem);
+  line-height: 1.8;
+  font-weight: 400;
+}
+
+.edu-lead-paragraph p:last-child {
+  margin-bottom: 0;
+}
+
+.edu-lead-paragraph h2,
+.edu-lead-paragraph h3,
+.edu-lead-paragraph h4 {
+  color: #0f172a;
+  font-family: 'Archivo Black', 'Archivo', sans-serif;
+  margin: 30px 0 14px;
+  line-height: 1.15;
+  text-transform: uppercase;
+  letter-spacing: -0.025em;
+  overflow-wrap: anywhere;
+}
+
+.edu-lead-paragraph h2 { font-size: clamp(1.35rem, 3.2vw, 1.7rem); }
+.edu-lead-paragraph h3 { font-size: clamp(1.18rem, 2.8vw, 1.45rem); }
+.edu-lead-paragraph h4 { font-size: clamp(1.05rem, 2.5vw, 1.22rem); }
+
+.edu-lead-paragraph ul,
+.edu-lead-paragraph ol {
+  margin: 16px 0 22px 1.25rem;
+  padding: 0;
+}
+
+.edu-lead-paragraph li {
+  margin-bottom: 11px;
+  color: #334155;
+  font-size: clamp(0.98rem, 2.3vw, 1.06rem);
+  line-height: 1.72;
+}
+
+.edu-lead-paragraph strong {
+  color: #0f172a;
+  font-weight: 800;
+}
+
+.edu-lead-paragraph img,
+.edu-lead-paragraph video,
+.edu-lead-paragraph iframe {
+  display: block;
+  max-width: 100%;
+  margin: 22px auto;
+  border-radius: 18px;
 }
 
 /* ========================================== */
-/* CONTENEDOR DE MATERIAL COMPLEMENTARIO      */
+/* MATERIAL COMPLEMENTARIO                    */
 /* ========================================== */
+
 .edu-resources-section {
-  margin-bottom: 60px;
+  margin-bottom: clamp(38px, 5vw, 60px);
 }
 
 .edu-resources-title {
-  font-size: 1.25rem;
-  font-weight: 800;
+  margin: 0 0 18px;
   color: #0f172a;
+  font-family: 'Archivo Black', 'Archivo', sans-serif;
+  font-size: clamp(1.1rem, 2.6vw, 1.35rem);
+  font-weight: 900;
+  line-height: 1.15;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  margin-bottom: 24px;
+  letter-spacing: -0.02em;
 }
 
-/* Reajustes finos para la grilla interna */
 .edu-resources-row {
   margin: 0 -8px !important;
 }
@@ -90,111 +176,58 @@
 }
 
 /* ========================================== */
-/* SECCIÓN Y BOTÓN ACCIÓN DE CIERRE           */
+/* FOOTER / BOTÓN MÓDULO COMPLETADO           */
 /* ========================================== */
+
 .edu-footer-action {
+  width: min(720px, 100%);
+  margin: 0 auto;
+  padding: clamp(28px, 4vw, 38px) clamp(18px, 3vw, 28px);
+  border-radius: 28px;
+  border: 1px solid rgba(14, 165, 233, 0.16);
+  background:
+    radial-gradient(circle at top right, rgba(77, 208, 225, 0.14), transparent 34%),
+    #ffffff;
+  box-shadow: 0 14px 36px rgba(15, 23, 42, 0.06);
+
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding-top: 36px;
-  border-top: 1px solid #e2e8f0;
+  box-sizing: border-box;
 }
 
 .edu-footer-action p {
-  margin: 0 0 18px 0;
-  font-size: 1.1rem;
-  font-weight: 700;
+  margin: 0 0 18px;
   color: #475569;
+  font-size: clamp(0.98rem, 2.4vw, 1.1rem);
+  font-weight: 800;
+  line-height: 1.45;
 }
 
-/* Botón imponente con tu degradado de marca */
 .edu-submit-btn {
   --background: linear-gradient(90deg, #4dd0e1 0%, #0d47a1 100%) !important;
   --background-hover: linear-gradient(90deg, #3bc2d4 0%, #0a3a85 100%) !important;
   --border-radius: 16px;
   --box-shadow: 0 12px 26px rgba(13, 71, 161, 0.2);
-  
-  font-weight: 800;
-  font-size: 1.05rem;
-  text-transform: none;
-  width: 100%;
-  max-width: 360px;
+
+  width: min(360px, 100%);
   height: 52px;
   margin: 0;
+  font-size: 1.02rem;
+  font-weight: 900;
+  text-transform: none;
   transition: transform 0.15s ease;
 }
 
-/* Asegura el radio del botón nativo de Ionic */
 .edu-submit-btn::part(native) {
   border-radius: 16px;
 }
 
 .edu-submit-btn:active {
-  transform: scale(0.97);
+  transform: scale(0.98);
 }
 
 /* ========================================== */
-/* RESPONSIVO                                 */
+/* RESPONSIVE                                 */
 /* ========================================== */
-@media (max-width: 768px) {
-  .edu-container {
-    padding: 20px 16px 60px 16px;
-  }
-}
-
-/* ========================================== */
-/* SOPORTE PARA CONTENIDO DINÁMICO (HTML)     */
-/* ========================================== */
-
-/* Espaciado y tipografía para párrafos que vengan inyectados */
-.edu-lead-paragraph p {
-  margin-bottom: 24px;
-  font-size: 1.1rem;
-  line-height: 1.8;
-  color: #334155;
-  font-weight: 400;
-}
-
-/* Títulos internos del editor enriquecido */
-.edu-lead-paragraph h2,
-.edu-lead-paragraph h3,
-.edu-lead-paragraph h4 {
-  color: #0f172a;
-  font-family: 'Archivo Black', 'Archivo', sans-serif;
-  margin-top: 32px;
-  margin-bottom: 16px;
-  text-transform: uppercase;
-  letter-spacing: -0.02em;
-}
-
-.edu-lead-paragraph h2 { font-size: 1.6rem; }
-.edu-lead-paragraph h3 { font-size: 1.35rem; }
-
-/* Estilos para listas ordenadas e independientes */
-.edu-lead-paragraph ul, 
-.edu-lead-paragraph ol {
-  margin: 16px 0 24px 24px;
-  padding: 0;
-}
-
-.edu-lead-paragraph li {
-  margin-bottom: 12px;
-  line-height: 1.7;
-  font-size: 1.1rem;
-  color: #334155;
-}
-
-.edu-lead-paragraph ul {
-  list-style-type: disc;
-}
-
-.edu-lead-paragraph ol {
-  list-style-type: decimal;
-}
-
-/* Negritas dentro del texto dinámico */
-.edu-lead-paragraph strong {
-  color: #0f172a;
-  font-weight: 700;
-}

@@ -1809,418 +1809,303 @@ ion-searchbar {
     width: 100% !important;
   }
 }
-/* ========================================================= */
-/* RESPONSIVE V2 - AJUSTES CONSOLIDADOS ARQUITECTURA NUEVA   */
-/* Home, dashboard, admin, alertas, suscripción y módulos     */
-/* ========================================================= */
+/* =============================== */
+/* AJUSTES RESPONSIVE FINALES      */
+/* InicioPage, Alertas, Admin      */
+/* Cuestionarios y SubscribeBanner */
+/* =============================== */
 
-@media (max-width: 1200px) {
-  .central-container,
-  .home-page,
-  .inicio-page,
-  .education-shell,
-  .education-module-shell,
-  .cuestionarios-shell,
-  .protocols-shell,
-  .complaints-shell,
-  .news-section,
-  .admin-content-wrapper {
-    width: min(100% - 32px, 1120px) !important;
-    max-width: 1120px !important;
+@media (max-width: 1100px) {
+  .inicio-shell {
+    width: min(100% - 24px, 1180px) !important;
+    padding: 32px 0 48px !important;
   }
 
-  .cards-grid,
-  .cuestionarios-grid,
-  .news-grid,
-  .protocols-card-grid,
-  .activities-grid,
-  .admin-stats-grid {
-    gap: 18px !important;
+  .inicio-hero-card {
+    gap: 20px !important;
   }
 
-  .subscribe-banner {
-    max-width: 100% !important;
-  }
-}
-
-@media (max-width: 1024px) {
-  .hero-section,
-  .info-section,
-  .inicio-hero,
-  .dashboard-hero,
-  .education-hero,
-  .protocols-page-heading,
-  .alerts-page-heading,
-  .complaints-hero,
-  .questionnaire-page-heading,
-  .admin-page-heading {
-    padding: 28px 24px !important;
-    border-radius: 24px !important;
-  }
-
-  .cards-grid,
-  .cuestionarios-grid,
-  .news-grid,
-  .protocols-card-grid,
-  .activities-grid,
-  .education-grid,
-  .resources-grid,
-  .modules-grid {
+  .inicio-user-summary,
+  .inicio-stats-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 
-  .alerts-summary-section,
-  .protocols-summary-grid,
-  .admin-stats-grid,
-  .dashboard-stats-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  }
-
-  .admin-layout,
-  .admin-main-layout,
-  .complaints-layout,
-  .questionnaire-take-layout,
-  .alert-detail-layout,
-  .education-module-layout {
+  .inicio-main-grid {
     grid-template-columns: 1fr !important;
   }
 
-  .subscribe-banner {
-    grid-template-columns: auto 1fr !important;
-    align-items: start !important;
+  .activities-dashboard-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 
-  .subscribe-button {
-    grid-column: 1 / -1 !important;
-    width: fit-content !important;
-    justify-self: end !important;
-  }
-}
-
-@media (max-width: 900px) {
-  .navbar-links-desktop {
-    display: none !important;
+  .news-page-main {
+    padding-left: 24px !important;
+    padding-right: 24px !important;
   }
 
-  .mobile-menu-button {
-    display: inline-flex !important;
+  .news-section {
+    width: min(100% - 12px, 1180px) !important;
   }
 
-  .admin-table-wrapper,
-  .users-table-wrapper,
-  .questionnaires-table-wrapper,
-  .panel-table-wrapper {
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch !important;
+  .questionnaire-item {
+    align-items: flex-start !important;
   }
 
-  table,
-  .admin-table,
-  .users-table,
-  .questionnaires-table {
-    min-width: 760px !important;
+  .questionnaire-info {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
   }
 
-  .panel-section-header,
-  .admin-section-header,
-  .education-section-header,
-  .questionnaire-section-header,
-  .alerts-section-header,
-  .protocols-section-header {
-    flex-direction: column !important;
-    align-items: stretch !important;
-    gap: 14px !important;
+  .questionnaire-info > div:not(.questionnaire-cover) {
+    min-width: 0 !important;
   }
 
-  .alerts-searchbar,
-  .protocols-searchbar,
-  .education-searchbar,
-  .admin-searchbar,
-  .questionnaires-searchbar {
-    width: 100% !important;
+  .questionnaire-actions {
+    flex-wrap: wrap !important;
+    justify-content: flex-end !important;
   }
 }
 
 @media (max-width: 767px) {
-  html,
-  body,
-  #root,
-  ion-app {
-    width: 100% !important;
-    overflow-x: hidden !important;
+  /* InicioPage */
+  .inicio-shell {
+    width: min(100% - 18px, 1180px) !important;
+    padding: 20px 0 38px !important;
   }
 
-  ion-content::part(scroll) {
-    overflow-x: hidden !important;
-  }
-
-  .central-container,
-  .home-page,
-  .inicio-page,
-  .education-shell,
-  .education-module-shell,
-  .cuestionarios-shell,
-  .protocols-shell,
-  .complaints-shell,
-  .news-section,
-  .admin-content-wrapper {
-    width: min(100% - 22px, 100%) !important;
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-  }
-
-  .hero-section,
-  .info-section,
-  .inicio-hero,
-  .dashboard-hero,
-  .education-hero,
-  .protocols-page-heading,
-  .alerts-page-heading,
-  .complaints-hero,
-  .questionnaire-page-heading,
-  .admin-page-heading,
-  .alerts-list-section,
-  .alert-detail-section,
-  .protocols-section,
-  .education-section,
-  .questionnaires-section,
-  .panel-form-section,
-  .panel-list-section,
-  .admin-panel-section {
+  .inicio-hero-card {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 16px !important;
+    margin-bottom: 18px !important;
     padding: 20px 16px !important;
     border-radius: 20px !important;
   }
 
-  h1,
-  .alerts-page-heading h1,
-  .protocols-page-heading h1,
-  .questionnaire-page-heading h1,
-  .admin-page-heading h1,
-  .education-hero h1,
-  .inicio-hero h1 {
-    font-size: clamp(1.75rem, 9vw, 2.25rem) !important;
-    line-height: 1.05 !important;
+  .inicio-hero-card h1 {
+    font-size: clamp(1.55rem, 9vw, 2.1rem) !important;
+    line-height: 1.08 !important;
     letter-spacing: -0.04em !important;
   }
 
-  h2,
-  .alerts-section-header h2,
-  .protocols-section-header h2,
-  .questionnaire-section-header h2,
-  .education-section-header h2,
-  .panel-section-header h2 {
-    font-size: clamp(1.35rem, 6vw, 1.75rem) !important;
-    line-height: 1.1 !important;
-  }
-
-  p,
-  .alerts-page-heading p,
-  .protocols-page-heading p,
-  .questionnaire-page-heading p,
-  .education-hero p,
-  .inicio-hero p,
-  .panel-section-header p {
-    font-size: 0.92rem !important;
-    line-height: 1.55 !important;
-  }
-
-  .cards-grid,
-  .cuestionarios-grid,
-  .news-grid,
-  .protocols-card-grid,
-  .activities-grid,
-  .education-grid,
-  .resources-grid,
-  .modules-grid,
-  .alerts-summary-section,
-  .protocols-summary-grid,
-  .admin-stats-grid,
-  .dashboard-stats-grid,
-  .auth-form-grid,
-  .form-grid,
-  .panel-form-grid,
-  .admin-form-grid {
-    grid-template-columns: 1fr !important;
-    gap: 14px !important;
-  }
-
-  .stat-card,
-  .admin-stat-card,
-  .alerts-summary-card,
-  .protocol-summary-card,
-  .questionnaire-card,
-  .education-card,
-  .resource-card,
-  .activity-card,
-  .news-card,
-  .protocol-card {
-    border-radius: 18px !important;
-  }
-
-  .news-card-image-wrap,
-  .questionnaire-cover,
-  .education-card-image,
-  .activity-card-image,
-  .protocol-card-image {
-    height: 160px !important;
-  }
-
-  .alert-detail-gallery,
-  .images-preview-grid,
-  .questionnaire-images-grid,
-  .protocol-files-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 10px !important;
-  }
-
-  .auth-card,
-  .login-card,
-  .register-card {
-    width: 100% !important;
-    max-width: 430px !important;
-    grid-template-columns: 1fr !important;
-    border-radius: 20px !important;
-  }
-
-  .auth-image {
-    display: none !important;
-  }
-
-  .auth-form-container {
-    padding: 22px 18px !important;
-  }
-
-  .auth-input,
-  .auth-select,
-  .form-input,
-  .form-select,
-  .form-textarea,
-  .panel-input,
-  .panel-select,
-  .panel-textarea,
-  input,
-  select,
-  textarea {
-    max-width: 100% !important;
-  }
-
-  .admin-actions,
-  .panel-actions,
-  .form-actions,
-  .modal-actions,
-  .questionnaire-actions,
-  .protocol-file-actions,
-  .activity-actions {
-    flex-direction: column !important;
-    align-items: stretch !important;
-    gap: 10px !important;
-  }
-
-  .admin-actions button,
-  .panel-actions button,
-  .form-actions button,
-  .modal-actions button,
-  .questionnaire-actions button,
-  .protocol-file-actions button,
-  .activity-actions button,
-  .admin-actions ion-button,
-  .panel-actions ion-button,
-  .form-actions ion-button,
-  .modal-actions ion-button {
-    width: 100% !important;
-    margin: 0 !important;
-  }
-
-  .admin-user-modal,
-  .modal-card,
-  .edit-user-modal,
-  .subscribe-modal {
-    width: min(100%, 430px) !important;
-    max-height: calc(100dvh - 28px) !important;
-    overflow-y: auto !important;
-  }
-
-  .subscribe-banner {
-    width: 100% !important;
-    min-height: 0 !important;
-    margin: 28px 0 0 !important;
-    padding: 22px 18px !important;
-
-    grid-template-columns: 1fr !important;
-    justify-items: stretch !important;
-    gap: 16px !important;
-
-    border-radius: 22px !important;
-  }
-
-  .subscribe-icon-card {
-    width: 58px !important;
-    height: 58px !important;
-    border-radius: 18px !important;
-  }
-
-  .subscribe-icon-card span {
-    font-size: 1.7rem !important;
-  }
-
-  .subscribe-eyebrow,
-  .subscribe-modal-eyebrow {
-    font-size: 0.68rem !important;
-    padding: 6px 10px !important;
-  }
-
-  .subscribe-text h2 {
-    font-size: clamp(1.45rem, 7.5vw, 1.95rem) !important;
-    line-height: 1.06 !important;
-  }
-
-  .subscribe-text p {
+  .inicio-hero-card p {
     font-size: 0.92rem !important;
     line-height: 1.5 !important;
   }
 
-  .subscribe-benefits {
-    gap: 8px !important;
-  }
-
-  .subscribe-benefits span {
-    font-size: 0.72rem !important;
-    padding: 6px 9px !important;
-  }
-
-  .subscribe-button {
+  .inicio-profile-card {
     width: 100% !important;
     min-width: 0 !important;
-    height: 48px !important;
-    justify-self: stretch !important;
-    font-size: 0.94rem !important;
-  }
-
-  .subscribe-modal-backdrop {
-    padding: 14px !important;
-    align-items: flex-end !important;
-  }
-
-  .subscribe-modal {
-    width: 100% !important;
-    padding: 28px 18px 20px !important;
-    border-radius: 24px 24px 18px 18px !important;
-  }
-
-  .subscribe-modal-close {
-    top: 12px !important;
-    right: 12px !important;
-  }
-
-  .subscribe-modal-icon {
-    width: 50px !important;
-    height: 50px !important;
-    margin-bottom: 12px !important;
+    padding: 15px 16px !important;
     border-radius: 16px !important;
   }
 
+  .inicio-profile-card strong {
+    font-size: 1.05rem !important;
+  }
+
+  .inicio-user-summary,
+  .inicio-stats-grid,
+  .inicio-main-grid,
+  .activities-dashboard-grid,
+  .inicio-shortcuts-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .inicio-user-summary {
+    gap: 10px !important;
+    margin-bottom: 18px !important;
+  }
+
+  .inicio-user-summary div {
+    padding: 13px 14px !important;
+    border-radius: 15px !important;
+  }
+
+  .inicio-stats-grid {
+    gap: 12px !important;
+    margin-bottom: 18px !important;
+  }
+
+  .inicio-main-grid {
+    gap: 18px !important;
+    margin-bottom: 18px !important;
+  }
+
+  .inicio-shortcuts-section,
+  .activities-dashboard-section {
+    padding: 18px 16px !important;
+    border-radius: 20px !important;
+  }
+
+  .inicio-section-header h2,
+  .activities-dashboard-header h2 {
+    font-size: 1.35rem !important;
+    line-height: 1.12 !important;
+  }
+
+  .inicio-section-header p,
+  .activities-dashboard-header p {
+    font-size: 0.9rem !important;
+    line-height: 1.5 !important;
+  }
+
+  .inicio-shortcut-card {
+    min-height: auto !important;
+    padding: 13px !important;
+    border-radius: 16px !important;
+  }
+
+  .inicio-shortcut-card ion-icon {
+    width: 40px !important;
+    height: 40px !important;
+    flex-basis: 40px !important;
+  }
+
+  .activities-dashboard-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+
+  .activities-counter {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .activity-dashboard-card {
+    padding: 14px !important;
+    border-radius: 16px !important;
+  }
+
+  /* AlertasPage: menos margen lateral para ocupar mejor la pantalla */
+  .news-page-main {
+    padding: 14px 6px 24px !important;
+  }
+
+  .news-section {
+    width: calc(100% - 10px) !important;
+    max-width: none !important;
+    padding: 18px 0 34px !important;
+  }
+
+  .alerts-page-heading,
+  .alerts-summary-section,
+  .alerts-list-section,
+  .alert-detail-section {
+    padding: 18px 12px !important;
+    border-radius: 18px !important;
+  }
+
+  .alerts-summary-card,
+  .news-card,
+  .alert-detail-meta {
+    min-width: 0 !important;
+  }
+
+  .alerts-section-header,
+  .alert-detail-header {
+    min-width: 0 !important;
+  }
+
+  .alerts-page-heading h1,
+  .alerts-section-header h2,
+  .alert-detail-header h2 {
+    overflow-wrap: break-word !important;
+    word-break: normal !important;
+  }
+
+  .news-card-body h2,
+  .news-card-body p,
+  .alerts-page-heading p,
+  .alerts-section-header p,
+  .alert-detail-content p {
+    overflow-wrap: break-word !important;
+    word-break: normal !important;
+  }
+
+  /* SubscribeBanner: evita texto/botones en vertical */
+  .subscribe-banner {
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    margin: 24px 0 0 !important;
+    padding: 18px 14px !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    justify-items: stretch !important;
+    align-items: stretch !important;
+    gap: 14px !important;
+    border-radius: 18px !important;
+  }
+
+  .subscribe-text {
+    width: 100% !important;
+    min-width: 0 !important;
+    text-align: left !important;
+  }
+
+  .subscribe-text h2,
+  .subscribe-text p {
+    width: 100% !important;
+    max-width: 100% !important;
+    white-space: normal !important;
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
+    writing-mode: horizontal-tb !important;
+    text-orientation: mixed !important;
+  }
+
+  .subscribe-text h2 {
+    font-size: 1.2rem !important;
+    line-height: 1.16 !important;
+  }
+
+  .subscribe-text p {
+    font-size: 0.88rem !important;
+    line-height: 1.4 !important;
+  }
+
+  .subscribe-button,
+  .subscribe-cancel-button,
+  .subscribe-confirm-button {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    white-space: nowrap !important;
+    word-break: normal !important;
+    overflow-wrap: normal !important;
+    writing-mode: horizontal-tb !important;
+    text-orientation: mixed !important;
+  }
+
+  .subscribe-button {
+    height: 46px !important;
+    padding: 0 14px !important;
+    font-size: 0.96rem !important;
+  }
+
+  .subscribe-modal-backdrop {
+    padding: 12px !important;
+    align-items: center !important;
+  }
+
+  .subscribe-modal {
+    width: min(100%, 420px) !important;
+    max-width: 100% !important;
+    padding: 20px 16px !important;
+    border-radius: 18px !important;
+  }
+
   .subscribe-modal h3 {
-    font-size: clamp(1.55rem, 8vw, 2rem) !important;
+    font-size: 1.35rem !important;
+    line-height: 1.15 !important;
+    word-break: normal !important;
   }
 
   .subscribe-modal p {
@@ -2228,7 +2113,7 @@ ion-searchbar {
   }
 
   .subscribe-input {
-    height: 48px !important;
+    height: 44px !important;
     font-size: 0.92rem !important;
   }
 
@@ -2237,107 +2122,522 @@ ion-searchbar {
     gap: 10px !important;
   }
 
-  .subscribe-cancel-button,
-  .subscribe-confirm-button {
+  /* Panel admin de cuestionarios */
+  .questionnaires-list {
     width: 100% !important;
-    min-height: 46px !important;
+    gap: 12px !important;
+  }
+
+  .questionnaire-item {
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 14px !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 14px !important;
+    align-items: stretch !important;
+    border-radius: 16px !important;
+  }
+
+  .questionnaire-info {
+    width: 100% !important;
+    min-width: 0 !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 12px !important;
+    align-items: stretch !important;
+  }
+
+  .questionnaire-cover {
+    width: 100% !important;
+    height: 132px !important;
+    min-width: 0 !important;
+    border-radius: 14px !important;
+  }
+
+  .questionnaire-info h4,
+  .questionnaire-info p {
+    max-width: 100% !important;
+    white-space: normal !important;
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
+  }
+
+  .questionnaire-info h4 {
+    margin-bottom: 6px !important;
+    font-size: 1rem !important;
+    line-height: 1.2 !important;
+  }
+
+  .questionnaire-info p {
+    margin-bottom: 10px !important;
+    font-size: 0.86rem !important;
+    line-height: 1.4 !important;
+  }
+
+  .questionnaire-meta {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    font-size: 0.74rem !important;
+  }
+
+  .questionnaire-meta span {
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  .questionnaire-actions {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+
+  .questionnaire-actions ion-button {
+    width: 100% !important;
+    min-height: 40px !important;
+    margin: 0 !important;
   }
 }
 
-@media (max-width: 480px) {
-  .navbar-toolbar {
-    --min-height: 58px !important;
+@media (min-width: 768px) and (max-width: 1100px) {
+  .news-page-main {
+    padding-left: 14px !important;
+    padding-right: 14px !important;
   }
 
-  .navbar-container {
-    height: 58px !important;
-    padding: 0 8px !important;
-  }
-
-  .navbar-logo {
-    max-width: 105px !important;
-    height: 30px !important;
-  }
-
-  .central-container,
-  .home-page,
-  .inicio-page,
-  .education-shell,
-  .education-module-shell,
-  .cuestionarios-shell,
-  .protocols-shell,
-  .complaints-shell,
-  .news-section,
-  .admin-content-wrapper {
-    width: min(100% - 16px, 100%) !important;
-  }
-
-  .hero-section,
-  .info-section,
-  .inicio-hero,
-  .dashboard-hero,
-  .education-hero,
-  .protocols-page-heading,
-  .alerts-page-heading,
-  .complaints-hero,
-  .questionnaire-page-heading,
-  .admin-page-heading,
-  .alerts-list-section,
-  .alert-detail-section,
-  .protocols-section,
-  .education-section,
-  .questionnaires-section,
-  .panel-form-section,
-  .panel-list-section,
-  .admin-panel-section {
-    padding: 18px 14px !important;
-    border-radius: 18px !important;
-  }
-
-  .news-card-image-wrap,
-  .questionnaire-cover,
-  .education-card-image,
-  .activity-card-image,
-  .protocol-card-image {
-    height: 142px !important;
-  }
-
-  .alert-detail-gallery,
-  .images-preview-grid,
-  .questionnaire-images-grid,
-  .protocol-files-grid {
-    grid-template-columns: 1fr !important;
+  .news-section {
+    width: calc(100% - 16px) !important;
+    max-width: 1180px !important;
   }
 
   .subscribe-banner {
-    padding: 20px 15px !important;
-    border-radius: 20px !important;
-  }
-
-  .subscribe-benefits span {
     width: 100% !important;
-    justify-content: center !important;
+    max-width: 100% !important;
+    padding-left: 26px !important;
+    padding-right: 26px !important;
   }
 
-  .subscribe-modal {
-    padding: 26px 16px 18px !important;
+  .questionnaire-item {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
   }
 
-  .subscribe-privacy-note {
-    font-size: 0.73rem !important;
+  .questionnaire-actions {
+    align-self: center !important;
   }
 }
 
-@media (hover: none) and (pointer: coarse) {
-  .news-card:hover,
-  .questionnaire-card:hover,
-  .education-card:hover,
-  .resource-card:hover,
-  .activity-card:hover,
-  .protocol-card:hover,
-  .subscribe-button:hover,
-  .subscribe-confirm-button:hover,
-  .subscribe-modal-close:hover {
+@media (max-width: 390px) {
+  .news-page-main {
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+  }
+
+  .news-section {
+    width: calc(100% - 6px) !important;
+  }
+
+  .subscribe-text h2 {
+    font-size: 1.08rem !important;
+  }
+
+  .subscribe-button {
+    font-size: 0.9rem !important;
+  }
+
+  .questionnaire-cover {
+    height: 118px !important;
+  }
+}
+
+/* =============================== */
+/* ADMIN PAGE - RESPONSIVE CELULAR */
+/* Ajustes finales centralizados aquí */
+/* =============================== */
+
+@media (max-width: 1100px) {
+  .admin-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .admin-profile-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .admin-users-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  .admin-users-search {
+    width: 100% !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .admin-content-wrapper {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 18px 10px 30px !important;
+  }
+
+  .admin-header {
+    margin-bottom: 18px !important;
+    padding: 20px 16px !important;
+    border-radius: 20px !important;
+  }
+
+  .admin-kicker,
+  .admin-users-kicker {
+    max-width: 100% !important;
+    white-space: normal !important;
+    line-height: 1.25 !important;
+    font-size: 0.7rem !important;
+  }
+
+  .admin-header h1 {
+    font-size: clamp(1.65rem, 8vw, 2.15rem) !important;
+    line-height: 1.05 !important;
+    letter-spacing: -0.04em !important;
+  }
+
+  .admin-header p {
+    font-size: 0.9rem !important;
+    line-height: 1.45 !important;
+  }
+
+  .admin-profile-summary {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+    margin-top: 18px !important;
+  }
+
+  .admin-profile-summary div {
+    padding: 13px 14px !important;
+    border-radius: 15px !important;
+  }
+
+  .admin-profile-summary span {
+    overflow: visible !important;
+    text-overflow: unset !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  .admin-stats-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+    margin-bottom: 18px !important;
+  }
+
+  .admin-stat-card {
+    min-height: auto !important;
+    padding: 16px !important;
+    border-radius: 18px !important;
+    gap: 14px !important;
+  }
+
+  .admin-stat-card:hover {
     transform: none !important;
+  }
+
+  .admin-stat-card-top {
+    align-items: center !important;
+  }
+
+  .admin-stat-icon {
+    width: 42px !important;
+    height: 42px !important;
+    flex-basis: 42px !important;
+    border-radius: 13px !important;
+    font-size: 1.25rem !important;
+  }
+
+  .admin-stat-label {
+    max-width: 180px !important;
+    font-size: 0.66rem !important;
+    line-height: 1.15 !important;
+  }
+
+  .admin-stat-content span {
+    font-size: 0.75rem !important;
+    line-height: 1.2 !important;
+  }
+
+  .admin-stat-content strong {
+    font-size: 1.75rem !important;
+  }
+
+  .admin-table-container {
+    margin-top: 18px !important;
+    padding: 16px 12px !important;
+    border-radius: 20px !important;
+  }
+
+  .admin-users-header {
+    gap: 14px !important;
+    margin-bottom: 16px !important;
+  }
+
+  .admin-users-title h2 {
+    font-size: 1.45rem !important;
+    line-height: 1.08 !important;
+  }
+
+  .admin-users-title p {
+    font-size: 0.86rem !important;
+    line-height: 1.4 !important;
+  }
+
+  .admin-searchbar {
+    width: 100% !important;
+  }
+
+  .table-responsive {
+    width: 100% !important;
+    overflow-x: visible !important;
+  }
+
+  .custom-table {
+    width: 100% !important;
+    min-width: 0 !important;
+    border-collapse: separate !important;
+    border-spacing: 0 12px !important;
+  }
+
+  .custom-table thead {
+    display: none !important;
+  }
+
+  .custom-table,
+  .custom-table tbody,
+  .custom-table tr,
+  .custom-table td {
+    display: block !important;
+    width: 100% !important;
+  }
+
+  .custom-table tbody tr {
+    padding: 14px !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 18px !important;
+    background: #ffffff !important;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06) !important;
+  }
+
+  .custom-table tbody tr:hover {
+    background: #ffffff !important;
+  }
+
+  .custom-table td {
+    min-height: 0 !important;
+    padding: 9px 0 !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+  }
+
+  .custom-table td:last-child {
+    border-bottom: none !important;
+    padding-bottom: 0 !important;
+  }
+
+  .custom-table td::before {
+    content: "";
+    display: block;
+    margin-bottom: 6px;
+    color: #64748b;
+    font-family: 'Archivo', sans-serif;
+    font-size: 0.68rem;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    line-height: 1.1;
+    text-transform: uppercase;
+  }
+
+  .custom-table td:nth-child(1)::before {
+    content: "Usuario";
+  }
+
+  .custom-table td:nth-child(2)::before {
+    content: "Ubicación";
+  }
+
+  .custom-table td:nth-child(3)::before {
+    content: "Progreso";
+  }
+
+  .custom-table td:nth-child(4)::before {
+    content: "Tipo";
+  }
+
+  .custom-table td:nth-child(5)::before {
+    content: "Estado";
+  }
+
+  .custom-table td:nth-child(6)::before {
+    content: "Riesgo";
+  }
+
+  .custom-table td:nth-child(7)::before {
+    content: "Acciones";
+  }
+
+  .custom-table td[colspan]::before {
+    display: none !important;
+  }
+
+  .user-cell {
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+
+  .user-avatar {
+    width: 40px !important;
+    height: 40px !important;
+    flex-basis: 40px !important;
+    border-radius: 13px !important;
+  }
+
+  .user-data,
+  .user-location {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  .user-name,
+  .user-email,
+  .user-location strong,
+  .user-location span {
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  .badge-tipo,
+  .badge-estado,
+  .badge-riesgo,
+  .user-progress-pill {
+    min-width: 0 !important;
+    width: auto !important;
+    max-width: 100% !important;
+    white-space: normal !important;
+    line-height: 1.15 !important;
+  }
+
+  .actions-cell {
+    white-space: normal !important;
+  }
+
+  .actions-cell button {
+    width: 40px !important;
+    height: 40px !important;
+    margin-right: 8px !important;
+    border-radius: 12px !important;
+  }
+
+  .admin-table-state {
+    padding: 18px 12px !important;
+    font-size: 0.86rem !important;
+  }
+
+  .admin-user-modal-backdrop {
+    align-items: flex-start !important;
+    justify-content: center !important;
+    padding: 10px !important;
+    overflow-y: auto !important;
+  }
+
+  .admin-user-modal {
+    width: 100% !important;
+    max-height: calc(100dvh - 20px) !important;
+    border-radius: 20px !important;
+  }
+
+  .admin-user-modal-header {
+    padding: 18px 16px 14px !important;
+    gap: 12px !important;
+  }
+
+  .admin-user-modal-header h3 {
+    font-size: 1.25rem !important;
+    line-height: 1.08 !important;
+  }
+
+  .admin-user-modal-close {
+    width: 36px !important;
+    height: 36px !important;
+    flex: 0 0 36px !important;
+  }
+
+  .admin-user-form {
+    padding: 16px !important;
+    gap: 14px !important;
+  }
+
+  .admin-user-form-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .admin-user-form input,
+  .admin-user-form select {
+    min-height: 44px !important;
+    padding: 11px 12px !important;
+    font-size: 0.9rem !important;
+  }
+
+  .admin-user-risk-summary {
+    padding: 13px 14px !important;
+    border-radius: 15px !important;
+  }
+
+  .admin-user-form-actions {
+    flex-direction: column-reverse !important;
+    gap: 10px !important;
+  }
+
+  .admin-user-form-actions button {
+    width: 100% !important;
+    min-height: 44px !important;
+    margin: 0 !important;
+  }
+
+  .forms-container-grid {
+    margin-top: 22px !important;
+    gap: 18px !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .admin-content-wrapper {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+
+  .admin-header,
+  .admin-table-container,
+  .panel-form-section,
+  .panel-list-section {
+    border-radius: 18px !important;
+  }
+
+  .admin-header {
+    padding: 18px 14px !important;
+  }
+
+  .admin-header h1 {
+    font-size: 1.55rem !important;
+  }
+
+  .admin-stat-card,
+  .custom-table tbody tr {
+    padding: 13px !important;
+  }
+
+  .admin-users-title h2 {
+    font-size: 1.3rem !important;
   }
 }
