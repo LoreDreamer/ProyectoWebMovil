@@ -868,8 +868,34 @@ backend/src/routes/index.ts
 
 ---
 
-## Pruebas funcionales
+## Endpoints y pruebas funcionales
 
+La documentación de los endpoints se encuentra disponible en `backend/endpoints.md`, donde podrán encontrar toda la documentación sobre los endpoints en materia de las respuestas HTTP usadas, los tipos de mensajes usados, los permisos necesarios para poder acceder a ciertos materiales y varios otros detalles.
+
+Por el lado de las pruebas funcionales, se hizo uso de Postman para probar la funcionalidad de nuestra página web. Se hace uso de http://localhost:3000 como variable llamada baseUrl.
+
+### Login correcto como admin
+
+Al hacer login como admin, el sistema espera las siguientes variables:
+
+- Autenticación JWT funcionando.
+- Rol indicando que el usuario es administrador.
+
+### Acceder perfil sin token
+
+Al tratar de acceder el perfil sin token, debido a la protección de rutas, el sistema rechaza la conexión con un error 401.
+
+### Acceder perfil con token 
+
+Utilizando el mismo token de la sesión de admin, se puede apreciar un mensaje 200, autorizando al usuario para que entre al perfil.
+
+### Crear alerta sin token
+
+Al tratar de crear una alerta, el sistema no solamente debe verificar si uno es administrador, pero que también si tiene permisos mediante el uso de tokens. En este caso, al tratar de alertar sin token, no se puede publicar alertas.
+
+### Crear alerta con token
+
+Si uno tiene administrador y tiene token, puede observar un mensaje 200 OK que autoriza la operación y mediante la segunda imagen se puede observar que se realiza correctamente la operación.
 
 ---
 
