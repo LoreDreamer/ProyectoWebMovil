@@ -881,21 +881,32 @@ Al hacer login como admin, el sistema espera las siguientes variables:
 - Autenticación JWT funcionando.
 - Rol indicando que el usuario es administrador.
 
+<img width="716" height="689" alt="image" src="https://github.com/user-attachments/assets/e8f6370f-df3c-41fc-807c-641e7445de4b" />
+
 ### Acceder perfil sin token
 
 Al tratar de acceder el perfil sin token, debido a la protección de rutas, el sistema rechaza la conexión con un error 401.
+
+<img width="701" height="475" alt="image-1" src="https://github.com/user-attachments/assets/f6606341-f39f-4cee-96cb-5167a978181d" />
 
 ### Acceder perfil con token 
 
 Utilizando el mismo token de la sesión de admin, se puede apreciar un mensaje 200, autorizando al usuario para que entre al perfil.
 
+<img width="711" height="683" alt="image-2" src="https://github.com/user-attachments/assets/02257827-f048-48b1-9194-bc56b09b287f" />
+
 ### Crear alerta sin token
 
 Al tratar de crear una alerta, el sistema no solamente debe verificar si uno es administrador, pero que también si tiene permisos mediante el uso de tokens. En este caso, al tratar de alertar sin token, no se puede publicar alertas.
 
+<img width="712" height="481" alt="image-3" src="https://github.com/user-attachments/assets/e6599999-9d42-4280-9a43-764a0dce24d8" />
+
 ### Crear alerta con token
 
 Si uno tiene administrador y tiene token, puede observar un mensaje 200 OK que autoriza la operación y mediante la segunda imagen se puede observar que se realiza correctamente la operación.
+
+<img width="706" height="659" alt="image-4" src="https://github.com/user-attachments/assets/08fbba0e-b5a9-42e6-b9d9-8c594c8cdcaf" />
+<img width="1191" height="679" alt="image-5" src="https://github.com/user-attachments/assets/81285e7f-b268-4a7c-b6e3-31b9b616338c" />
 
 ---
 
