@@ -1,0 +1,10 @@
+.news-page-content {
+  --background: #f2f2f2;
+}
+
+.news-page-main {
+  min-height: auto;
+  padding: 36px 48px 32px;
+  box-sizing: border-box;
+  overflow: visible;
+}

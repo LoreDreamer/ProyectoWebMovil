@@ -1,0 +1,230 @@
+.education-content-page {
+  --background: #f5f8fb;
+}
+
+.education-shell {
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 42px 0 56px;
+}
+
+/* ===============================
+   HERO
+   =============================== */
+
+.education-hero-section {
+  position: relative;
+  overflow: hidden;
+
+  margin-bottom: 28px;
+  padding: 44px 38px;
+
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at top right, rgba(76, 201, 240, 0.12), transparent 34%),
+    #ffffff;
+
+  border: 1px solid rgba(14, 165, 233, 0.14);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.07);
+
+  color: #102033;
+}
+
+.education-kicker,
+.section-eyebrow {
+  display: inline-flex;
+  align-items: center;
+
+  margin-bottom: 10px;
+  padding: 7px 13px;
+
+  border-radius: 999px;
+  background: #e0f2fe;
+
+  color: #0369a1;
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.education-hero-section h1 {
+  position: relative;
+  z-index: 1;
+
+  max-width: 760px;
+  margin: 0 0 12px;
+
+  color: #102033;
+  font-family: 'Archivo Black', 'Archivo', sans-serif;
+  font-size: clamp(2rem, 4vw, 3.3rem);
+  line-height: 1.02;
+  letter-spacing: -0.05em;
+  text-transform: uppercase;
+}
+
+.education-hero-section p {
+  position: relative;
+  z-index: 1;
+
+  max-width: 720px;
+  margin: 0;
+
+  color: #64748b;
+  font-family: 'Archivo', sans-serif;
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+/* ===============================
+   ADMIN
+   =============================== */
+
+.education-admin-section {
+  margin-bottom: 30px;
+}
+
+/* ===============================
+   SECCIONES
+   =============================== */
+
+.education-section {
+  margin-top: 28px;
+  padding: 30px;
+
+  border-radius: 26px;
+  background: #ffffff;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.07);
+}
+
+.advice-section {
+  border: 1px solid rgba(14, 165, 233, 0.16);
+  background:
+    radial-gradient(circle at top right, rgba(76, 201, 240, 0.1), transparent 32%),
+    #ffffff;
+}
+
+.education-section-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: flex-start;
+
+  margin-bottom: 24px;
+}
+
+.education-section-header h2 {
+  margin: 0 0 8px;
+
+  color: #102033;
+  font-family: 'Archivo Black', 'Archivo', sans-serif;
+  font-size: clamp(1.5rem, 2.5vw, 2.15rem);
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+}
+
+.education-section-header p {
+  max-width: 720px;
+  margin: 0;
+
+  color: #64748b;
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.98rem;
+  line-height: 1.6;
+}
+
+/* ===============================
+   CONTADOR
+   =============================== */
+
+.education-count-card {
+  min-width: 70px;
+  padding: 12px 10px;
+
+  border-radius: 20px;
+  background: linear-gradient(135deg, #93d5f7, #0056b3);
+  color: #ffffff;
+  box-shadow: 0 12px 28px rgba(0, 86, 179, 0.23);
+
+  text-align: center;
+}
+
+.education-count-card span {
+  display: block;
+
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.education-count-card strong {
+  display: block;
+
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 1.2rem;
+}
+
+/* ===============================
+   GRID
+   =============================== */
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  align-items: stretch;
+}
+
+.education-empty-state {
+  padding: 26px;
+
+  border-radius: 18px;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+
+  color: #64748b;
+  font-family: 'Archivo', sans-serif;
+  font-weight: 700;
+  text-align: center;
+}
+
+.completed-education-section {
+  border: 1px solid rgba(14, 165, 233, 0.18);
+  background:
+    radial-gradient(circle at top right, rgba(76, 201, 240, 0.1), transparent 32%),
+    #ffffff;
+}
+
+/* ==========================================
+   AJUSTES PARA LA NUEVA REDIRECCIÓN (CLIC)
+   ========================================== */
+
+/* 1. Obliga al contenedor del onClick a estirarse uniformemente en el grid */
+.cards-grid > div {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  transition: transform 0.2s ease;
+}
+
+/* 2. Hace que la tarjeta interna (EducationCard) ocupe todo el espacio disponible */
+.cards-grid > div > * {
+  flex: 1;
+  width: 100%;
+}
+
+/* 3. Efecto visual sutil cuando pasas el mouse por encima de la tarjeta */
+.cards-grid > div:hover {
+  transform: translateY(-4px);
+}
+
+/* 4. Opcional: Cambia el contador de completados a verde para que combine con el éxito */
+.completed-education-section .education-count-card {
+  background: linear-gradient(135deg, #a7f3d0, #059669);
+  box-shadow: 0 12px 28px rgba(5, 150, 105, 0.2);
+}
+

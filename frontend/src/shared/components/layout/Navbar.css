@@ -1,0 +1,259 @@
+/* --- Estructura y Header --- */
+.navbar-header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: #ffffff;
+  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.08);
+}
+
+.navbar-toolbar {
+  --background: transparent;
+  --min-height: 80px;
+}
+
+.navbar-container {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  height: 80px;
+  box-sizing: border-box;
+}
+
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-shrink: 0;
+}
+
+.navbar-logo-link {
+  display: inline-flex;
+  align-items: center;
+}
+
+.navbar-logo {
+  height: 50px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
+/* --- Navegación Central --- */
+.navbar-links-desktop {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 35px;
+  flex: 1;
+}
+
+.navbar-link-authenticated {
+  color: #333;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  position: relative;
+  transition: color 0.2s ease;
+}
+
+.navbar-link-authenticated::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: #006aa8;
+  transition: width 0.3s ease;
+}
+
+.navbar-link-authenticated:hover,
+.navbar-link-authenticated.active {
+  color: #006aa8;
+}
+
+.navbar-link-authenticated:hover::after,
+.navbar-link-authenticated.active::after {
+  width: 100%;
+}
+
+/* --- Botones de Acción - Lado Derecho --- */
+.navbar-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.navbar-register-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 22px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #4dd0e1 0%, #0d47a1 100%);
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  min-width: 150px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.navbar-register-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(9, 85, 166, 0.2);
+}
+
+/* --- Logout --- */
+.navbar-logout-button {
+  background: transparent;
+  cursor: pointer;
+  width: 45px;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.navbar-logout-button ion-icon {
+  font-size: 60px;
+  color: #d62033;
+}
+
+.navbar-logout-button:hover ion-icon {
+  color: #c50000;
+  transform: scale(1.13);
+}
+
+/* --- Perfil Animado --- */
+.navbar-profile-container {
+  display: flex;
+  align-items: center;
+}
+
+.navbar-profile-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+}
+
+.navbar-profile-ring {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.navbar-profile-icon {
+  width: 60px;
+  height: 60px;
+  color: rgb(0, 106, 168);
+  position: relative;
+  z-index: 2;
+  transition: color 0.3s ease, transform 0.2s ease;
+}
+
+.navbar-profile-circle {
+  position: absolute;
+  inset: 0;
+  width: 72px;
+  height: 72px;
+  transform: rotate(-90deg);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.navbar-profile-circle-path {
+  fill: none;
+  stroke: rgb(0, 80, 126);
+  stroke-width: 4.5px;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 0.4s ease;
+}
+
+.navbar-profile-button:hover .navbar-profile-icon {
+  color: rgb(0, 80, 126);
+  transform: scale(1.13);
+}
+
+.navbar-profile-button:hover .navbar-profile-circle-path {
+  stroke-dashoffset: 0;
+}
+
+/* --- Botón menú móvil oculto por defecto --- */
+/* En móvil lo activa responsive.css */
+.mobile-menu-button {
+  display: none !important;
+}
+
+/* ================================================= */
+/* MEDIA QUERIES COMENTADAS                         */
+/* Ahora la responsividad se maneja en responsive.css */
+/* ================================================= */
+
+/*
+@media (max-width: 1200px) {
+  .navbar-links-desktop {
+    gap: 15px;
+  }
+
+  .navbar-logo {
+    height: 40px;
+  }
+
+  .navbar-container {
+    padding: 0 12px;
+  }
+}
+*/
+
+/*
+@media (max-width: 992px) {
+  .mobile-menu-button {
+    display: block !important;
+  }
+
+  .navbar-links-desktop {
+    display: none !important;
+  }
+
+  .navbar-left,
+  .navbar-right {
+    flex: 1;
+  }
+}
+*/
+
+/*
+@media (max-width: 600px) {
+  .navbar-actions .link-login {
+    display: none;
+  }
+
+  .navbar-register-button {
+    min-width: 120px;
+    padding: 0 15px;
+    font-size: 0.85rem;
+  }
+}
+*/

@@ -1,0 +1,200 @@
+/* ========================================== */
+/* CONFIGURACIÓN DE PÁGINA IONIC              */
+/* ========================================== */
+.edu-mod-page {
+  --background: #f4f7f9;
+}
+
+.edu-mod-content {
+  --background: #f4f7f9;
+}
+
+/* Contenedor central que alinea todos los módulos */
+.edu-container {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 32px 24px 80px 24px;
+  font-family: 'Archivo', sans-serif;
+  color: #1e293b;
+  box-sizing: border-box;
+}
+
+/* Botón Volver */
+.edu-back-nav {
+  margin-bottom: 24px;
+}
+
+.edu-back-link {
+  background: transparent;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #64748b;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s ease;
+}
+
+.edu-back-link:hover {
+  color: #0d47a1;
+}
+
+/* ========================================== */
+/* CUERPO DEL ARTÍCULO (TEXTOS)               */
+/* ========================================== */
+.edu-body-text {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: #334155;
+  margin-bottom: 48px;
+}
+
+.edu-body-text p {
+  margin-bottom: 24px;
+}
+
+/* Párrafo destacado / Introducción */
+.edu-lead-paragraph {
+  font-size: 1.3rem;
+  line-height: 1.7;
+  color: #0f172a;
+  font-weight: 500;
+}
+
+/* ========================================== */
+/* CONTENEDOR DE MATERIAL COMPLEMENTARIO      */
+/* ========================================== */
+.edu-resources-section {
+  margin-bottom: 60px;
+}
+
+.edu-resources-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0f172a;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 24px;
+}
+
+/* Reajustes finos para la grilla interna */
+.edu-resources-row {
+  margin: 0 -8px !important;
+}
+
+.edu-resources-row ion-col {
+  padding: 8px !important;
+}
+
+/* ========================================== */
+/* SECCIÓN Y BOTÓN ACCIÓN DE CIERRE           */
+/* ========================================== */
+.edu-footer-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding-top: 36px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.edu-footer-action p {
+  margin: 0 0 18px 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #475569;
+}
+
+/* Botón imponente con tu degradado de marca */
+.edu-submit-btn {
+  --background: linear-gradient(90deg, #4dd0e1 0%, #0d47a1 100%) !important;
+  --background-hover: linear-gradient(90deg, #3bc2d4 0%, #0a3a85 100%) !important;
+  --border-radius: 16px;
+  --box-shadow: 0 12px 26px rgba(13, 71, 161, 0.2);
+  
+  font-weight: 800;
+  font-size: 1.05rem;
+  text-transform: none;
+  width: 100%;
+  max-width: 360px;
+  height: 52px;
+  margin: 0;
+  transition: transform 0.15s ease;
+}
+
+/* Asegura el radio del botón nativo de Ionic */
+.edu-submit-btn::part(native) {
+  border-radius: 16px;
+}
+
+.edu-submit-btn:active {
+  transform: scale(0.97);
+}
+
+/* ========================================== */
+/* RESPONSIVO                                 */
+/* ========================================== */
+@media (max-width: 768px) {
+  .edu-container {
+    padding: 20px 16px 60px 16px;
+  }
+}
+
+/* ========================================== */
+/* SOPORTE PARA CONTENIDO DINÁMICO (HTML)     */
+/* ========================================== */
+
+/* Espaciado y tipografía para párrafos que vengan inyectados */
+.edu-lead-paragraph p {
+  margin-bottom: 24px;
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: #334155;
+  font-weight: 400;
+}
+
+/* Títulos internos del editor enriquecido */
+.edu-lead-paragraph h2,
+.edu-lead-paragraph h3,
+.edu-lead-paragraph h4 {
+  color: #0f172a;
+  font-family: 'Archivo Black', 'Archivo', sans-serif;
+  margin-top: 32px;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+}
+
+.edu-lead-paragraph h2 { font-size: 1.6rem; }
+.edu-lead-paragraph h3 { font-size: 1.35rem; }
+
+/* Estilos para listas ordenadas e independientes */
+.edu-lead-paragraph ul, 
+.edu-lead-paragraph ol {
+  margin: 16px 0 24px 24px;
+  padding: 0;
+}
+
+.edu-lead-paragraph li {
+  margin-bottom: 12px;
+  line-height: 1.7;
+  font-size: 1.1rem;
+  color: #334155;
+}
+
+.edu-lead-paragraph ul {
+  list-style-type: disc;
+}
+
+.edu-lead-paragraph ol {
+  list-style-type: decimal;
+}
+
+/* Negritas dentro del texto dinámico */
+.edu-lead-paragraph strong {
+  color: #0f172a;
+  font-weight: 700;
+}

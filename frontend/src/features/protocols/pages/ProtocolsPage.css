@@ -1,0 +1,570 @@
+.protocols-content-page {
+  --background: #f5f8fb;
+}
+
+.protocols-shell {
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 42px 0 56px;
+}
+
+/* ===============================
+   ENCABEZADO SIMPLE
+   =============================== */
+
+.protocols-page-heading {
+  margin-bottom: 28px;
+  padding: 30px;
+
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at top right, rgba(76, 201, 240, 0.11), transparent 34%),
+    #ffffff;
+
+  border: 1px solid rgba(14, 165, 233, 0.14);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.07);
+}
+
+.protocols-kicker,
+.protocols-section .section-eyebrow {
+  display: inline-flex;
+  align-items: center;
+
+  margin-bottom: 10px;
+  padding: 7px 13px;
+
+  border-radius: 999px;
+  background: #e0f2fe;
+
+  color: #0369a1;
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.protocols-page-heading h1 {
+  max-width: 760px;
+  margin: 0 0 10px;
+
+  color: #102033;
+  font-family: 'Archivo Black', 'Archivo', sans-serif;
+  font-size: clamp(2rem, 3.6vw, 3rem);
+  line-height: 1.04;
+  letter-spacing: -0.05em;
+  text-transform: uppercase;
+}
+
+.protocols-page-heading p {
+  max-width: 720px;
+  margin: 0;
+
+  color: #64748b;
+  font-family: 'Archivo', sans-serif;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+/* ===============================
+   ADMIN
+   =============================== */
+
+.protocols-admin-section {
+  margin-bottom: 30px;
+}
+
+/* ===============================
+   SECCIONES
+   =============================== */
+
+.protocols-section {
+  margin-top: 28px;
+  padding: 30px;
+
+  border-radius: 26px;
+  background: #ffffff;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.07);
+}
+
+.protocols-summary-section {
+  background:
+    radial-gradient(circle at top right, rgba(76, 201, 240, 0.1), transparent 32%),
+    #ffffff;
+  border: 1px solid rgba(14, 165, 233, 0.16);
+}
+
+.protocols-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+
+  margin-bottom: 22px;
+}
+
+.protocols-section-header h2 {
+  margin: 0 0 8px;
+
+  color: #102033;
+  font-family: 'Archivo Black', 'Archivo', sans-serif;
+  font-size: clamp(1.5rem, 2.5vw, 2.15rem);
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+}
+
+.protocols-section-header p {
+  max-width: 650px;
+  margin: 0;
+
+  color: #64748b;
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.98rem;
+  line-height: 1.6;
+}
+
+.protocols-searchbar {
+  width: min(360px, 100%);
+  --background: #f8fafc;
+  --border-radius: 16px;
+  --box-shadow: none;
+  --color: #102033;
+  --placeholder-color: #94a3b8;
+}
+
+/* ===============================
+   RESUMEN
+   =============================== */
+
+.protocols-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.protocol-summary-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
+  padding: 18px;
+
+  border-radius: 20px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.protocol-summary-icon {
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 14px;
+  background: #e0f2fe;
+  color: #0369a1;
+  font-size: 1.35rem;
+}
+
+.protocol-summary-card span {
+  display: block;
+
+  color: #64748b;
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.protocol-summary-card strong {
+  display: block;
+  margin-top: 4px;
+
+  color: #102033;
+  font-family: 'Archivo Black', 'Archivo', sans-serif;
+  font-size: 1.65rem;
+}
+
+/* ===============================
+   FILTROS
+   =============================== */
+
+.protocols-category-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+
+  margin-bottom: 18px;
+}
+
+.protocol-filter-chip {
+  padding: 9px 14px;
+
+  border: 1px solid #dbe4ef;
+  border-radius: 999px;
+  background: #f8fafc;
+
+  color: #475569;
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.86rem;
+  font-weight: 800;
+
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.protocol-filter-chip:hover {
+  transform: translateY(-1px);
+  border-color: rgba(14, 165, 233, 0.35);
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.protocol-filter-chip-active {
+  border-color: transparent;
+  background: linear-gradient(135deg, #0277bd, #0056b3);
+  color: #ffffff;
+}
+
+.protocols-category-overview {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+
+  margin-bottom: 22px;
+}
+
+.protocols-category-overview div {
+  padding: 14px 16px;
+
+  border-radius: 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.protocols-category-overview span {
+  display: block;
+
+  color: #64748b;
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.protocols-category-overview strong {
+  display: block;
+  margin-top: 4px;
+
+  color: #102033;
+  font-family: 'Archivo Black', 'Archivo', sans-serif;
+  font-size: 1.4rem;
+}
+
+/* ===============================
+   CARDS
+   =============================== */
+
+.protocols-card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.protocol-public-card {
+  min-height: 100%;
+
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  padding: 20px;
+
+  border-radius: 22px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.protocol-public-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(14, 165, 233, 0.35);
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.1);
+}
+
+.protocol-public-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.protocol-document-icon {
+  width: 48px;
+  height: 48px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 16px;
+  background: #e0f2fe;
+  color: #0369a1;
+  font-size: 1.55rem;
+}
+
+.protocol-category-badge {
+  padding: 6px 10px;
+
+  border-radius: 999px;
+
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.protocol-category-ciberseguridad {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.protocol-category-teletrabajo {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.protocol-category-atencion-ciudadana {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.protocol-public-card-body {
+  flex: 1;
+}
+
+.protocol-public-card-body h3 {
+  margin: 0 0 10px;
+
+  color: #102033;
+  font-family: 'Archivo Black', 'Archivo', sans-serif;
+  font-size: 1.12rem;
+  line-height: 1.12;
+  letter-spacing: -0.035em;
+}
+
+.protocol-public-card-body p {
+  margin: 0;
+
+  color: #64748b;
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.protocol-public-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+
+  color: #64748b;
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.protocol-public-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.protocol-file-preview strong {
+  display: block;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  color: #102033;
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 900;
+}
+
+.protocol-file-preview span {
+  display: block;
+  margin-top: 4px;
+
+  color: #64748b;
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.protocol-open-button-disabled {
+  background: #e2e8f0;
+  color: #64748b;
+  cursor: not-allowed;
+}
+
+/* ===============================
+   ESTADOS
+   =============================== */
+
+.protocol-empty-state {
+  padding: 26px;
+
+  border-radius: 18px;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+
+  color: #64748b;
+  font-family: 'Archivo', sans-serif;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* ===============================
+   LISTA DE ARCHIVOS DEL PROTOCOLO
+   =============================== */
+
+.protocol-files-box {
+  padding: 12px;
+
+  border-radius: 18px;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+}
+
+.protocol-files-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+
+  margin-bottom: 10px;
+}
+
+.protocol-files-header strong {
+  color: #102033;
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 900;
+}
+
+.protocol-files-header span {
+  color: #64748b;
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.protocol-files-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.protocol-file-link {
+  min-height: 52px;
+  padding: 10px;
+
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+
+  color: inherit;
+  text-decoration: none;
+
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.protocol-file-link:hover {
+  transform: translateY(-1px);
+  border-color: rgba(14, 165, 233, 0.35);
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08);
+}
+
+.protocol-file-icon {
+  width: 38px;
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 12px;
+  background: #e0f2fe;
+  color: #0369a1;
+  font-size: 1.25rem;
+}
+
+.protocol-file-data {
+  min-width: 0;
+}
+
+.protocol-file-data strong {
+  display: block;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  color: #102033;
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.84rem;
+  font-weight: 900;
+}
+
+.protocol-file-data span {
+  display: block;
+  margin-top: 3px;
+
+  color: #64748b;
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.protocol-file-open-icon {
+  color: #0369a1;
+  font-size: 1.1rem;
+}
+
+.protocol-file-empty {
+  padding: 12px;
+
+  border-radius: 12px;
+  background: #ffffff;
+
+  color: #64748b;
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.84rem;
+  font-weight: 800;
+  text-align: center;
+}

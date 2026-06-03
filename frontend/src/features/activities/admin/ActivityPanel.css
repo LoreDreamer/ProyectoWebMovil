@@ -1,0 +1,115 @@
+/* =============================== */
+/* ACTIVITY PANEL */
+/* =============================== */
+
+.activity-admin-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* =============================== */
+/* LISTADO DE ACTIVIDADES */
+/* =============================== */
+
+.activities-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.activity-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+
+  padding: 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 14px;
+  background: #fafafa;
+}
+
+.activity-info {
+  min-width: 0;
+}
+
+.activity-info h4 {
+  margin: 0 0 8px 0;
+  color: #222;
+}
+
+.activity-info p {
+  margin: 0 0 8px 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.activity-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+
+  font-size: 0.8rem;
+  color: #888;
+}
+
+.activity-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.activity-action-button {
+  --color: #007bff;
+  --background-hover: rgba(0, 123, 255, 0.1);
+  --border-radius: 6px;
+
+  font-weight: 500;
+  text-transform: none;
+}
+
+.activity-action-button:hover {
+  transform: translateY(-1px);
+}
+
+.activity-action-button.delete-btn {
+  --color: #dc3545;
+  --background-hover: rgba(220, 53, 69, 0.1);
+}
+
+/* =============================== */
+/* DETALLE DE ACTIVIDAD */
+/* =============================== */
+
+.activity-detail-panel {
+  margin-top: 24px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 14px;
+}
+
+.activity-detail-panel h3 {
+  margin: 0 0 12px 0;
+  color: #333;
+}
+
+.activity-detail-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 14px;
+  padding: 16px;
+  background: white;
+}
+
+.activity-detail-card h2 {
+  margin: 0 0 10px 0;
+  color: #222;
+  font-size: 1.2rem;
+}
+
+.activity-detail-card p {
+  margin: 0 0 12px 0;
+  color: #666;
+  font-size: 0.95rem;
+}

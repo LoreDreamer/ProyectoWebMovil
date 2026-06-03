@@ -1,0 +1,196 @@
+/* =============================== */
+/* QUESTIONNAIRES PANEL */
+/* =============================== */
+
+.questionnaires-admin-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* =============================== */
+/* LISTADO DE CUESTIONARIOS */
+/* =============================== */
+
+.questionnaires-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.questionnaire-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+
+  padding: 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 14px;
+  background: #fafafa;
+}
+
+.questionnaire-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.questionnaire-info h4 {
+  margin: 0 0 8px 0;
+  color: #222;
+}
+
+.questionnaire-info p {
+  margin: 0 0 8px 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.questionnaire-cover {
+  width: 90px;
+  height: 70px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f1f3f5;
+  flex-shrink: 0;
+}
+
+.questionnaire-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.questionnaire-cover-placeholder {
+  width: 100%;
+  height: 100%;
+
+  display: grid;
+  place-items: center;
+
+  color: #777;
+  font-size: 0.75rem;
+  text-align: center;
+  padding: 6px;
+}
+
+.questionnaire-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+
+  font-size: 0.8rem;
+  color: #888;
+}
+
+.risk-badge {
+  padding: 2px 8px;
+  border-radius: 4px;
+  color: white;
+  font-weight: 500;
+}
+
+.questionnaire-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* =============================== */
+/* IMPORTADOR CSV EN PANEL ADMIN */
+/* =============================== */
+
+.questionnaire-csv-panel {
+  background: transparent;
+}
+
+.questionnaire-csv-form {
+  margin-top: 18px;
+}
+
+.questionnaire-csv-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1.3fr auto;
+  gap: 14px;
+  align-items: end;
+}
+
+.questionnaire-csv-grid label {
+  display: grid;
+  gap: 7px;
+  color: #334155;
+  font-weight: 800;
+}
+
+.questionnaire-csv-grid select,
+.questionnaire-csv-grid input {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid #dbe4ef;
+  border-radius: 12px;
+  padding: 8px 12px;
+  background: #f8fafc;
+  color: #111827;
+}
+
+.questionnaire-csv-grid button {
+  min-height: 42px;
+  border: 0;
+  border-radius: 12px;
+  padding: 0 18px;
+  font-weight: 900;
+  cursor: pointer;
+  color: #ffffff;
+  background: linear-gradient(90deg, #4dd0e1, #0d47a1);
+}
+
+.questionnaire-csv-grid button:disabled,
+.questionnaire-csv-grid select:disabled,
+.questionnaire-csv-grid input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 767px) {
+  .questionnaire-csv-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .questionnaire-csv-grid button {
+    width: 100%;
+  }
+}
+
+
+/* =============================== */
+/* ARCHIVO CSV IMPORTADO */
+/* =============================== */
+
+.questionnaire-csv-current-box {
+  margin-top: 14px;
+  padding: 13px 14px;
+  border-radius: 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+}
+
+.questionnaire-csv-current-box p {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.questionnaire-csv-current-box strong {
+  color: #102033;
+}
+
+.questionnaire-csv-current-box span {
+  color: #64748b;
+}
+
+.questionnaire-csv-new-file {
+  margin-top: 8px !important;
+  color: #0d47a1 !important;
+}

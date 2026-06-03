@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { API_URL } from '../shared/api/apiClient';
 
 interface User {
   id?: string;
@@ -27,7 +28,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const API_URL = 'http://localhost:3000';
 
 const normalizeFrontendUser = (raw: any): User | null => {
   if (!raw) return null;
