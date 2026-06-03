@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import './SubscribeBanner.css';
 import { API_URL } from '@/shared/api/apiClient';
 
-
 export const SubscribeBanner: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [email, setEmail] = useState('');
@@ -50,9 +49,9 @@ export const SubscribeBanner: React.FC = () => {
       const response = await fetch(`${API_URL}/api/alerts/subscribe`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ email: normalizedEmail }),
+        body: JSON.stringify({ email: normalizedEmail })
       });
 
       const data = await response.json().catch(() => null);
@@ -68,7 +67,7 @@ export const SubscribeBanner: React.FC = () => {
       setTimeout(() => {
         setIsOpen(false);
         resetFeedback();
-      }, 900);
+      }, 1100);
     } catch (error) {
       const message =
         error instanceof Error
@@ -84,10 +83,26 @@ export const SubscribeBanner: React.FC = () => {
 
   return (
     <>
-      <section className="subscribe-banner">
+      <section className="subscribe-banner" aria-label="Suscripción a alertas">
+        <div className="subscribe-banner-glow" aria-hidden="true" />
+
+        <div className="subscribe-icon-card" aria-hidden="true">
+          <span>🔔</span>
+        </div>
+
         <div className="subscribe-text">
-          <h2>¡Suscríbete para revisar noticias!</h2>
-          <p>Te enviaremos estas noticias todos los días a tu correo electrónico.</p>
+          <span className="subscribe-eyebrow">Alertas municipales</span>
+          <h2>Recibe noticias y alertas de ciberseguridad</h2>
+          <p>
+            Suscríbete para recibir recomendaciones, comunicados importantes y
+            nuevas alertas directamente en tu correo electrónico.
+          </p>
+
+          <div className="subscribe-benefits" aria-label="Beneficios de la suscripción">
+            <span>Sin spam</span>
+            <span>Gratis</span>
+            <span>Información municipal</span>
+          </div>
         </div>
 
         <button
@@ -95,22 +110,53 @@ export const SubscribeBanner: React.FC = () => {
           className="subscribe-button"
           onClick={openModal}
         >
-          Suscribirse
+          Suscribirme
         </button>
       </section>
 
       {isOpen && (
-        <div className="subscribe-modal-backdrop" onClick={closeModal}>
+        <div
+          className="subscribe-modal-backdrop"
+          onClick={closeModal}
+          role="presentation"
+        >
           <form
             className="subscribe-modal"
             onSubmit={handleSubscribe}
             onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="subscribe-modal-title"
           >
-            <h3>Suscribirse</h3>
+            <button
+              type="button"
+              className="subscribe-modal-close"
+              onClick={closeModal}
+              aria-label="Cerrar ventana de suscripción"
+              disabled={isSubmitting}
+            >
+              ×
+            </button>
 
-            <p>Ingresa tu correo para recibir noticias de ciberseguridad.</p>
+            <div className="subscribe-modal-icon" aria-hidden="true">
+              ✉️
+            </div>
+
+            <span className="subscribe-modal-eyebrow">Mantente informado</span>
+
+            <h3 id="subscribe-modal-title">Suscribirse a alertas</h3>
+
+            <p>
+              Ingresa tu correo para recibir noticias, recomendaciones y avisos
+              de ciberseguridad de la Municipalidad de Santo Domingo.
+            </p>
+
+            <label className="subscribe-field-label" htmlFor="subscribe-email">
+              Correo electrónico
+            </label>
 
             <input
+              id="subscribe-email"
               className="subscribe-input"
               type="email"
               value={email}
@@ -119,19 +165,13 @@ export const SubscribeBanner: React.FC = () => {
                 resetFeedback();
               }}
               placeholder="correo@dominio.com"
+              autoComplete="email"
               required
               disabled={isSubmitting}
             />
 
             {feedbackMessage && (
-              <p
-                style={{
-                  marginTop: '10px',
-                  marginBottom: '0',
-                  color: feedbackType === 'success' ? '#16794c' : '#c62828',
-                  fontWeight: 700,
-                }}
-              >
+              <p className={`subscribe-feedback subscribe-feedback-${feedbackType}`}>
                 {feedbackMessage}
               </p>
             )}
@@ -151,9 +191,14 @@ export const SubscribeBanner: React.FC = () => {
                 className="subscribe-confirm-button"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? 'Enviando...' : 'Confirmar'}
+                {isSubmitting ? 'Enviando...' : 'Confirmar suscripción'}
               </button>
             </div>
+
+            <small className="subscribe-privacy-note">
+              Usaremos tu correo solo para enviar información relacionada con
+              alertas y noticias de ciberseguridad.
+            </small>
           </form>
         </div>
       )}
