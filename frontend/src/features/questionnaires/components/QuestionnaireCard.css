@@ -1,0 +1,124 @@
+.cuestionario-card-modular {
+  background: white;
+  border-radius: 25px;
+  border: 1px solid #eee;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100%;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+  transition: transform 0.2s ease;
+  color: #333333;
+}
+
+.cuestionario-card-modular:hover {
+  transform: translateY(-5px);
+}
+
+.card-body-content {
+  padding: 24px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-meta-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.85rem;
+  color: #333;
+  font-family: 'Archivo', sans-serif;
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 10px;
+  font-weight: 700;
+  color: white;
+  white-space: nowrap;
+}
+
+.status-badge.completado {
+  background: linear-gradient(to right, #4ed3e6, #0052cc);
+}
+
+.status-badge.pendiente {
+  background: #d1d5db;
+  color: #666;
+}
+
+.cuestionario-card-modular h3 {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 1.1rem;
+  margin: 15px 0 10px 0;
+  line-height: 1.2;
+}
+
+.cuestionario-card-modular p {
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.9rem;
+  color: #666;
+  line-height: 1.4;
+  margin-bottom: 20px;
+  flex-grow: 1;
+}
+
+.card-score-info,
+.score-display {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-family: 'Archivo Black', sans-serif;
+}
+
+.card-score-info span,
+.score-display span {
+  font-size: 0.8rem;
+  color: #999;
+}
+
+.card-visual-footer {
+  height: 100px;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.card-visual-footer::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.2);
+}
+
+.card-btn-action {
+  position: relative;
+  background: #ffffff;
+  color: #333333;
+  padding: 8px 18px;
+  border-radius: 10px;
+  font-family: 'Archivo', sans-serif;
+  font-weight: 700;
+  cursor: pointer;
+
+  transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+  border: 1px solid transparent;
+}
+
+.card-btn-action:hover {
+  border: 1px solid rgba(77, 208, 225, 0.8);
+  box-shadow:
+    0 0 10px rgba(7, 50, 124, 0.5),
+    0 0 20px rgba(37, 52, 138, 0.2);
+  background: #fcfdfe;
+  color: #0d47a1;
+}
+
+.card-btn-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}

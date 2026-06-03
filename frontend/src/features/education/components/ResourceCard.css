@@ -1,0 +1,75 @@
+.edu-resource-card {
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  padding: 18px 20px;
+  border-radius: 18px;
+  text-decoration: none;
+  width: 100%;
+  text-align: left;
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.02);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-sizing: border-box;
+}
+
+.edu-btn-link {
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.edu-card-icon-box {
+  width: 46px;
+  height: 46px;
+  background: #f1f5f9;
+  color: #475569;
+  border-radius: 14px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 22px;
+  margin-right: 16px;
+  transition: all 0.25s ease;
+}
+
+.edu-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.edu-card-info h4 {
+  margin: 0 0 3px 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.edu-card-info ion-text {
+  font-size: 0.88rem;
+}
+
+.edu-card-external {
+  font-size: 18px;
+  color: #94a3b8;
+  margin-left: 8px;
+  transition: all 0.25s ease;
+}
+
+.edu-resource-card:hover {
+  border-color: #0ea5e9;
+  box-shadow: 0 12px 28px rgba(14, 165, 233, 0.08);
+  transform: translateY(-3px);
+}
+
+.edu-resource-card:hover .edu-card-icon-box {
+  background: rgba(14, 165, 233, 0.1);
+  color: #0ea5e9;
+}
+
+.edu-resource-card:hover .edu-card-external {
+  color: #0ea5e9;
+  transform: translate(2px, -2px);
+}

@@ -142,6 +142,6 @@ startProcess(
   [
     path.join(rootDir, 'backend', 'node_modules', 'tsx', 'dist', 'cli.mjs'),
     'watch',
-    'server.ts'
+    'src/server.ts'
   ]
 );

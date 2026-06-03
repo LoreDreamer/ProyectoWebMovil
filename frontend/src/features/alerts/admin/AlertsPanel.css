@@ -1,0 +1,169 @@
+/* =============================== */
+/* ALERTS PANEL */
+/* =============================== */
+
+.alerts-admin-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* =============================== */
+/* GRID DE ALERTAS */
+/* =============================== */
+
+.alerts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.alert-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 14px;
+  padding: 16px;
+  background: #fafafa;
+}
+
+.card-image-wrap {
+  width: 100%;
+  height: 120px;
+  margin-bottom: 12px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #f1f3f5;
+}
+
+.card-image-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.alert-image-placeholder {
+  width: 100%;
+  height: 100%;
+
+  display: grid;
+  place-items: center;
+
+  color: #777;
+  font-size: 0.85rem;
+  text-align: center;
+  padding: 8px;
+}
+
+.alert-card h2 {
+  margin: 0 0 8px 0;
+  color: #222;
+  font-size: 1.1rem;
+}
+
+.alert-card p {
+  margin: 0 0 12px 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+
+  font-size: 0.8rem;
+  color: #888;
+  margin-bottom: 12px;
+}
+
+.card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.card-actions ion-button {
+  font-size: 0.8rem;
+  text-transform: none;
+}
+
+/* =============================== */
+/* DETALLE DE ALERTA */
+/* =============================== */
+
+.detail-panel {
+  margin-top: 24px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 14px;
+}
+
+.detail-panel h3 {
+  margin: 0 0 12px 0;
+  color: #333;
+}
+
+.alert-detail-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 14px;
+  padding: 16px;
+  background: white;
+}
+
+.alert-detail-card .card-image-wrap {
+  height: 180px;
+}
+
+.alert-detail-card h2 {
+  margin: 0 0 8px 0;
+  color: #222;
+}
+
+.alert-detail-card p {
+  margin: 0 0 12px 0;
+  color: #666;
+}
+
+/* =============================== */
+/* GALERÍA DE DETALLE */
+/* =============================== */
+
+.alert-detail-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.alert-detail-gallery-item {
+  position: relative;
+  height: 90px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #f1f3f5;
+}
+
+.alert-detail-gallery-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.alert-detail-gallery-item span {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #0052cc;
+  color: white;
+
+  font-size: 0.72rem;
+  font-weight: 800;
+}

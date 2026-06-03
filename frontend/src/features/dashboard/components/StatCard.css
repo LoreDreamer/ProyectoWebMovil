@@ -1,0 +1,61 @@
+.dashboard-stat-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 12px 14px 10px;
+  min-height: 82px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+}
+
+.dashboard-stat-top {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+}
+
+.dashboard-stat-icon {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #eeeeee;
+  border-radius: 7px;
+  color: #3f4640;
+  font-size: 1.15rem;
+}
+
+.dashboard-stat-label {
+  max-width: 110px;
+
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.66rem;
+  font-weight: 800;
+  line-height: 1.05;
+  text-transform: uppercase;
+  color: #4c5848;
+  text-align: left;
+}
+
+.dashboard-stat-number {
+  display: block;
+  width: 100%;
+
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 1.35rem;
+  line-height: 1;
+  color: #3d4738;
+  text-align: center;
+}
