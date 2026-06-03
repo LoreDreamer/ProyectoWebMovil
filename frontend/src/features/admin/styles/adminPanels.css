@@ -133,19 +133,64 @@
 .custom-textarea,
 .custom-select {
   width: 100%;
-  padding: 12px 16px;
+  min-height: 48px;
   border: 2px solid #e0e0e0;
   border-radius: 8px;
   font-size: 0.95rem;
-  background: white;
-  color: #333;
+  background: #ffffff;
+  color: #333333;
   transition: all 0.3s ease;
   box-sizing: border-box;
+
+  /* Ionic Web Components: evita que placeholders/textos queden pegados al borde. */
+  --background: #ffffff;
+  --color: #333333;
+  --placeholder-color: #9aa0a6;
+  --placeholder-opacity: 1;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-top: 12px;
+  --padding-bottom: 12px;
 }
 
-.custom-input:focus,
-.custom-textarea:focus,
-.custom-select:focus {
+.custom-input,
+.custom-select {
+  display: flex;
+  align-items: center;
+}
+
+.custom-textarea {
+  min-height: 120px;
+}
+
+.custom-input::part(native),
+.custom-textarea::part(native) {
+  min-height: 48px;
+  padding: 12px 16px;
+  line-height: 1.45;
+}
+
+.custom-textarea::part(native) {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.custom-select::part(container) {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+}
+
+.custom-select::part(text),
+.custom-select::part(placeholder) {
+  line-height: 1.45;
+}
+
+.custom-input:focus-within,
+.custom-textarea:focus-within,
+.custom-select:focus-within {
   outline: none;
   border-color: #007bff;
   box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
@@ -153,7 +198,7 @@
 
 .custom-input::placeholder,
 .custom-textarea::placeholder {
-  color: #aaa;
+  color: #9aa0a6;
 }
 
 /* =============================== */
