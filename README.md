@@ -1089,6 +1089,22 @@ Puertos utilizados por defecto:
 
 ---
 
+## Formato
+
+Formato archivos .csv para cuestionarios:
+```txt
+pregunta;alternativa_a;alternativa_b;alternativa_c;alternativa_d;respuesta_correcta;puntaje
+```
+
+Puntaje máximo por cuestionario: 100.
+
+respuesta_correcta usa letras:
+```txt
+a, b, c o d
+```
+
+---
+
 ## Estado del proyecto
 
 El proyecto cuenta con una arquitectura modular por funcionalidades, separación entre frontend y backend, configuración centralizada de variables de entorno, rutas protegidas por rol y panel administrativo para gestionar usuarios y contenidos principales.
