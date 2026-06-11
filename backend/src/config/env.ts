@@ -30,7 +30,10 @@ export const env = {
     .filter(Boolean),
   supabaseUrl: getEnv('SUPABASE_URL'),
   supabaseServiceRoleKey: getEnv('SUPABASE_SERVICE_ROLE_KEY'),
-  supabaseStorageBucket: getEnv('SUPABASE_STORAGE_BUCKET', 'municipal-files')
+  supabaseStorageBucket: getEnv('SUPABASE_STORAGE_BUCKET', 'municipal-files'),
+  googleSafeBrowsingApiKey: process.env.GOOGLE_SAFE_BROWSING_API_KEY?.trim() || '',
+  googleSafeBrowsingClientId: process.env.GOOGLE_SAFE_BROWSING_CLIENT_ID?.trim() || 'municipal-ciberseguridad',
+  googleSafeBrowsingClientVersion: process.env.GOOGLE_SAFE_BROWSING_CLIENT_VERSION?.trim() || '1.0.0'
 };
 
 export const isProduction = env.nodeEnv === 'production';

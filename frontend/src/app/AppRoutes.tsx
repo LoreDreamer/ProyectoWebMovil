@@ -36,6 +36,9 @@ const complaintsPageLoader: LazyPageLoader = () =>
 const newsPageLoader: LazyPageLoader = () =>
   import('@/features/alerts/pages/NewsPage').then((module) => ({ default: module.NewsPage }));
 
+const securityToolsPageLoader: LazyPageLoader = () =>
+  import('@/features/security/pages/SecurityToolsPage').then((module) => ({ default: module.SecurityToolsPage }));
+
 const inicioPageLoader: LazyPageLoader = () =>
   import('@/features/dashboard/pages/InicioPage').then((module) => ({ default: module.InicioPage }));
 
@@ -61,6 +64,7 @@ const EducationPage = lazy(educationPageLoader);
 const EducationModulePage = lazy(educationModulePageLoader);
 const ComplaintsPage = lazy(complaintsPageLoader);
 const NewsPage = lazy(newsPageLoader);
+const SecurityToolsPage = lazy(securityToolsPageLoader);
 const InicioPage = lazy(inicioPageLoader);
 const ProtocolsPage = lazy(protocolsPageLoader);
 const QuestionnairePage = lazy(questionnairePageLoader);
@@ -75,6 +79,7 @@ const routeLoaders: LazyPageLoader[] = [
   educationPageLoader,
   complaintsPageLoader,
   newsPageLoader,
+  securityToolsPageLoader,
   inicioPageLoader,
   protocolsPageLoader,
   questionnairePageLoader,
@@ -132,6 +137,7 @@ export const AppRoutes: React.FC = () => {
               <Route exact path="/educacion" component={EducationPage} />
               <Route exact path="/denuncias" component={ComplaintsPage} />
               <Route exact path="/alertas" component={NewsPage} />
+              <Route exact path="/herramientas" component={SecurityToolsPage} />
 
               <ProtectedRoute exact path="/educacion/modulo/:id" component={EducationModulePage} />
               <ProtectedRoute exact path="/cuestionarios" component={QuestionnairePage} />

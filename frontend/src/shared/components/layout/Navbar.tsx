@@ -57,6 +57,7 @@ export const Navbar: React.FC = () => {
                 {renderLink('/cuestionarios', 'Cuestionarios')}
                 {renderLink('/educacion', 'Educación')}
                 {renderLink('/denuncias', 'Denuncias')}
+                {renderLink('/herramientas', 'Herramientas')}
                 {renderLink('/protocolos', 'Protocolos')}
                 {renderLink('/alertas', 'Alertas')}
               </>
@@ -65,6 +66,7 @@ export const Navbar: React.FC = () => {
                 {renderLink('/index', 'Inicio')}
                 {renderLink('/educacion', 'Educación')}
                 {renderLink('/denuncias', 'Denuncias')}
+                {renderLink('/herramientas', 'Herramientas')}
                 {renderLink('/alertas', 'Alertas')}
               </>
             )}

@@ -9,6 +9,7 @@ import dashboardRoutes from '../modules/dashboard/dashboard.routes';
 import protocolsRoutes from '../modules/protocols/protocols.routes';
 import questionnairesRoutes from '../modules/questionnaires/questionnaires.routes';
 import subscriptionsRoutes from '../modules/subscriptions/subscriptions.routes';
+import securityRoutes from '../modules/security/security.routes';
 
 export const apiRouter = Router();
 
@@ -21,3 +22,4 @@ apiRouter.use('/education', educationRoutes);
 apiRouter.use('/questionnaires', questionnairesRoutes);
 apiRouter.use('/subscriptions', subscriptionsRoutes);
 apiRouter.use('/dashboard', dashboardRoutes);
+apiRouter.use('/security', securityRoutes);

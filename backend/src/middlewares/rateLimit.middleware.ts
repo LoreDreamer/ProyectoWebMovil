@@ -45,3 +45,15 @@ export const subscriptionRateLimit = rateLimit({
     message: 'Demasiadas solicitudes de suscripción. Intenta nuevamente en unos minutos.'
   }
 });
+
+
+export const securityToolsRateLimit = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  limit: 35,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    ok: false,
+    message: 'Demasiadas consultas de herramientas de seguridad. Intenta nuevamente en unos minutos.'
+  }
+});
