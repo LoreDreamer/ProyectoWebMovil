@@ -2641,3 +2641,50 @@ ion-searchbar {
     font-size: 1.3rem !important;
   }
 }
+
+@media (max-width: 768px) {
+  .admin-complaints-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  .admin-complaints-refresh-btn {
+    width: 100% !important;
+    min-height: 44px !important;
+  }
+
+  .admin-complaint-card {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+    padding: 15px !important;
+  }
+
+  .admin-complaint-title-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+  }
+
+  .admin-complaint-title-row strong {
+    white-space: normal !important;
+  }
+
+  .admin-complaint-meta-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .admin-complaint-actions {
+    width: 100% !important;
+  }
+
+  .admin-complaint-delete-btn {
+    width: 100% !important;
+    min-height: 44px !important;
+  }
+
+  .admin-complaint-files a {
+    width: 100% !important;
+    justify-content: center !important;
+    text-align: center !important;
+  }
+}

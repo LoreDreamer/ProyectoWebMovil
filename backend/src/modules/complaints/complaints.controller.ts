@@ -326,6 +326,77 @@ export const obtenerDenuncias = async (_req: Request, res: Response) => {
   }
 };
 
+
+export const eliminarDenuncia = async (req: Request, res: Response) => {
+  try {
+    const denunciaId = String(req.params.id || '').trim();
+
+    if (!denunciaId) {
+      return res.status(400).json({
+        error: 'ID de denuncia no válido.'
+      });
+    }
+
+    const { data: denunciaData, error: findError } = await supabase
+      .from(DENUNCIAS_TABLE)
+      .select('*')
+      .eq('id', denunciaId)
+      .maybeSingle();
+
+    if (findError) {
+      throw findError;
+    }
+
+    if (!denunciaData) {
+      return res.status(404).json({
+        error: 'Denuncia no encontrada.'
+      });
+    }
+
+    const denuncia = denunciaData as DenunciaDB;
+    const archivos = normalizeArchivos(denuncia.archivos);
+    const pathsToDelete = archivos
+      .map((archivo) => archivo.path || getValidStoragePath(archivo.url))
+      .filter(Boolean);
+
+    const legacyPath = getValidStoragePath(
+      denuncia.adjunto_url || denuncia.ruta_archivo || denuncia.archivo_adjunto
+    );
+
+    if (legacyPath) {
+      pathsToDelete.push(legacyPath);
+    }
+
+    const uniquePathsToDelete = Array.from(new Set(pathsToDelete));
+
+    const { error: deleteError } = await supabase
+      .from(DENUNCIAS_TABLE)
+      .delete()
+      .eq('id', denunciaId);
+
+    if (deleteError) {
+      throw deleteError;
+    }
+
+    if (uniquePathsToDelete.length > 0) {
+      await deleteFilesFromStorage(uniquePathsToDelete);
+    }
+
+    return res.status(200).json({
+      ok: true,
+      deletedId: denunciaId,
+      message: 'Denuncia eliminada correctamente.'
+    });
+  } catch (error: any) {
+    console.error('Error al eliminar denuncia:', error);
+
+    return res.status(500).json({
+      error: 'Error al eliminar la denuncia.',
+      message: error.message || 'Error desconocido'
+    });
+  }
+};
+
 export const crearDenuncia = async (req: Request, res: Response) => {
   let uploadedFilesPayload: ArchivoDenunciaNormalizado[] = [];
 

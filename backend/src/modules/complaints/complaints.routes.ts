@@ -2,6 +2,7 @@ import express from 'express';
 import multer from 'multer';
 import {
   crearDenuncia,
+  eliminarDenuncia,
   obtenerDenuncias
 } from './complaints.controller';
 import {
@@ -113,6 +114,7 @@ const handleMulterError = (
 };
 
 router.get('/', authenticateToken, requireAdmin, obtenerDenuncias);
+router.delete('/:id', authenticateToken, requireAdmin, eliminarDenuncia);
 
 router.post(
   '/',

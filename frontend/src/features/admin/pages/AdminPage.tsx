@@ -13,6 +13,7 @@ import {
   Footer,
   ActivityPanel
 } from '@/components';
+import { AdminComplaintsPanel } from '@/features/admin/components/AdminComplaintsPanel';
 import { useAdminDashboard } from '@/features/admin/hooks/useAdminDashboard';
 import './AdminPage.css';
 
@@ -128,6 +129,7 @@ export const AdminPage: React.FC = () => {
           />
 
           <div className="forms-container-grid">
+            <AdminComplaintsPanel />
             <ActivityPanel />
           </div>
         </div>
