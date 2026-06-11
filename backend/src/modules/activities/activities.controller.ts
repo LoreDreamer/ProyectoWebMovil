@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { randomUUID } from 'crypto';
 import { supabase } from '../../config/supabase';
+import { getPaginationOptions, sendOptionalPaginatedResponse } from '../../shared/utils/pagination';
 
 interface ActividadDB {
   id: string;
@@ -11,6 +12,7 @@ interface ActividadDB {
 }
 
 const ACTIVIDADES_TABLE = process.env.SUPABASE_ACTIVIDADES_TABLE || 'actividad';
+const ACTIVITY_SELECT = 'id, titulo, descripcion, fecha, host';
 
 const formatFecha = (fecha?: string | null) => {
   if (!fecha) return '';
@@ -42,21 +44,36 @@ const mapActivityResponse = (actividad: ActividadDB) => {
   };
 };
 
-export const getActivities = async (_req: Request, res: Response) => {
+export const getActivities = async (req: Request, res: Response) => {
   try {
-    const { data, error } = await supabase
-      .from(ACTIVIDADES_TABLE)
-      .select('*')
-      .order('fecha', { ascending: true });
+    const pagination = getPaginationOptions(req, 10, 50);
+
+    let query = pagination.enabled
+      ? supabase.from(ACTIVIDADES_TABLE).select(ACTIVITY_SELECT, { count: 'exact' })
+      : supabase.from(ACTIVIDADES_TABLE).select(ACTIVITY_SELECT);
+
+    query = query.order('fecha', { ascending: true });
+
+    if (pagination.enabled) {
+      query = query.range(pagination.from, pagination.to);
+    }
+
+    const { data, error, count } = await query;
 
     if (error) {
       throw error;
     }
 
     const actividades = (data || []) as ActividadDB[];
+    const mappedActivities = actividades.map((actividad) =>
+      mapActivityResponse(actividad)
+    );
 
-    return res.json(
-      actividades.map((actividad) => mapActivityResponse(actividad))
+    return sendOptionalPaginatedResponse(
+      res,
+      mappedActivities,
+      pagination,
+      count
     );
   } catch (error: any) {
     console.error('Error en getActivities:', error);
@@ -102,7 +119,7 @@ export const createActivity = async (req: Request, res: Response) => {
     const { data, error } = await supabase
       .from(ACTIVIDADES_TABLE)
       .insert(payload)
-      .select('*')
+      .select(ACTIVITY_SELECT)
       .single();
 
     if (error) {
@@ -161,7 +178,7 @@ export const updateActivity = async (req: Request, res: Response) => {
       .from(ACTIVIDADES_TABLE)
       .update(payload)
       .eq('id', id)
-      .select('*')
+      .select(ACTIVITY_SELECT)
       .single();
 
     if (error) {

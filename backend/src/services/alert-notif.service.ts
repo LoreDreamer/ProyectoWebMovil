@@ -17,6 +17,18 @@ interface SubscriberRow {
   email: string;
 }
 
+const EMAIL_BATCH_SIZE = 10;
+
+const chunkArray = <T>(items: T[], chunkSize: number): T[][] => {
+  const chunks: T[][] = [];
+
+  for (let index = 0; index < items.length; index += chunkSize) {
+    chunks.push(items.slice(index, index + chunkSize));
+  }
+
+  return chunks;
+};
+
 export const notifySubscribersAboutAlert = async (alert: AlertPayload) => {
   const { data, error } = await supabase
     .from('suscripcion_alerta')
@@ -35,12 +47,19 @@ export const notifySubscribersAboutAlert = async (alert: AlertPayload) => {
     return;
   }
 
-  const results = await Promise.allSettled(
-    subscribers.map((subscriber) => sendAlertEmail(subscriber.email, alert))
+  let sent = 0;
+  let failed = 0;
+
+  for (const batch of chunkArray(subscribers, EMAIL_BATCH_SIZE)) {
+    const results = await Promise.allSettled(
+      batch.map((subscriber) => sendAlertEmail(subscriber.email, alert))
+    );
+
+    sent += results.filter((result) => result.status === 'fulfilled').length;
+    failed += results.filter((result) => result.status === 'rejected').length;
+  }
+
+  console.log(
+    `Emails de alerta procesados por lotes. Enviados: ${sent}, fallidos: ${failed}`
   );
-
-  const sent = results.filter((result) => result.status === 'fulfilled').length;
-  const failed = results.filter((result) => result.status === 'rejected').length;
-
-  console.log(`Emails de alerta procesados. Enviados: ${sent}, fallidos: ${failed}`);
 };

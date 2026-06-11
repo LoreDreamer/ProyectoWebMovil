@@ -7,6 +7,7 @@ import {
   UploadedStorageFile,
 } from '../../services/storage.service';
 import { notifySubscribersAboutAlert } from '../../services/alert-notif.service';
+import { getPaginationOptions, sendOptionalPaginatedResponse } from '../../shared/utils/pagination';
 
 interface AlertImage {
   id?: string;
@@ -44,6 +45,7 @@ interface AlertaDB {
 }
 
 const ALERTS_TABLE = process.env.SUPABASE_ALERTS_TABLE || 'alertas';
+const ALERT_SELECT = 'id, titulo, resumen, cuerpo, fecha, imagen_url, imagen_nombre, imagenes, publicado_por, escrito_por';
 const STORAGE_BUCKET =
   process.env.SUPABASE_STORAGE_BUCKET?.trim() || 'municipal-files';
 
@@ -200,7 +202,7 @@ const mapAlertResponse = (alerta: AlertaDB) => {
 const getCurrentAlert = async (id: string): Promise<AlertaDB | null> => {
   const { data, error } = await supabase
     .from(ALERTS_TABLE)
-    .select('*')
+    .select(ALERT_SELECT)
     .eq('id', id)
     .single();
 
@@ -209,22 +211,32 @@ const getCurrentAlert = async (id: string): Promise<AlertaDB | null> => {
   return data as AlertaDB;
 };
 
-export const getAlerts = async (_req: Request, res: Response) => {
+export const getAlerts = async (req: Request, res: Response) => {
   try {
-    const { data, error } = await supabase
-      .from(ALERTS_TABLE)
-      .select('*')
-      .order('fecha', { ascending: false });
+    const pagination = getPaginationOptions(req, 10, 50);
+
+    let query = pagination.enabled
+      ? supabase.from(ALERTS_TABLE).select(ALERT_SELECT, { count: 'exact' })
+      : supabase.from(ALERTS_TABLE).select(ALERT_SELECT);
+
+    query = query.order('fecha', { ascending: false });
+
+    if (pagination.enabled) {
+      query = query.range(pagination.from, pagination.to);
+    }
+
+    const { data, error, count } = await query;
 
     if (error) {
       throw error;
     }
 
     const alertas = (data || []) as AlertaDB[];
-
-    return res.json(
-      alertas.map((alerta: AlertaDB) => mapAlertResponse(alerta))
+    const mappedAlerts = alertas.map((alerta: AlertaDB) =>
+      mapAlertResponse(alerta)
     );
+
+    return sendOptionalPaginatedResponse(res, mappedAlerts, pagination, count);
   } catch (error: any) {
     console.error('Error en getAlerts:', error);
 
@@ -305,7 +317,7 @@ export const createAlert = async (req: Request, res: Response) => {
     const { data, error } = await supabase
       .from(ALERTS_TABLE)
       .insert(payload)
-      .select('*')
+      .select(ALERT_SELECT)
       .single();
 
     if (error) {
@@ -476,7 +488,7 @@ export const updateAlert = async (req: Request, res: Response) => {
       .from(ALERTS_TABLE)
       .update(payload)
       .eq('id', alertId)
-      .select('*')
+      .select(ALERT_SELECT)
       .single();
 
     if (error) {
