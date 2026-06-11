@@ -70,6 +70,10 @@ const isImageFile = (file: File) => {
   return file.type.startsWith('image/');
 };
 
+const normalizeDraftKeyPart = (value: string) => {
+  return value.trim().toLowerCase().replace(/[^a-z0-9@._-]/g, '_');
+};
+
 export const ComplaintsForm: React.FC = () => {
   const { user } = useAuth();
 
@@ -84,12 +88,14 @@ export const ComplaintsForm: React.FC = () => {
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const archivosRef = useRef<ComplaintAttachment[]>([]);
+  const loadedDraftKeyRef = useRef<string | null>(null);
 
   const userName = user?.nombre_completo || user?.name || '';
   const userEmail = user?.email || user?.correo || '';
-  const complaintDraftKey = userEmail
-    ? `${COMPLAINT_DRAFT_BASE_KEY}_${userEmail.toLowerCase()}`
-    : COMPLAINT_DRAFT_BASE_KEY;
+  const userDraftId = user?.id || userEmail;
+  const complaintDraftKey = userDraftId
+    ? `${COMPLAINT_DRAFT_BASE_KEY}_${normalizeDraftKeyPart(userDraftId)}`
+    : '';
 
   useEffect(() => {
     archivosRef.current = archivos;
@@ -104,49 +110,75 @@ export const ComplaintsForm: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    // Limpia el borrador antiguo global para que no se cargue en sesiones equivocadas.
+    window.localStorage.removeItem(COMPLAINT_DRAFT_BASE_KEY);
+
+    if (!user || !complaintDraftKey) {
+      loadedDraftKeyRef.current = null;
+      setNombre('');
+      setCorreo('');
+      setTipoIncidente('');
+      setFechaIncidente('');
+      setDescripcion('');
+      setDeclaracion(false);
+      return;
+    }
+
+    if (loadedDraftKeyRef.current === complaintDraftKey) {
+      setNombre(userName);
+      setCorreo(userEmail);
+      return;
+    }
+
     try {
       const savedDraft = window.localStorage.getItem(complaintDraftKey);
 
       if (savedDraft) {
         const draft = JSON.parse(savedDraft);
 
-        setNombre(user ? userName : draft.nombre || '');
-        setCorreo(user ? userEmail : draft.correo || '');
+        setNombre(userName);
+        setCorreo(userEmail);
         setTipoIncidente(draft.tipoIncidente || '');
         setFechaIncidente(draft.fechaIncidente || '');
         setDescripcion(draft.descripcion || '');
         setDeclaracion(Boolean(draft.declaracion));
-
-        if (draft.tipoIncidente || draft.fechaIncidente || draft.descripcion) {
-          notify.info('Se recuperó un borrador local de tu denuncia.');
-        }
-
+        loadedDraftKeyRef.current = complaintDraftKey;
         return;
       }
     } catch {
       window.localStorage.removeItem(complaintDraftKey);
     }
 
-    if (user) {
-      setNombre(userName);
-      setCorreo(userEmail);
-    }
+    setNombre(userName);
+    setCorreo(userEmail);
+    setTipoIncidente('');
+    setFechaIncidente('');
+    setDescripcion('');
+    setDeclaracion(false);
+    loadedDraftKeyRef.current = complaintDraftKey;
   }, [user, userName, userEmail, complaintDraftKey]);
 
   useEffect(() => {
+    if (!user || !complaintDraftKey || isSending) return;
+
+    if (loadedDraftKeyRef.current !== complaintDraftKey) return;
+
     const hasDraftData =
       tipoIncidente.trim() ||
       fechaIncidente.trim() ||
       descripcion.trim() ||
       declaracion;
 
-    if (!hasDraftData || isSending) return;
+    if (!hasDraftData) {
+      window.localStorage.removeItem(complaintDraftKey);
+      return;
+    }
 
     window.localStorage.setItem(
       complaintDraftKey,
       JSON.stringify({
-        nombre: user ? userName : nombre,
-        correo: user ? userEmail : correo,
+        nombre: userName,
+        correo: userEmail,
         tipoIncidente,
         fechaIncidente,
         descripcion,
@@ -154,8 +186,6 @@ export const ComplaintsForm: React.FC = () => {
       })
     );
   }, [
-    nombre,
-    correo,
     tipoIncidente,
     fechaIncidente,
     descripcion,
@@ -182,15 +212,17 @@ export const ComplaintsForm: React.FC = () => {
   const resetForm = () => {
     clearLocalPreviewUrls();
 
-    setNombre(user?.nombre_completo || user?.name || '');
-    setCorreo(user?.email || user?.correo || '');
+    setNombre(userName);
+    setCorreo(userEmail);
     setTipoIncidente('');
     setFechaIncidente('');
     setDescripcion('');
     setDeclaracion(false);
     setArchivos([]);
     setIsSending(false);
-    window.localStorage.removeItem(complaintDraftKey);
+    if (complaintDraftKey) {
+      window.localStorage.removeItem(complaintDraftKey);
+    }
 
     resetFileInput();
   };

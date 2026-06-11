@@ -40,7 +40,7 @@ export const EducationCard: React.FC<CardProps> = ({
           </span>
         )}
 
-        <img src={image} className="card-top-img" alt={title} />
+        <img decoding="async" loading="lazy" src={image} className="card-top-img" alt={title} />
       </div>
 
       <div className="card-info">

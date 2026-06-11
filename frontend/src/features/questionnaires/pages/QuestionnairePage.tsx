@@ -10,14 +10,15 @@ import {
 import { useAuth } from '@/context/AuthContext';
 import './QuestionnairePage.css';
 
-import phishing from '@/assets/questions/phishing.png';
-import datos from '@/assets/questions/datos.png';
+import phishing from '@/assets/questions/phishing.webp';
+import datos from '@/assets/questions/datos.webp';
 import contrasena from '@/assets/questions/contrasena.webp';
-import dispositivos from '@/assets/questions/dispositivos.png';
-import wifi from '@/assets/questions/wifi.png';
-import inge from '@/assets/questions/inge.png';
+import dispositivos from '@/assets/questions/dispositivos.webp';
+import wifi from '@/assets/questions/wifi.webp';
+import inge from '@/assets/questions/inge.webp';
 import { API_URL } from '@/shared/api/apiClient';
 import { notify } from '@/shared/notifications';
+import { ContentState } from '@/shared/components/states/ContentState';
 
 type QuestionnaireStatus = 'Completado' | 'Pendiente';
 
@@ -179,6 +180,7 @@ export const QuestionnairePage: React.FC = () => {
     []
   );
   const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState('');
 
   const getAuthHeaders = (
     includeJsonContentType = false
@@ -273,6 +275,7 @@ export const QuestionnairePage: React.FC = () => {
   const loadQuestionnaires = async () => {
     try {
       setIsLoading(true);
+      setLoadError('');
 
       const questionnairesRequest = fetch(`${API_URL}/api/questionnaires`);
 
@@ -356,8 +359,9 @@ export const QuestionnairePage: React.FC = () => {
         : [];
 
       setQuestionnaires(normalizedQuestionnaires);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error al cargar cuestionarios:', error);
+      setLoadError(error?.message || 'No se pudieron cargar los cuestionarios.');
       setQuestionnaires([]);
     } finally {
       setIsLoading(false);
@@ -498,17 +502,31 @@ export const QuestionnairePage: React.FC = () => {
             </div>
 
             {isLoading ? (
-              <div className="questionnaire-empty-state">
-                Cargando cuestionarios...
-              </div>
+              <ContentState
+                variant="loading"
+                title="Cargando cuestionarios"
+                message="Estamos preparando las evaluaciones disponibles."
+              />
+            ) : loadError ? (
+              <ContentState
+                variant="error"
+                title="No se pudieron cargar los cuestionarios"
+                message={loadError}
+                actionLabel="Intentar nuevamente"
+                onAction={loadQuestionnaires}
+              />
             ) : questionnaires.length === 0 ? (
-              <div className="questionnaire-empty-state">
-                Aún no hay un cuestionario disponible por el momento.
-              </div>
+              <ContentState
+                variant="empty"
+                title="No hay cuestionarios disponibles"
+                message="Aún no se han publicado evaluaciones para responder."
+              />
             ) : availableQuestionnaires.length === 0 ? (
-              <div className="questionnaire-empty-state">
-                No hay cuestionarios pendientes por el momento.
-              </div>
+              <ContentState
+                variant="empty"
+                title="Sin cuestionarios pendientes"
+                message="Ya completaste los cuestionarios disponibles."
+              />
             ) : (
               <div className="cuestionarios-grid">
                 {availableQuestionnaires.map((item) => (

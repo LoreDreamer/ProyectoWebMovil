@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import seguridad from '@/assets/news/seguridad.png';
+import seguridad from '@/assets/news/seguridad.webp';
 import { API_URL } from '@/shared/api/apiClient';
 
 interface BackendAlertImage {
@@ -165,10 +165,12 @@ export const usePublicAlerts = () => {
   const [selectedAlert, setSelectedAlert] = useState<NewsItem | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const loadAlerts = async () => {
     try {
       setIsLoading(true);
+      setErrorMessage('');
 
       const response = await fetch(`${API_URL}/api/alerts`);
       const data = await response.json().catch(() => null);
@@ -186,8 +188,9 @@ export const usePublicAlerts = () => {
         : [];
 
       setNewsItems(backendAlerts);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error al cargar alertas desde backend:', error);
+      setErrorMessage(error?.message || 'No se pudieron cargar las alertas.');
       setNewsItems([]);
     } finally {
       setIsLoading(false);
@@ -230,6 +233,8 @@ export const usePublicAlerts = () => {
     setSearchTerm,
     isLoading,
     filteredNewsItems,
-    latestAlert
+    latestAlert,
+    errorMessage,
+    reloadAlerts: loadAlerts
   };
 };

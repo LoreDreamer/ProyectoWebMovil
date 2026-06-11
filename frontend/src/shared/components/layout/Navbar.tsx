@@ -46,7 +46,7 @@ export const Navbar: React.FC = () => {
             </IonButtons>
 
             <Link to="/index" className="navbar-logo-link">
-              <img src={logo} alt="Santo Domingo" className="navbar-logo" />
+              <img loading="eager" decoding="async" src={logo} alt="Santo Domingo" className="navbar-logo" />
             </Link>
           </div>
 

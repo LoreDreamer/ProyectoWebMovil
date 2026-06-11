@@ -28,7 +28,7 @@ export const Footer: React.FC = () => {
       <div className="footer-container">
         <div className="footer-column footer-info">
           <Link to="/index" className="footer-logo-link">
-            <img src={logo} alt="Santo Domingo" className="footer-logo" />
+            <img decoding="async" loading="lazy" src={logo} alt="Santo Domingo" className="footer-logo" />
           </Link>
 
           <div className="footer-details">

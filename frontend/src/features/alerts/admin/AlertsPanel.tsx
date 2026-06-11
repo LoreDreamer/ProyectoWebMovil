@@ -752,7 +752,7 @@ export const AlertsPanel: React.FC = () => {
 
               {!removeCover && coverPreview && (
                 <div className="image-preview-box">
-                  <img src={buildFileUrl(coverPreview)} alt="Vista previa de portada" />
+                  <img decoding="async" loading="lazy" src={buildFileUrl(coverPreview)} alt="Vista previa de portada" />
                 </div>
               )}
             </div>
@@ -802,7 +802,7 @@ export const AlertsPanel: React.FC = () => {
                   {alertImages.map((image, index) => (
                     <div key={image.id} className="ordered-image-item">
                       <div className="ordered-image-preview-wrap">
-                        <img
+                        <img decoding="async" loading="lazy"
                           src={buildFileUrl(image.previewUrl)}
                           alt={`Imagen ${index + 1}`}
                         />
@@ -892,7 +892,7 @@ export const AlertsPanel: React.FC = () => {
               <article key={alert.id} className="alert-card">
                 <div className="card-image-wrap">
                   {alert.image ? (
-                    <img src={buildFileUrl(alert.image)} alt={alert.title} />
+                    <img decoding="async" loading="lazy" src={buildFileUrl(alert.image)} alt={alert.title} />
                   ) : (
                     <div className="alert-image-placeholder">
                       Sin portada
@@ -957,7 +957,7 @@ export const AlertsPanel: React.FC = () => {
             <div className="alert-detail-card">
               <div className="card-image-wrap">
                 {viewItem.image ? (
-                  <img src={buildFileUrl(viewItem.image)} alt={viewItem.title} />
+                  <img decoding="async" loading="lazy" src={buildFileUrl(viewItem.image)} alt={viewItem.title} />
                 ) : (
                   <div className="alert-image-placeholder">
                     Sin portada
@@ -988,7 +988,7 @@ export const AlertsPanel: React.FC = () => {
                 <div className="alert-detail-gallery">
                   {viewItem.images.map((image, index) => (
                     <div key={image.id} className="alert-detail-gallery-item">
-                      <img
+                      <img decoding="async" loading="lazy"
                         src={buildFileUrl(image.previewUrl)}
                         alt={`Imagen ${index + 1}`}
                       />

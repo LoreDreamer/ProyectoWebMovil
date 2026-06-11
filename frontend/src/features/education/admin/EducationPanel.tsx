@@ -872,7 +872,7 @@ export const EducationPanel: React.FC = () => {
               {portadaPreview && !removeCover && (
                 <div className="image-preview-list">
                   <div className="image-preview-item">
-                    <img
+                    <img decoding="async" loading="lazy"
                       src={buildFileUrl(portadaPreview)}
                       alt="Vista previa de portada"
                     />
@@ -922,7 +922,7 @@ export const EducationPanel: React.FC = () => {
                   {moduleImages.map((img, index) => (
                     <div key={img.id} className="ordered-image-item">
                       <div className="ordered-image-preview-wrap">
-                        <img
+                        <img decoding="async" loading="lazy"
                           src={buildFileUrl(img.previewUrl)}
                           alt={`Imagen ${index + 1}`}
                         />
@@ -1056,7 +1056,7 @@ export const EducationPanel: React.FC = () => {
                 <div className="module-main">
                   <div className="module-thumb">
                     {module.image ? (
-                      <img
+                      <img decoding="async" loading="lazy"
                         src={buildFileUrl(module.image)}
                         alt={module.title}
                       />

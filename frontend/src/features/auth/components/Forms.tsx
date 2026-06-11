@@ -8,7 +8,7 @@ import {
   IonSelectOption
 } from '@ionic/react';
 
-import bgImage from '@/assets/auth/1_private-tour-of-the-city-of-neiva.png';
+import bgImage from '@/assets/auth/1_private-tour-of-the-city-of-neiva.webp';
 import './Forms.css';
 import { chileRegions } from '@/assets/data/chileRegions';
 import { useAuth } from '@/context/AuthContext';

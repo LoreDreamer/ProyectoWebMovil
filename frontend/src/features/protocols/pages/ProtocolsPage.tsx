@@ -22,6 +22,7 @@ import { useAuth } from '@/context/AuthContext';
 
 import './ProtocolsPage.css';
 import { API_URL } from '@/shared/api/apiClient';
+import { ContentState } from '@/shared/components/states/ContentState';
 
 type ProtocolCategory = 'Todos' | 'Ciberseguridad' | 'Teletrabajo' | 'Atencion Ciudadana';
 
@@ -185,6 +186,7 @@ export const ProtocolsPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] =
     useState<ProtocolCategory>('Todos');
   const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState('');
 
   const normalizeProtocol = (protocol: Protocol): Protocol => {
     const files = Array.isArray(protocol.archivos)
@@ -226,6 +228,7 @@ export const ProtocolsPage: React.FC = () => {
   const loadProtocols = async () => {
     try {
       setIsLoading(true);
+      setLoadError('');
 
       const response = await fetch(`${API_URL}/api/protocolos`);
       const data = await response.json().catch(() => null);
@@ -245,8 +248,9 @@ export const ProtocolsPage: React.FC = () => {
         : [];
 
       setProtocols(normalizedProtocols);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error al cargar protocolos:', error);
+      setLoadError(error?.message || 'No se pudieron cargar los protocolos.');
       setProtocols([]);
     } finally {
       setIsLoading(false);
@@ -421,13 +425,25 @@ export const ProtocolsPage: React.FC = () => {
             </div>
 
             {isLoading ? (
-              <div className="protocol-empty-state">
-                Cargando protocolos...
-              </div>
+              <ContentState
+                variant="loading"
+                title="Cargando protocolos"
+                message="Estamos preparando los documentos disponibles."
+              />
+            ) : loadError ? (
+              <ContentState
+                variant="error"
+                title="No se pudieron cargar los protocolos"
+                message={loadError}
+                actionLabel="Intentar nuevamente"
+                onAction={loadProtocols}
+              />
             ) : filteredProtocols.length === 0 ? (
-              <div className="protocol-empty-state">
-                No hay protocolos disponibles para esta búsqueda.
-              </div>
+              <ContentState
+                variant="empty"
+                title="No hay protocolos disponibles"
+                message="Prueba con otro filtro o revisa más tarde."
+              />
             ) : (
               <div className="protocols-card-grid">
                 {filteredProtocols.map((protocol) => (

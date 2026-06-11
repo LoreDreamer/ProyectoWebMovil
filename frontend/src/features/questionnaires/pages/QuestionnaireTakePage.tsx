@@ -429,7 +429,7 @@ export const QuestionnaireTakePage: React.FC = () => {
 
         {coverUrl && (
           <figure className="take-cover-preview">
-            <img src={coverUrl} alt={`Portada de ${title}`} />
+            <img decoding="async" loading="lazy" src={coverUrl} alt={`Portada de ${title}`} />
           </figure>
         )}
 
@@ -460,7 +460,7 @@ export const QuestionnaireTakePage: React.FC = () => {
                   rel="noreferrer"
                   title={imagen.nombre}
                 >
-                  <img
+                  <img decoding="async" loading="lazy"
                     src={imagen.url}
                     alt={imagen.nombre || `Imagen ${index + 1}`}
                   />
