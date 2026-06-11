@@ -6,6 +6,7 @@ import {
   deleteFilesFromStorage,
   UploadedStorageFile
 } from '../../services/storage.service';
+import { getPaginationOptions, sendOptionalPaginatedResponse } from '../../shared/utils/pagination';
 
 interface EducationImage {
   id?: string;
@@ -60,6 +61,7 @@ interface AuthenticatedUser {
 }
 
 const EDUCATION_TABLE = process.env.SUPABASE_EDUCATION_TABLE || 'educacion';
+const EDUCATION_SELECT = 'id, titulo, resumen, cuerpo, nivel, tipo_educacion, cover_img, imagenes, archivo_url, archivo_nombre, archivo_tipo, creado_en';
 const EDUCACION_USUARIO_TABLE = 'educacion_usuario';
 
 const STORAGE_BUCKET =
@@ -353,7 +355,7 @@ const getCurrentEducationModule = async (
 ): Promise<EducationDB | null> => {
   const { data, error } = await supabase
     .from(EDUCATION_TABLE)
-    .select('*')
+    .select(EDUCATION_SELECT)
     .eq('id', id)
     .single();
 
@@ -366,22 +368,32 @@ const getCurrentEducationModule = async (
 /* EDUCACIÓN - CRUD */
 /* =============================== */
 
-export const getEducationModules = async (_req: Request, res: Response) => {
+export const getEducationModules = async (req: Request, res: Response) => {
   try {
-    const { data, error } = await supabase
-      .from(EDUCATION_TABLE)
-      .select('*')
-      .order('creado_en', { ascending: false });
+    const pagination = getPaginationOptions(req, 10, 50);
+
+    let query = pagination.enabled
+      ? supabase.from(EDUCATION_TABLE).select(EDUCATION_SELECT, { count: 'exact' })
+      : supabase.from(EDUCATION_TABLE).select(EDUCATION_SELECT);
+
+    query = query.order('creado_en', { ascending: false });
+
+    if (pagination.enabled) {
+      query = query.range(pagination.from, pagination.to);
+    }
+
+    const { data, error, count } = await query;
 
     if (error) {
       throw error;
     }
 
     const modules = (data || []) as EducationDB[];
-
-    return res.json(
-      modules.map((item: EducationDB) => mapEducationResponse(item))
+    const mappedModules = modules.map((item: EducationDB) =>
+      mapEducationResponse(item)
     );
+
+    return sendOptionalPaginatedResponse(res, mappedModules, pagination, count);
   } catch (error: any) {
     console.error('Error en getEducationModules:', error);
 
@@ -481,7 +493,7 @@ export const createEducationModule = async (req: Request, res: Response) => {
     const { data, error } = await supabase
       .from(EDUCATION_TABLE)
       .insert(payload)
-      .select('*')
+      .select(EDUCATION_SELECT)
       .single();
 
     if (error) {
@@ -680,7 +692,7 @@ export const updateEducationModule = async (req: Request, res: Response) => {
       .from(EDUCATION_TABLE)
       .update(payload)
       .eq('id', moduleId)
-      .select('*')
+      .select(EDUCATION_SELECT)
       .single();
 
     if (error) {
@@ -853,7 +865,7 @@ export const completeEducationModule = async (req: Request, res: Response) => {
     // 1. Verificar si el usuario ya registró progreso en este módulo
     const { data: existente, error: selectError } = await supabase
       .from(EDUCACION_USUARIO_TABLE)
-      .select('*')
+      .select('id, usuario_id, educacion_id, fecha_lectura')
       .eq('usuario_id', user.id)
       .eq('educacion_id', moduleId)
       .maybeSingle();

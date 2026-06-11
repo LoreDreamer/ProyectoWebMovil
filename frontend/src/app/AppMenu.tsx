@@ -13,6 +13,7 @@ import {
 import {
   alertCircleOutline,
   bookOutline,
+  constructOutline,
   documentTextOutline,
   homeOutline,
   notificationsOutline,
@@ -66,6 +67,11 @@ export const AppMenu: React.FC = () => {
               </IonItem>
             </>
           )}
+
+          <IonItem button routerLink="/herramientas" onClick={closeMenu}>
+            <IonIcon slot="start" icon={constructOutline} />
+            <IonLabel>Herramientas</IonLabel>
+          </IonItem>
 
           <IonItem button routerLink="/alertas" onClick={closeMenu}>
             <IonIcon slot="start" icon={notificationsOutline} />

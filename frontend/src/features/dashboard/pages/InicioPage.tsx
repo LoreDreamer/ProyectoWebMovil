@@ -18,6 +18,7 @@ import {
 import { useAuth } from '@/context/AuthContext';
 import './InicioPage.css';
 import { API_URL } from '@/shared/api/apiClient';
+import { ContentState } from '@/shared/components/states/ContentState';
 
 interface Activity {
   id: string;
@@ -69,6 +70,7 @@ export const InicioPage: React.FC = () => {
 
   const [activities, setActivities] = useState<NormalizedActivity[]>([]);
   const [isLoadingActivities, setIsLoadingActivities] = useState(false);
+  const [activitiesError, setActivitiesError] = useState('');
 
   const [contentCounts, setContentCounts] = useState<ContentCounts>({
     education: 0,
@@ -101,18 +103,40 @@ export const InicioPage: React.FC = () => {
   };
 
   const getArrayCount = (data: unknown) => {
-    return Array.isArray(data) ? data.length : 0;
+    if (Array.isArray(data)) return data.length;
+
+    if (data && typeof data === 'object') {
+      const value = data as { data?: unknown[]; pagination?: { total?: number } };
+
+      if (typeof value.pagination?.total === 'number') return value.pagination.total;
+      if (Array.isArray(value.data)) return value.data.length;
+    }
+
+    return 0;
   };
 
   const loadContentCounts = async () => {
     try {
       setIsLoadingCounts(true);
 
+      const summaryResponse = await fetch(`${API_URL}/api/dashboard/summary`);
+      const summaryData = await summaryResponse.json().catch(() => null);
+
+      if (summaryResponse.ok && summaryData?.data) {
+        setContentCounts({
+          education: Number(summaryData.data.education || 0),
+          questionnaires: Number(summaryData.data.questionnaires || 0),
+          protocols: Number(summaryData.data.protocols || 0)
+        });
+
+        return;
+      }
+
       const [educationResponse, questionnairesResponse, protocolsResponse] =
         await Promise.all([
-          fetch(`${API_URL}/api/education`),
-          fetch(`${API_URL}/api/questionnaires`),
-          fetch(`${API_URL}/api/protocolos`)
+          fetch(`${API_URL}/api/education?page=1&limit=1`),
+          fetch(`${API_URL}/api/questionnaires?page=1&limit=1`),
+          fetch(`${API_URL}/api/protocolos?page=1&limit=1`)
         ]);
 
       const [educationData, questionnairesData, protocolsData] =
@@ -145,8 +169,9 @@ export const InicioPage: React.FC = () => {
   const loadActivities = async () => {
     try {
       setIsLoadingActivities(true);
+      setActivitiesError('');
 
-      const response = await fetch(`${API_URL}/api/activities`);
+      const response = await fetch(`${API_URL}/api/activities?page=1&limit=6`);
       const data = await response.json().catch(() => null);
 
       if (!response.ok) {
@@ -157,13 +182,20 @@ export const InicioPage: React.FC = () => {
         );
       }
 
-      const normalizedActivities = Array.isArray(data)
-        ? data.map((activity) => normalizeActivity(activity))
-        : [];
+      const activitiesPayload: Activity[] = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.data)
+          ? data.data
+          : [];
+
+      const normalizedActivities = activitiesPayload.map((activity) =>
+        normalizeActivity(activity)
+      );
 
       setActivities(normalizedActivities);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error al cargar actividades:', error);
+      setActivitiesError(error?.message || 'No se pudieron cargar las actividades.');
       setActivities([]);
     } finally {
       setIsLoadingActivities(false);
@@ -334,13 +366,25 @@ export const InicioPage: React.FC = () => {
             </div>
 
             {isLoadingActivities ? (
-              <div className="inicio-empty-state">
-                Cargando actividades...
-              </div>
+              <ContentState
+                variant="loading"
+                title="Cargando actividades"
+                message="Estamos obteniendo la programación municipal."
+              />
+            ) : activitiesError ? (
+              <ContentState
+                variant="error"
+                title="No se pudieron cargar las actividades"
+                message={activitiesError}
+                actionLabel="Intentar nuevamente"
+                onAction={loadActivities}
+              />
             ) : upcomingActivities.length === 0 ? (
-              <div className="inicio-empty-state">
-                No hay actividades disponibles por el momento.
-              </div>
+              <ContentState
+                variant="empty"
+                title="No hay actividades disponibles"
+                message="Revisa nuevamente cuando la municipalidad publique actividades."
+              />
             ) : (
               <div className="activities-dashboard-grid">
                 {upcomingActivities.map((activity) => (

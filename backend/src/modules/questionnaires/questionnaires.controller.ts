@@ -6,6 +6,7 @@ import {
   deleteFilesFromStorage,
   UploadedStorageFile
 } from '../../services/storage.service';
+import { getPaginationOptions, sendOptionalPaginatedResponse } from '../../shared/utils/pagination';
 
 interface QuestionnaireImage {
   id?: string;
@@ -99,6 +100,7 @@ interface AuthenticatedUser {
 
 const QUESTIONNAIRES_TABLE =
   process.env.SUPABASE_QUESTIONNAIRES_TABLE || 'cuestionario';
+const QUESTIONNAIRE_SELECT = 'id, titulo, resumen, riesgo, cover_img, puntaje_maximo, archivo_url, archivo_nombre, archivo_tipo, imagenes, archivo_csv_nombre, archivo_csv_importado_en, creado_en';
 
 const EJERCICIO_CUESTIONARIO_TABLE = 'ejercicio_cuestionario';
 const CUESTIONARIO_USUARIO_TABLE = 'cuestionario_usuario';
@@ -408,7 +410,7 @@ const getCurrentQuestionnaire = async (
 ): Promise<CuestionarioDB | null> => {
   const { data, error } = await supabase
     .from(QUESTIONNAIRES_TABLE)
-    .select('*')
+    .select(QUESTIONNAIRE_SELECT)
     .eq('id', id)
     .single();
 
@@ -713,21 +715,34 @@ const replaceQuestionnaireExercisesFromCsv = async ({
   };
 };
 
-export const getQuestionnaires = async (_req: Request, res: Response) => {
+export const getQuestionnaires = async (req: Request, res: Response) => {
   try {
-    const { data, error } = await supabase
-      .from(QUESTIONNAIRES_TABLE)
-      .select('*')
-      .order('titulo', { ascending: true });
+    const pagination = getPaginationOptions(req, 10, 50);
+
+    let query = pagination.enabled
+      ? supabase.from(QUESTIONNAIRES_TABLE).select(QUESTIONNAIRE_SELECT, { count: 'exact' })
+      : supabase.from(QUESTIONNAIRES_TABLE).select(QUESTIONNAIRE_SELECT);
+
+    query = query.order('titulo', { ascending: true });
+
+    if (pagination.enabled) {
+      query = query.range(pagination.from, pagination.to);
+    }
+
+    const { data, error, count } = await query;
 
     if (error) throw error;
 
     const questionnaires = (data || []) as CuestionarioDB[];
+    const mappedQuestionnaires = questionnaires.map((item: CuestionarioDB) =>
+      mapQuestionnaireResponse(item)
+    );
 
-    return res.json(
-      questionnaires.map((item: CuestionarioDB) =>
-        mapQuestionnaireResponse(item)
-      )
+    return sendOptionalPaginatedResponse(
+      res,
+      mappedQuestionnaires,
+      pagination,
+      count
     );
   } catch (error: any) {
     console.error('Error en getQuestionnaires:', error);
@@ -855,7 +870,7 @@ export const createQuestionnaire = async (req: Request, res: Response) => {
     const { data, error } = await supabase
       .from(QUESTIONNAIRES_TABLE)
       .insert(payload)
-      .select('*')
+      .select(QUESTIONNAIRE_SELECT)
       .single();
 
     if (error) {
@@ -1120,7 +1135,7 @@ export const updateQuestionnaire = async (req: Request, res: Response) => {
       .from(QUESTIONNAIRES_TABLE)
       .update(payload)
       .eq('id', questionnaireId)
-      .select('*')
+      .select(QUESTIONNAIRE_SELECT)
       .single();
 
     if (error) {

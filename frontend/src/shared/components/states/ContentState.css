@@ -1,0 +1,76 @@
+.content-state {
+  width: 100%;
+  display: grid;
+  place-items: center;
+  gap: 0.7rem;
+  padding: 2rem 1.25rem;
+  border: 1px solid rgba(0, 135, 158, 0.14);
+  border-radius: 22px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(240, 249, 251, 0.88));
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+  color: #12333d;
+  text-align: center;
+}
+
+.content-state-icon {
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  border-radius: 18px;
+  background: rgba(0, 135, 158, 0.1);
+  color: #00879e;
+}
+
+.content-state-icon ion-icon {
+  font-size: 1.8rem;
+}
+
+.content-state-copy h3 {
+  margin: 0;
+  font-size: clamp(1.05rem, 2vw, 1.25rem);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.content-state-copy p {
+  max-width: 520px;
+  margin: 0.45rem auto 0;
+  color: #52616b;
+  line-height: 1.55;
+}
+
+.content-state-action {
+  min-height: 42px;
+  padding: 0 1.15rem;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #00879e, #00a6bb);
+  color: #ffffff;
+  font-weight: 850;
+  cursor: pointer;
+  box-shadow: 0 12px 28px rgba(0, 135, 158, 0.22);
+}
+
+.content-state-error {
+  border-color: rgba(239, 68, 68, 0.16);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(254, 242, 242, 0.9));
+}
+
+.content-state-error .content-state-icon {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+}
+
+.content-state-loading .content-state-icon ion-icon {
+  animation: content-state-spin 1s linear infinite;
+}
+
+@keyframes content-state-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

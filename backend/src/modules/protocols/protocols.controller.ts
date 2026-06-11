@@ -5,6 +5,7 @@ import {
   deleteFilesFromStorage,
   UploadedStorageFile
 } from '../../services/storage.service';
+import { getPaginationOptions, sendOptionalPaginatedResponse } from '../../shared/utils/pagination';
 
 interface ArchivoProtocolo {
   id?: string;
@@ -43,6 +44,7 @@ interface ProtocoloDB {
 
 const PROTOCOLOS_TABLE =
   process.env.SUPABASE_PROTOCOLOS_TABLE || 'protocolo';
+const PROTOCOLO_SELECT = 'id, fecha, titulo, resumen, autor, categoria, archivo_url, archivo_nombre, archivo_tipo, archivos';
 
 const STORAGE_BUCKET =
   process.env.SUPABASE_STORAGE_BUCKET?.trim() || 'municipal-files';
@@ -264,7 +266,7 @@ const getCurrentProtocolo = async (
 ): Promise<ProtocoloDB | null> => {
   const { data, error } = await supabase
     .from(PROTOCOLOS_TABLE)
-    .select('*')
+    .select(PROTOCOLO_SELECT)
     .eq('id', id)
     .single();
 
@@ -273,23 +275,36 @@ const getCurrentProtocolo = async (
   return data as ProtocoloDB;
 };
 
-export const getProtocolos = async (_req: Request, res: Response) => {
+export const getProtocolos = async (req: Request, res: Response) => {
   try {
-    const { data, error } = await supabase
-      .from(PROTOCOLOS_TABLE)
-      .select('*')
-      .order('fecha', { ascending: false });
+    const pagination = getPaginationOptions(req, 10, 50);
+
+    let query = pagination.enabled
+      ? supabase.from(PROTOCOLOS_TABLE).select(PROTOCOLO_SELECT, { count: 'exact' })
+      : supabase.from(PROTOCOLOS_TABLE).select(PROTOCOLO_SELECT);
+
+    query = query.order('fecha', { ascending: false });
+
+    if (pagination.enabled) {
+      query = query.range(pagination.from, pagination.to);
+    }
+
+    const { data, error, count } = await query;
 
     if (error) {
       throw error;
     }
 
     const protocolos = (data || []) as ProtocoloDB[];
+    const mappedProtocolos = protocolos.map((protocolo: ProtocoloDB) =>
+      mapProtocoloResponse(protocolo)
+    );
 
-    return res.json(
-      protocolos.map((protocolo: ProtocoloDB) =>
-        mapProtocoloResponse(protocolo)
-      )
+    return sendOptionalPaginatedResponse(
+      res,
+      mappedProtocolos,
+      pagination,
+      count
     );
   } catch (error: any) {
     console.error('Error en getProtocolos:', error);
@@ -380,7 +395,7 @@ export const createProtocolo = async (req: Request, res: Response) => {
     const { data, error } = await supabase
       .from(PROTOCOLOS_TABLE)
       .insert(payload)
-      .select('*')
+      .select(PROTOCOLO_SELECT)
       .single();
 
     if (error) {
@@ -527,7 +542,7 @@ export const updateProtocolo = async (req: Request, res: Response) => {
       .from(PROTOCOLOS_TABLE)
       .update(payload)
       .eq('id', protocoloId)
-      .select('*')
+      .select(PROTOCOLO_SELECT)
       .single();
 
     if (error) {

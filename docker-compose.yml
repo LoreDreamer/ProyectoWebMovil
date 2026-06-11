@@ -1,0 +1,31 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: municipal-ciberseguridad-backend
+    env_file:
+      - ./config/.env
+    environment:
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    volumes:
+      - backend_uploads:/app/backend/uploads
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        VITE_API_BASE_URL: http://localhost:3000
+    container_name: municipal-ciberseguridad-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  backend_uploads:

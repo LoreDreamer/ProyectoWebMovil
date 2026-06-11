@@ -1,0 +1,18 @@
+.route-white-screen {
+  position: fixed;
+  inset: 0;
+  background: #ffffff;
+  z-index: 1000;
+  pointer-events: none;
+  animation: routeWhiteFadeIn 0.12s ease-out;
+}
+
+@keyframes routeWhiteFadeIn {
+  from {
+    opacity: 0.96;
+  }
+
+  to {
+    opacity: 1;
+  }
+}

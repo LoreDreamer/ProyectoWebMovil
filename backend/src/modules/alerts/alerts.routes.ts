@@ -11,6 +11,7 @@ import {
   requireAdmin
 } from '../../middlewares/auth.middleware';
 import { subscribeToAlerts } from '../subscriptions/subscriptions.controller';
+import { subscriptionRateLimit } from '../../middlewares/rateLimit.middleware';
 
 const router = express.Router();
 
@@ -98,7 +99,7 @@ const handleMulterError = (
 
 router.get('/', getAlerts);
 
-router.post('/subscribe', subscribeToAlerts);
+router.post('/subscribe', subscriptionRateLimit, subscribeToAlerts);
 
 router.post(
   '/',

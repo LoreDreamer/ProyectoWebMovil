@@ -9,6 +9,7 @@ import {
   authenticateToken,
   requireAdmin
 } from '../../middlewares/auth.middleware';
+import { formRateLimit } from '../../middlewares/rateLimit.middleware';
 
 const router = express.Router();
 
@@ -118,6 +119,7 @@ router.delete('/:id', authenticateToken, requireAdmin, eliminarDenuncia);
 
 router.post(
   '/',
+  formRateLimit,
   uploadComplaintFiles,
   handleMulterError,
   crearDenuncia

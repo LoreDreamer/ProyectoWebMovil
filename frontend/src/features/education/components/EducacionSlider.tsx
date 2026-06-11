@@ -34,7 +34,7 @@ export const EducacionSlider: React.FC<SliderProps> = ({ slides }) => {
           <div className="edu-slide-counter">{currentSlide + 1} / {slides.length}</div>
         )}
         
-        <img src={slides[currentSlide].url} alt="Contenido didáctico" className="edu-slide-img" />
+        <img decoding="async" loading="lazy" src={slides[currentSlide].url} alt="Contenido didáctico" className="edu-slide-img" />
         
         {hasMultipleSlides && (
           <>

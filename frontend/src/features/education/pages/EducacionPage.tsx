@@ -9,11 +9,12 @@ import {
   EducationPanel
 } from '@/components';
 import { useAuth } from '@/context/AuthContext';
-import pishing from '@/assets/education/pishing.png';
+import pishing from '@/assets/education/pishing.webp';
 
 import './EducationPage.css';
 import { API_URL } from '@/shared/api/apiClient';
 import { notify } from '@/shared/notifications';
+import { ContentState } from '@/shared/components/states/ContentState';
 
 type EducationStatus = 'Completado' | 'Pendiente';
 
@@ -120,6 +121,7 @@ export const EducationPage: React.FC = () => {
 
   const [modules, setModules] = useState<EducationModule[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState('');
 
   const obtenerCabeceras = (): Record<string, string> => {
     const cabeceras: Record<string, string> = {};
@@ -164,6 +166,7 @@ export const EducationPage: React.FC = () => {
   const loadEducationModules = async () => {
     try {
       setIsLoading(true);
+      setLoadError('');
 
       const modulesRequest = fetch(`${API_URL}/api/education`);
       const progressRequest = token
@@ -176,6 +179,14 @@ export const EducationPage: React.FC = () => {
       ]);
 
       const modulesData = await modulesResponse.json().catch(() => null);
+
+      if (!modulesResponse.ok) {
+        throw new Error(
+          modulesData?.message ||
+            modulesData?.error ||
+            'No se pudieron cargar los módulos educativos'
+        );
+      }
       let completedIds: string[] = [];
 
       if (progressResponse && progressResponse.ok) {
@@ -194,8 +205,9 @@ export const EducationPage: React.FC = () => {
         : [];
 
       setModules(backendModules);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error al cargar módulos educativos:', error);
+      setLoadError(error?.message || 'No se pudieron cargar los módulos educativos.');
       setModules([]);
     } finally {
       setIsLoading(false);
@@ -309,11 +321,25 @@ export const EducationPage: React.FC = () => {
             </div>
 
             {isLoading ? (
-              <div className="education-empty-state">Cargando módulos educativos...</div>
+              <ContentState
+                variant="loading"
+                title="Cargando módulos educativos"
+                message="Estamos obteniendo los contenidos disponibles."
+              />
+            ) : loadError ? (
+              <ContentState
+                variant="error"
+                title="No se pudieron cargar los módulos"
+                message={loadError}
+                actionLabel="Intentar nuevamente"
+                onAction={loadEducationModules}
+              />
             ) : availableModules.length === 0 ? (
-              <div className="education-empty-state">
-                No hay módulos educativos pendientes por el momento.
-              </div>
+              <ContentState
+                variant="empty"
+                title="No hay módulos pendientes"
+                message="Ya completaste los módulos disponibles o aún no hay nuevos contenidos publicados."
+              />
             ) : (
               <div className="cards-grid">
                 {availableModules.map((module) => (

@@ -5,6 +5,7 @@ import {
   deleteFilesFromStorage,
   UploadedStorageFile
 } from '../../services/storage.service';
+import { getPaginationOptions, sendOptionalPaginatedResponse } from '../../shared/utils/pagination';
 
 interface ArchivoDenuncia {
   id?: string;
@@ -56,6 +57,7 @@ interface UsuarioDB {
 }
 
 const DENUNCIAS_TABLE = process.env.SUPABASE_DENUNCIAS_TABLE || 'denuncia';
+const DENUNCIA_SELECT = 'id, tipo_incidente, fecha, descripcion, adjunto_url, correo, nombre_completo, usuario_id, archivos';
 
 const USERS_TABLE_CANDIDATES = process.env.SUPABASE_USERS_TABLE
   ? [process.env.SUPABASE_USERS_TABLE]
@@ -300,21 +302,36 @@ const findUserIdByEmail = async (email?: string): Promise<string | null> => {
    CONTROLLERS
    =============================== */
 
-export const obtenerDenuncias = async (_req: Request, res: Response) => {
+export const obtenerDenuncias = async (req: Request, res: Response) => {
   try {
-    const { data, error } = await supabase
-      .from(DENUNCIAS_TABLE)
-      .select('*')
-      .order('fecha', { ascending: false });
+    const pagination = getPaginationOptions(req, 10, 50);
+
+    let query = pagination.enabled
+      ? supabase.from(DENUNCIAS_TABLE).select(DENUNCIA_SELECT, { count: 'exact' })
+      : supabase.from(DENUNCIAS_TABLE).select(DENUNCIA_SELECT);
+
+    query = query.order('fecha', { ascending: false });
+
+    if (pagination.enabled) {
+      query = query.range(pagination.from, pagination.to);
+    }
+
+    const { data, error, count } = await query;
 
     if (error) {
       throw error;
     }
 
     const denuncias = (data || []) as DenunciaDB[];
+    const mappedDenuncias = denuncias.map((denuncia) =>
+      mapDenunciaResponse(denuncia)
+    );
 
-    return res.status(200).json(
-      denuncias.map((denuncia) => mapDenunciaResponse(denuncia))
+    return sendOptionalPaginatedResponse(
+      res,
+      mappedDenuncias,
+      pagination,
+      count
     );
   } catch (error: any) {
     console.error('Error al obtener denuncias:', error);
@@ -339,7 +356,7 @@ export const eliminarDenuncia = async (req: Request, res: Response) => {
 
     const { data: denunciaData, error: findError } = await supabase
       .from(DENUNCIAS_TABLE)
-      .select('*')
+      .select(DENUNCIA_SELECT)
       .eq('id', denunciaId)
       .maybeSingle();
 
@@ -466,7 +483,7 @@ export const crearDenuncia = async (req: Request, res: Response) => {
     const { data, error } = await supabase
       .from(DENUNCIAS_TABLE)
       .insert(payload)
-      .select('*')
+      .select(DENUNCIA_SELECT)
       .single();
 
     if (error) {

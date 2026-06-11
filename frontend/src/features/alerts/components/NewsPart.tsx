@@ -10,6 +10,7 @@ import {
 } from 'ionicons/icons';
 import { SubscribeBanner } from './SubscribeBanner';
 import { usePublicAlerts } from '@/features/alerts/hooks/usePublicAlerts';
+import { ContentState } from '@/shared/components/states/ContentState';
 import './NewsPart.css';
 
 export const NewsPart: React.FC = () => {
@@ -21,7 +22,9 @@ export const NewsPart: React.FC = () => {
     setSearchTerm,
     isLoading,
     filteredNewsItems,
-    latestAlert
+    latestAlert,
+    errorMessage,
+    reloadAlerts
   } = usePublicAlerts();
 
   return (
@@ -101,19 +104,31 @@ export const NewsPart: React.FC = () => {
         </div>
 
         {isLoading ? (
-          <div className="alerts-empty-state">
-            Cargando alertas...
-          </div>
+          <ContentState
+            variant="loading"
+            title="Cargando alertas"
+            message="Estamos obteniendo las publicaciones municipales más recientes."
+          />
+        ) : errorMessage ? (
+          <ContentState
+            variant="error"
+            title="No se pudieron cargar las alertas"
+            message={errorMessage}
+            actionLabel="Intentar nuevamente"
+            onAction={reloadAlerts}
+          />
         ) : filteredNewsItems.length === 0 ? (
-          <div className="alerts-empty-state">
-            No hay alertas disponibles para esta búsqueda.
-          </div>
+          <ContentState
+            variant="empty"
+            title="No hay alertas disponibles"
+            message="Prueba con otro término de búsqueda o revisa más tarde."
+          />
         ) : (
           <div className="news-grid">
             {filteredNewsItems.map((item) => (
               <article className="news-card" key={item.id}>
                 <div className="news-card-image-wrap">
-                  <img
+                  <img decoding="async" loading="lazy"
                     src={item.image}
                     alt={item.title}
                     className="news-card-image"
@@ -185,7 +200,7 @@ export const NewsPart: React.FC = () => {
 
           <div className="alert-detail-layout">
             <div className="alert-detail-image-wrap">
-              <img src={selectedAlert.image} alt={selectedAlert.title} />
+              <img decoding="async" loading="lazy" src={selectedAlert.image} alt={selectedAlert.title} />
             </div>
 
             <div className="alert-detail-content">
@@ -201,7 +216,7 @@ export const NewsPart: React.FC = () => {
                 <div className="alert-detail-gallery">
                   {selectedAlert.images.map((image, index) => (
                     <div key={image.id} className="alert-detail-gallery-item">
-                      <img
+                      <img decoding="async" loading="lazy"
                         src={image.previewUrl}
                         alt={`Imagen ${index + 1}`}
                       />

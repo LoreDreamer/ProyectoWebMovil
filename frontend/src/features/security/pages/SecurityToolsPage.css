@@ -1,0 +1,85 @@
+.security-tools-content {
+  --background: linear-gradient(180deg, #eff6ff 0%, #ffffff 52%, #f8fafc 100%);
+}
+
+.security-tools-shell {
+  width: min(1180px, calc(100% - 28px));
+  margin: 0 auto;
+  padding: clamp(2rem, 5vw, 4rem) 0;
+}
+
+.security-tools-hero {
+  width: min(900px, 100%);
+  margin: 0 auto 1.5rem;
+  text-align: center;
+}
+
+.security-tools-hero h1 {
+  margin: 0;
+  color: #0f172a;
+  font-size: clamp(2rem, 6vw, 4rem);
+  line-height: 1.02;
+  letter-spacing: -0.07em;
+}
+
+.security-tools-hero p {
+  width: min(760px, 100%);
+  margin: 1rem auto 0;
+  color: #475569;
+  font-size: clamp(1rem, 2.3vw, 1.17rem);
+  line-height: 1.75;
+}
+
+.security-tools-badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.65rem;
+  margin-top: 1.2rem;
+}
+
+.security-tools-badges span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 38px;
+  padding: 0 0.85rem;
+  border-radius: 999px;
+  color: #0f172a;
+  background: #ffffff;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+  font-size: 0.9rem;
+  font-weight: 850;
+}
+
+.security-tools-badges ion-icon {
+  color: #0f766e;
+}
+
+.security-tools-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.security-tools-info-grid article {
+  padding: 1.2rem;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  box-shadow: 0 18px 46px rgba(15, 23, 42, 0.08);
+}
+
+.security-tools-info-grid h2 {
+  margin: 0 0 0.5rem;
+  color: #0f172a;
+  font-size: 1.1rem;
+}
+
+.security-tools-info-grid p {
+  margin: 0;
+  color: #475569;
+  line-height: 1.7;
+}

@@ -1085,7 +1085,7 @@ export const QuestionnairesPanel: React.FC = () => {
               {portadaPreview && !removeCover && (
                 <div className="image-preview-list">
                   <div className="image-preview-item">
-                    <img
+                    <img decoding="async" loading="lazy"
                       src={buildFileUrl(portadaPreview)}
                       alt="Vista previa de portada"
                     />
@@ -1137,7 +1137,7 @@ export const QuestionnairesPanel: React.FC = () => {
                   {questionnaireImages.map((img, index) => (
                     <div key={img.id} className="ordered-image-item">
                       <div className="ordered-image-preview-wrap">
-                        <img
+                        <img decoding="async" loading="lazy"
                           src={buildFileUrl(img.previewUrl)}
                           alt={`Imagen ${index + 1}`}
                         />
@@ -1355,7 +1355,7 @@ export const QuestionnairesPanel: React.FC = () => {
                 <div className="questionnaire-info">
                   <div className="questionnaire-cover">
                     {questionnaire.coverUrl ? (
-                      <img
+                      <img decoding="async" loading="lazy"
                         src={buildFileUrl(questionnaire.coverUrl)}
                         alt={questionnaire.title}
                       />

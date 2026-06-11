@@ -3,8 +3,11 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { supabase } from '../../config/supabase';
 import { JWT_SECRET } from '../../config/jwt.config';
+import { getPaginationOptions, createPaginationMeta } from '../../shared/utils/pagination';
 
 const USERS_TABLE = process.env.SUPABASE_USERS_TABLE || 'usuario';
+const USER_PUBLIC_SELECT = 'id, rut, nombre_completo, region, comuna, correo, estatus, creado_en, tipo_usuario';
+const USER_AUTH_SELECT = `${USER_PUBLIC_SELECT}, password`;
 const QUESTIONNAIRES_TABLE =
   process.env.SUPABASE_QUESTIONNAIRES_TABLE || 'cuestionario';
 const CUESTIONARIO_USUARIO_TABLE = 'cuestionario_usuario';
@@ -180,7 +183,7 @@ const getQuestionnaireRiskByUser = async () => {
 export const getUsuarioById = async (id: string) => {
   const { data, error } = await supabase
     .from(USERS_TABLE)
-    .select('*')
+    .select(USER_PUBLIC_SELECT)
     .eq('id', id)
     .single();
 
@@ -192,7 +195,7 @@ export const getUsuarioById = async (id: string) => {
 export const getUsuarioByEmail = async (email: string) => {
   const { data, error } = await supabase
     .from(USERS_TABLE)
-    .select('*')
+    .select(USER_PUBLIC_SELECT)
     .eq('correo', email)
     .single();
 
@@ -298,7 +301,7 @@ export const register = async (req: Request, res: Response) => {
     const { data, error } = await supabase
       .from(USERS_TABLE)
       .insert(payload)
-      .select('*')
+      .select(USER_PUBLIC_SELECT)
       .single();
 
     if (error) {
@@ -364,7 +367,7 @@ export const login = async (req: Request, res: Response) => {
 
     const { data, error } = await supabase
       .from(USERS_TABLE)
-      .select('*')
+      .select(USER_AUTH_SELECT)
       .eq('correo', finalCorreo)
       .single();
 
@@ -471,14 +474,21 @@ export const me = async (req: Request, res: Response) => {
   }
 };
 
-export const getUsers = async (_req: Request, res: Response) => {
+export const getUsers = async (req: Request, res: Response) => {
   try {
-    const { data, error } = await supabase
-      .from(USERS_TABLE)
-      .select(
-        'id, rut, nombre_completo, region, comuna, correo, estatus, creado_en, tipo_usuario'
-      )
-      .order('creado_en', { ascending: false });
+    const pagination = getPaginationOptions(req, 10, 50);
+
+    let query = pagination.enabled
+      ? supabase.from(USERS_TABLE).select(USER_PUBLIC_SELECT, { count: 'exact' })
+      : supabase.from(USERS_TABLE).select(USER_PUBLIC_SELECT);
+
+    query = query.order('creado_en', { ascending: false });
+
+    if (pagination.enabled) {
+      query = query.range(pagination.from, pagination.to);
+    }
+
+    const { data, error, count } = await query;
 
     if (error) {
       console.error('Error getUsers:', error);
@@ -491,13 +501,17 @@ export const getUsers = async (_req: Request, res: Response) => {
     }
 
     const riskByUser = await getQuestionnaireRiskByUser();
+    const users = (data || [])
+      .map((user) => normalizeUser(user, riskByUser.getRiskForUser(user.id)))
+      .filter(Boolean);
 
     return res.json({
       ok: true,
       totalCuestionarios: riskByUser.totalCuestionarios,
-      users: (data || [])
-        .map((user) => normalizeUser(user, riskByUser.getRiskForUser(user.id)))
-        .filter(Boolean)
+      users,
+      ...(pagination.enabled
+        ? { pagination: createPaginationMeta(pagination, count ?? users.length) }
+        : {})
     });
   } catch (error: any) {
     console.error('Error getUsers:', error);
@@ -599,9 +613,7 @@ export const updateUser = async (req: Request, res: Response) => {
       .from(USERS_TABLE)
       .update(payload)
       .eq('id', userId)
-      .select(
-        'id, rut, nombre_completo, region, comuna, correo, estatus, creado_en, tipo_usuario'
-      )
+      .select(USER_PUBLIC_SELECT)
       .single();
 
     if (error) {

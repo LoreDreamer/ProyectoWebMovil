@@ -46,7 +46,7 @@ export const Navbar: React.FC = () => {
             </IonButtons>
 
             <Link to="/index" className="navbar-logo-link">
-              <img src={logo} alt="Santo Domingo" className="navbar-logo" />
+              <img loading="eager" decoding="async" src={logo} alt="Santo Domingo" className="navbar-logo" />
             </Link>
           </div>
 
@@ -57,6 +57,7 @@ export const Navbar: React.FC = () => {
                 {renderLink('/cuestionarios', 'Cuestionarios')}
                 {renderLink('/educacion', 'Educación')}
                 {renderLink('/denuncias', 'Denuncias')}
+                {renderLink('/herramientas', 'Herramientas')}
                 {renderLink('/protocolos', 'Protocolos')}
                 {renderLink('/alertas', 'Alertas')}
               </>
@@ -65,6 +66,7 @@ export const Navbar: React.FC = () => {
                 {renderLink('/index', 'Inicio')}
                 {renderLink('/educacion', 'Educación')}
                 {renderLink('/denuncias', 'Denuncias')}
+                {renderLink('/herramientas', 'Herramientas')}
                 {renderLink('/alertas', 'Alertas')}
               </>
             )}
