@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { IonPage, IonContent, IonButton, IonIcon, IonGrid, IonRow, IonCol } from '@ionic/react';
 import { arrowBackOutline, checkmarkCircleOutline } from 'ionicons/icons';
 import { useHistory, useLocation } from 'react-router-dom';
@@ -9,6 +9,7 @@ import { EducationModule } from './EducacionPage';
 import './EducationModulePage.css';
 import { API_URL } from '@/shared/api/apiClient';
 import { notify } from '@/shared/notifications';
+import DOMPurify from 'dompurify';
 
 interface LocationState {
   module: EducationModule;
@@ -39,6 +40,12 @@ export const EducationModulePage: React.FC = () => {
     archivoNombre: rawModule?.fileName || rawModule?.archivo_nombre || 'Documento Adjunto',
     archivoTipo: rawModule?.fileType || rawModule?.archivo_tipo || 'Archivo complementario'
   };
+
+  const sanitizedBody = useMemo(() => {
+    return DOMPurify.sanitize(targetModule.cuerpo, {
+      USE_PROFILES: { html: true }
+    });
+  }, [targetModule.cuerpo]);
 
   // ==========================================
   // CAMBIO AQUÍ: INCLUIR LA PORTADA EN LOS SLIDES
@@ -137,7 +144,7 @@ export const EducationModulePage: React.FC = () => {
           <article className="edu-body-text">
             <div 
               className="edu-lead-paragraph" 
-              dangerouslySetInnerHTML={{ __html: targetModule.cuerpo }} 
+              dangerouslySetInnerHTML={{ __html: sanitizedBody }} 
             />
           </article>
 

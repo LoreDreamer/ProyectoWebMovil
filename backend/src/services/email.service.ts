@@ -41,6 +41,15 @@ const getTransporter = async () => {
   return transporterPromise;
 };
 
+
+const escapeHtml = (value: string) =>
+  value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+
 interface AlertEmailPayload {
   id: string;
   titulo?: string;
@@ -64,6 +73,11 @@ export const sendAlertEmail = async (
   const body = alert.cuerpo || alert.body || '';
   const date = alert.fecha || alert.date || new Date().toISOString();
 
+  const safeTitle = escapeHtml(title);
+  const safeSummary = escapeHtml(summary);
+  const safeBody = escapeHtml(body);
+  const safeDate = escapeHtml(date);
+
   const info = await transporter.sendMail({
     from:
       process.env.EMAIL_FROM ||
@@ -84,10 +98,10 @@ export const sendAlertEmail = async (
             `.trim(),
             html: `
               <h2>Nueva alerta de ciberseguridad</h2>
-              <p><strong>Título:</strong> ${title}</p>
-              <p><strong>Fecha:</strong> ${date}</p>
-              <p><strong>Resumen:</strong> ${summary}</p>
-              <p>${body}</p>
+              <p><strong>Título:</strong> ${safeTitle}</p>
+              <p><strong>Fecha:</strong> ${safeDate}</p>
+              <p><strong>Resumen:</strong> ${safeSummary}</p>
+              <p>${safeBody}</p>
             `,
     });
 

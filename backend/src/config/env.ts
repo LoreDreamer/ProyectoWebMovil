@@ -23,7 +23,11 @@ export const env = {
   port: Number(getEnv('PORT', '3000')),
   frontendUrl: getEnv('FRONTEND_URL', 'http://localhost:5173'),
   nodeEnv: getEnv('NODE_ENV', 'development'),
-  jwtSecret: getEnv('JWT_SECRET', 'mi_llave_secreta_municipal_super_segura'),
+  jwtSecret: getEnv('JWT_SECRET'),
+  allowedOrigins: getEnv('ALLOWED_ORIGINS', getEnv('FRONTEND_URL', 'http://localhost:5173'))
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean),
   supabaseUrl: getEnv('SUPABASE_URL'),
   supabaseServiceRoleKey: getEnv('SUPABASE_SERVICE_ROLE_KEY'),
   supabaseStorageBucket: getEnv('SUPABASE_STORAGE_BUCKET', 'municipal-files')
