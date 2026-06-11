@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { IonPage, IonContent, IonButton, IonIcon, IonGrid, IonRow, IonCol, IonToast } from '@ionic/react';
+import React, { useState } from 'react';
+import { IonPage, IonContent, IonButton, IonIcon, IonGrid, IonRow, IonCol } from '@ionic/react';
 import { arrowBackOutline, checkmarkCircleOutline } from 'ionicons/icons';
 import { useHistory, useLocation } from 'react-router-dom';
 import { Navbar, EducacionHeader, EducacionSlider, ResourceCard } from '@/components';
@@ -8,6 +8,7 @@ import { EducationModule } from './EducacionPage';
 
 import './EducationModulePage.css';
 import { API_URL } from '@/shared/api/apiClient';
+import { notify } from '@/shared/notifications';
 
 interface LocationState {
   module: EducationModule;
@@ -20,8 +21,6 @@ export const EducationModulePage: React.FC = () => {
   const { token } = useAuth();
   
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
   
   const rawModule = location.state?.module;
 
@@ -91,8 +90,12 @@ export const EducationModulePage: React.FC = () => {
         throw new Error('No se pudo guardar el progreso en el servidor');
       }
 
-      setToastMessage('¡Módulo marcado como visto!');
-      setShowToast(true);
+      notify.success('¡Módulo marcado como visto!');
+      notify.add({
+        type: 'success',
+        title: 'Módulo educativo completado',
+        message: targetModule.titulo
+      });
 
       if (location.state?.module) {
         location.state.module.status = 'Completado';
@@ -107,8 +110,7 @@ export const EducationModulePage: React.FC = () => {
 
     } catch (error) {
       console.error('Error al asentar marca de lectura manual:', error);
-      setToastMessage('Error al guardar el progreso');
-      setShowToast(true);
+      notify.error('Error al guardar el progreso');
       setIsSubmitting(false);
     }
   };
@@ -176,13 +178,6 @@ export const EducationModulePage: React.FC = () => {
 
         </div>
 
-        <IonToast
-          isOpen={showToast}
-          onDidDismiss={() => setShowToast(false)}
-          message={toastMessage}
-          duration={1200}
-          color="success"
-        />
       </IonContent>
     </IonPage>
   );

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { API_URL } from '@/shared/api/apiClient';
+import { notify } from '@/shared/notifications';
 
 export interface Activity {
   id: string;
@@ -139,12 +140,12 @@ export const useActivityAdmin = () => {
     e.preventDefault();
 
     if (!title.trim() || !description.trim() || !date.trim()) {
-      alert('Completa título, descripción y fecha.');
+      notify.warning('Completa título, descripción y fecha.');
       return;
     }
 
     if (!token) {
-      alert('Debes iniciar sesión como administrador.');
+      notify.warning('Debes iniciar sesión como administrador.');
       return;
     }
 
@@ -186,14 +187,14 @@ export const useActivityAdmin = () => {
       await loadActivities();
       window.dispatchEvent(new Event('activities-updated'));
 
-      alert(
+      notify.success(
         editingActivity
           ? 'Actividad actualizada correctamente.'
           : 'Actividad creada correctamente.'
       );
     } catch (error: any) {
       console.error('Error al guardar actividad:', error);
-      alert(error.message || 'Error al guardar actividad.');
+      notify.error(error.message || 'Error al guardar actividad.');
     }
   };
 
@@ -207,10 +208,17 @@ export const useActivityAdmin = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('¿Eliminar esta actividad?')) return;
+    const confirmed = await notify.confirm({
+      header: 'Eliminar actividad',
+      message: '¿Eliminar esta actividad? Esta acción no se puede deshacer.',
+      confirmText: 'Eliminar',
+      destructive: true
+    });
+
+    if (!confirmed) return;
 
     if (!token) {
-      alert('Debes iniciar sesión como administrador.');
+      notify.warning('Debes iniciar sesión como administrador.');
       return;
     }
 
@@ -235,10 +243,10 @@ export const useActivityAdmin = () => {
         resetForm();
       }
 
-      alert('Actividad eliminada correctamente.');
+      notify.success('Actividad eliminada correctamente.');
     } catch (error: any) {
       console.error('Error al eliminar actividad:', error);
-      alert(error.message || 'Error al eliminar actividad.');
+      notify.error(error.message || 'Error al eliminar actividad.');
     }
   };
 

@@ -6,13 +6,24 @@ import { personCircle, logOutOutline } from 'ionicons/icons';
 import logo from '@/assets/logos/4-isologo-municipal-fondocalipso-rgb.png';
 import './Navbar.css';
 import { useAuth } from '@/context/AuthContext';
+import { NotificationBell, notify } from '@/shared/notifications';
 
 export const Navbar: React.FC = () => {
   const location = useLocation();
   const { user, logout } = useAuth();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    const confirmed = await notify.confirm({
+      header: 'Cerrar sesión',
+      message: '¿Deseas cerrar tu sesión?',
+      confirmText: 'Cerrar sesión',
+      cancelText: 'Cancelar'
+    });
+
+    if (!confirmed) return;
+
     logout();
+    notify.info('Sesión cerrada correctamente.');
     window.location.href = '/index';
   };
 
@@ -71,6 +82,7 @@ export const Navbar: React.FC = () => {
               </div>
             ) : (
               <div className="navbar-profile-container">
+                <NotificationBell />
                 <Link to={profileLink} className="navbar-profile-button" aria-label="Ir a inicio">
                   <span className="navbar-profile-ring">
                     <IonIcon icon={personCircle} className="navbar-profile-icon" />

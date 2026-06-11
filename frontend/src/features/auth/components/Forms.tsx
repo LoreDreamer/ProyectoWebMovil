@@ -13,6 +13,7 @@ import './Forms.css';
 import { chileRegions } from '@/assets/data/chileRegions';
 import { useAuth } from '@/context/AuthContext';
 import { API_URL } from '@/shared/api/apiClient';
+import { notify } from '@/shared/notifications';
 
 const CHILE_REGIONS = chileRegions;
 
@@ -27,7 +28,7 @@ export const LoginForm: React.FC = () => {
     e.preventDefault();
 
     if (!email || !password) {
-      alert('Por favor completa todos los campos');
+      notify.warning('Por favor completa todos los campos');
       return;
     }
 
@@ -43,7 +44,7 @@ export const LoginForm: React.FC = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        alert(data.message || 'Error al iniciar sesión');
+        notify.error(data.message || 'Error al iniciar sesión');
         return;
       }
 
@@ -58,7 +59,7 @@ export const LoginForm: React.FC = () => {
       }
     } catch (error) {
       console.error('Error de conexión:', error);
-      alert('No se pudo conectar con el servidor Express en el puerto 3000.');
+      notify.error('No se pudo conectar con el servidor Express en el puerto 3000.');
     }
   };
 
@@ -144,17 +145,17 @@ export const RegisterForm: React.FC = () => {
       !password ||
       !confirmPassword
     ) {
-      alert('Por favor completa todos los campos');
+      notify.warning('Por favor completa todos los campos');
       return;
     }
 
     if (password !== confirmPassword) {
-      alert('Las contraseñas no coinciden');
+      notify.warning('Las contraseñas no coinciden');
       return;
     }
 
     if (!acceptedTerms) {
-      alert('Debes aceptar los términos y condiciones');
+      notify.warning('Debes aceptar los términos y condiciones');
       return;
     }
 
@@ -180,7 +181,7 @@ export const RegisterForm: React.FC = () => {
 
       if (!response.ok) {
         console.error('Error register backend:', data);
-        alert(data.message || data.error || 'Error al registrar usuario.');
+        notify.error(data.message || data.error || 'Error al registrar usuario.');
         return;
       }
 
@@ -189,12 +190,12 @@ export const RegisterForm: React.FC = () => {
       localStorage.setItem('userRegion', selectedRegion?.name || region);
       localStorage.setItem('userComuna', comuna);
 
-      alert('¡Usuario registrado con éxito en el servidor! Ahora inicia sesión.');
+      notify.success('¡Usuario registrado con éxito! Ahora inicia sesión.');
 
       history.push('/login');
     } catch (error) {
       console.error('Error de conexión:', error);
-      alert('No se pudo conectar con el servidor Express en el puerto 3000.');
+      notify.error('No se pudo conectar con el servidor Express en el puerto 3000.');
     }
   };
 

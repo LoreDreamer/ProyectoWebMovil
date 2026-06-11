@@ -2688,3 +2688,40 @@ ion-searchbar {
     text-align: center !important;
   }
 }
+
+/* =============================== */
+/* NOTIFICACIONES */
+/* =============================== */
+
+@media (max-width: 767px) {
+  .notification-bell-button {
+    width: 36px !important;
+    height: 36px !important;
+  }
+
+  .notification-bell-button ion-icon {
+    font-size: 19px !important;
+  }
+
+  .notification-panel {
+    position: fixed !important;
+    top: 72px !important;
+    right: 10px !important;
+    left: 10px !important;
+    width: auto !important;
+    max-height: calc(100dvh - 92px) !important;
+    border-radius: 18px !important;
+  }
+
+  .notification-panel-header {
+    padding: 14px 14px 12px !important;
+  }
+
+  .notification-list {
+    padding: 8px 10px !important;
+  }
+
+  .notification-item {
+    padding: 12px 12px 12px 15px !important;
+  }
+}

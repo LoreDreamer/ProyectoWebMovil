@@ -19,6 +19,7 @@ import {
 import { useAuth } from '@/context/AuthContext';
 import './QuestionnairesPanel.css';
 import { API_URL } from '@/shared/api/apiClient';
+import { notify } from '@/shared/notifications';
 
 type RiskValue = 'BAJO' | 'MEDIO' | 'ALTO';
 
@@ -415,7 +416,7 @@ export const QuestionnairesPanel: React.FC = () => {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      alert('La portada debe ser una imagen.');
+      notify.warning('La portada debe ser una imagen.');
       return;
     }
 
@@ -441,7 +442,7 @@ export const QuestionnairesPanel: React.FC = () => {
     ];
 
     if (!allowedTypes.includes(file.type)) {
-      alert('El archivo debe ser PDF, DOC o DOCX.');
+      notify.warning('El archivo debe ser PDF, DOC o DOCX.');
       return;
     }
 
@@ -465,7 +466,7 @@ export const QuestionnairesPanel: React.FC = () => {
       allowedTypes.includes(file.type) || ['csv', 'txt'].includes(extension);
 
     if (!isValidCsv) {
-      alert('El archivo de preguntas debe ser CSV o TXT.');
+      notify.warning('El archivo de preguntas debe ser CSV o TXT.');
       return;
     }
 
@@ -530,14 +531,14 @@ export const QuestionnairesPanel: React.FC = () => {
     const onlyImages = files.filter((file) => file.type.startsWith('image/'));
 
     if (onlyImages.length !== files.length) {
-      alert('Solo puedes adjuntar imágenes.');
+      notify.warning('Solo puedes adjuntar imágenes.');
     }
 
     const availableSlots =
       MAX_QUESTIONNAIRE_IMAGES - questionnaireImages.length;
 
     if (availableSlots <= 0) {
-      alert(
+      notify.warning(
         `Solo puedes adjuntar un máximo de ${MAX_QUESTIONNAIRE_IMAGES} imágenes.`
       );
 
@@ -549,7 +550,7 @@ export const QuestionnairesPanel: React.FC = () => {
     }
 
     if (onlyImages.length > availableSlots) {
-      alert(`Solo puedes agregar ${availableSlots} imagen(es) más.`);
+      notify.warning(`Solo puedes agregar ${availableSlots} imagen(es) más.`);
     }
 
     const filesToAdd = onlyImages.slice(0, availableSlots);
@@ -627,29 +628,29 @@ export const QuestionnairesPanel: React.FC = () => {
     e.preventDefault();
 
     if (!title.trim() || !description.trim()) {
-      alert('Completa título y descripción.');
+      notify.warning('Completa título y descripción.');
       return;
     }
 
     if (!token) {
-      alert('Debes iniciar sesión como administrador.');
+      notify.warning('Debes iniciar sesión como administrador.');
       return;
     }
 
     const score = Number(questionsCount);
 
     if (!Number.isFinite(score) || score <= 0) {
-      alert('El puntaje máximo debe ser un número mayor a 0.');
+      notify.warning('El puntaje máximo debe ser un número mayor a 0.');
       return;
     }
 
     if (!editingQuestionnaire && !csvFormulario) {
-      alert('Debes adjuntar un CSV de preguntas para crear el cuestionario.');
+      notify.warning('Debes adjuntar un CSV de preguntas para crear el cuestionario.');
       return;
     }
 
     if (editingQuestionnaire && !formularioTieneCsvValido) {
-      alert('Este cuestionario no tiene CSV importado. Adjunta uno para guardar los cambios.');
+      notify.warning('Este cuestionario no tiene CSV importado. Adjunta uno para guardar los cambios.');
       return;
     }
 
@@ -747,16 +748,21 @@ export const QuestionnairesPanel: React.FC = () => {
       await loadQuestionnaires(cuestionarioGuardadoId);
       window.dispatchEvent(new Event('questionnaires-updated'));
 
-      alert(
+      notify.success(
         estabaEditando
           ? seAdjuntoCsvEnFormulario
             ? 'Cuestionario actualizado correctamente. El CSV de preguntas fue reemplazado.'
             : 'Cuestionario actualizado correctamente.'
           : 'Cuestionario creado correctamente con sus preguntas importadas desde CSV.'
       );
+      notify.add({
+        type: 'info',
+        title: estabaEditando ? 'Cuestionario actualizado' : 'Nuevo cuestionario disponible',
+        message: title.trim()
+      });
     } catch (error: any) {
       console.error('Error al guardar cuestionario:', error);
-      alert(error.message || 'Error al guardar el cuestionario.');
+      notify.error(error.message || 'Error al guardar el cuestionario.');
     }
   };
 
@@ -808,10 +814,17 @@ export const QuestionnairesPanel: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('¿Eliminar este cuestionario?')) return;
+    const confirmed = await notify.confirm({
+      header: 'Eliminar cuestionario',
+      message: '¿Eliminar este cuestionario? Esta acción no se puede deshacer.',
+      confirmText: 'Eliminar',
+      destructive: true
+    });
+
+    if (!confirmed) return;
 
     if (!token) {
-      alert('Debes iniciar sesión como administrador.');
+      notify.warning('Debes iniciar sesión como administrador.');
       return;
     }
 
@@ -836,10 +849,10 @@ export const QuestionnairesPanel: React.FC = () => {
         resetForm();
       }
 
-      alert('Cuestionario eliminado correctamente.');
+      notify.success('Cuestionario eliminado correctamente.');
     } catch (error: any) {
       console.error('Error al eliminar cuestionario:', error);
-      alert(error.message || 'Error al eliminar el cuestionario.');
+      notify.error(error.message || 'Error al eliminar el cuestionario.');
     }
   };
 
@@ -847,17 +860,17 @@ export const QuestionnairesPanel: React.FC = () => {
     event.preventDefault();
 
     if (!token) {
-      alert('Debes iniciar sesión como administrador.');
+      notify.warning('Debes iniciar sesión como administrador.');
       return;
     }
 
     if (!cuestionarioCsvId) {
-      alert('Selecciona un cuestionario para importar preguntas.');
+      notify.warning('Selecciona un cuestionario para importar preguntas.');
       return;
     }
 
     if (!archivoCsv) {
-      alert('Selecciona un archivo CSV con preguntas.');
+      notify.warning('Selecciona un archivo CSV con preguntas.');
       return;
     }
 
@@ -896,14 +909,14 @@ export const QuestionnairesPanel: React.FC = () => {
 
       window.dispatchEvent(new Event('questionnaires-updated'));
 
-      alert(
+      notify.success(
         `CSV importado correctamente. Preguntas: ${
           data?.totalPreguntas || data?.total_preguntas || 0
         }. Puntaje total: ${data?.puntajeMaximo || data?.puntaje_maximo || 0}.`
       );
     } catch (error: any) {
       console.error('Error al importar CSV:', error);
-      alert(error.message || 'Error al importar CSV.');
+      notify.error(error.message || 'Error al importar CSV.');
     } finally {
       setEstaImportandoCsv(false);
     }

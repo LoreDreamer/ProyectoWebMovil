@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import './ComplaintsForm.css';
 import { API_URL } from '@/shared/api/apiClient';
+import { notify } from '@/shared/notifications';
 
 interface ComplaintAttachment {
   id: string;
@@ -12,6 +13,7 @@ interface ComplaintAttachment {
 const MAX_FILES = 10;
 const MAX_FILE_SIZE_MB = 10;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+const COMPLAINT_DRAFT_BASE_KEY = 'draft_denuncia';
 
 const ALLOWED_MIME_TYPES = [
   'image/png',
@@ -83,6 +85,12 @@ export const ComplaintsForm: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const archivosRef = useRef<ComplaintAttachment[]>([]);
 
+  const userName = user?.nombre_completo || user?.name || '';
+  const userEmail = user?.email || user?.correo || '';
+  const complaintDraftKey = userEmail
+    ? `${COMPLAINT_DRAFT_BASE_KEY}_${userEmail.toLowerCase()}`
+    : COMPLAINT_DRAFT_BASE_KEY;
+
   useEffect(() => {
     archivosRef.current = archivos;
   }, [archivos]);
@@ -96,11 +104,68 @@ export const ComplaintsForm: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (user) {
-      setNombre(user.nombre_completo || user.name || '');
-      setCorreo(user.email || user.correo || '');
+    try {
+      const savedDraft = window.localStorage.getItem(complaintDraftKey);
+
+      if (savedDraft) {
+        const draft = JSON.parse(savedDraft);
+
+        setNombre(user ? userName : draft.nombre || '');
+        setCorreo(user ? userEmail : draft.correo || '');
+        setTipoIncidente(draft.tipoIncidente || '');
+        setFechaIncidente(draft.fechaIncidente || '');
+        setDescripcion(draft.descripcion || '');
+        setDeclaracion(Boolean(draft.declaracion));
+
+        if (draft.tipoIncidente || draft.fechaIncidente || draft.descripcion) {
+          notify.info('Se recuperó un borrador local de tu denuncia.');
+        }
+
+        return;
+      }
+    } catch {
+      window.localStorage.removeItem(complaintDraftKey);
     }
-  }, [user]);
+
+    if (user) {
+      setNombre(userName);
+      setCorreo(userEmail);
+    }
+  }, [user, userName, userEmail, complaintDraftKey]);
+
+  useEffect(() => {
+    const hasDraftData =
+      tipoIncidente.trim() ||
+      fechaIncidente.trim() ||
+      descripcion.trim() ||
+      declaracion;
+
+    if (!hasDraftData || isSending) return;
+
+    window.localStorage.setItem(
+      complaintDraftKey,
+      JSON.stringify({
+        nombre: user ? userName : nombre,
+        correo: user ? userEmail : correo,
+        tipoIncidente,
+        fechaIncidente,
+        descripcion,
+        declaracion
+      })
+    );
+  }, [
+    nombre,
+    correo,
+    tipoIncidente,
+    fechaIncidente,
+    descripcion,
+    declaracion,
+    isSending,
+    user,
+    userName,
+    userEmail,
+    complaintDraftKey
+  ]);
 
   const clearLocalPreviewUrls = () => {
     archivos.forEach((attachment) => {
@@ -125,6 +190,7 @@ export const ComplaintsForm: React.FC = () => {
     setDeclaracion(false);
     setArchivos([]);
     setIsSending(false);
+    window.localStorage.removeItem(complaintDraftKey);
 
     resetFileInput();
   };
@@ -137,7 +203,7 @@ export const ComplaintsForm: React.FC = () => {
     const availableSlots = MAX_FILES - archivos.length;
 
     if (availableSlots <= 0) {
-      alert(`Solo puedes adjuntar un máximo de ${MAX_FILES} archivos.`);
+      notify.warning(`Solo puedes adjuntar un máximo de ${MAX_FILES} archivos.`);
       resetFileInput();
       return;
     }
@@ -146,14 +212,14 @@ export const ComplaintsForm: React.FC = () => {
 
     selectedFiles.forEach((file) => {
       if (!isValidFile(file)) {
-        alert(
+        notify.warning(
           `Archivo no permitido: ${file.name}. Solo se aceptan imágenes, PDF, DOC, DOCX o TXT.`
         );
         return;
       }
 
       if (file.size > MAX_FILE_SIZE_BYTES) {
-        alert(
+        notify.warning(
           `El archivo ${file.name} supera el límite de ${MAX_FILE_SIZE_MB} MB.`
         );
         return;
@@ -168,7 +234,7 @@ export const ComplaintsForm: React.FC = () => {
     }
 
     if (validFiles.length > availableSlots) {
-      alert(
+      notify.warning(
         `Solo puedes agregar ${availableSlots} archivo(s) más. El límite total es ${MAX_FILES}.`
       );
     }
@@ -184,6 +250,7 @@ export const ComplaintsForm: React.FC = () => {
     );
 
     setArchivos((prev) => [...prev, ...newAttachments]);
+    notify.info(`${newAttachments.length} archivo(s) agregado(s) a la denuncia.`);
     resetFileInput();
   };
 
@@ -226,17 +293,17 @@ export const ComplaintsForm: React.FC = () => {
       !fechaIncidente.trim() ||
       !descripcion.trim()
     ) {
-      alert('Por favor completa todos los campos obligatorios.');
+      notify.warning('Por favor completa todos los campos obligatorios.');
       return false;
     }
 
     if (!declaracion) {
-      alert('Debes aceptar la declaración antes de enviar la denuncia.');
+      notify.warning('Debes aceptar la declaración antes de enviar la denuncia.');
       return false;
     }
 
     if (archivos.length > MAX_FILES) {
-      alert(`Solo puedes adjuntar un máximo de ${MAX_FILES} archivos.`);
+      notify.warning(`Solo puedes adjuntar un máximo de ${MAX_FILES} archivos.`);
       return false;
     }
 
@@ -271,7 +338,7 @@ export const ComplaintsForm: React.FC = () => {
       if (!response.ok) {
         const errorData = await response.json().catch(() => null);
 
-        alert(
+        notify.error(
           `Error al enviar: ${
             errorData?.error ||
             errorData?.message ||
@@ -282,11 +349,16 @@ export const ComplaintsForm: React.FC = () => {
         return;
       }
 
-      alert('¡Denuncia enviada con éxito al municipio!');
+      notify.success('¡Denuncia enviada con éxito al municipio!');
+      notify.add({
+        type: 'success',
+        title: 'Denuncia enviada',
+        message: 'Tu denuncia fue registrada correctamente.'
+      });
       resetForm();
     } catch (error) {
       console.error('Error de conexión:', error);
-      alert('No se pudo conectar con el servidor municipal.');
+      notify.error('No se pudo conectar con el servidor municipal.');
     } finally {
       setIsSending(false);
     }

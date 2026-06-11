@@ -12,6 +12,7 @@ import './global.css';
 import './features/admin/styles/adminPanels.css';
 import './theme/variables.css';
 import './responsive.css';
+import './shared/notifications/notifications.css';
 
 setupIonicReact();
 

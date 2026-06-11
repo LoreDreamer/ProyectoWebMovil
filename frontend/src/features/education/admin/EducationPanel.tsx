@@ -19,6 +19,7 @@ import {
 import { useAuth } from '@/context/AuthContext';
 import './EducationPanel.css';
 import { API_URL } from '@/shared/api/apiClient';
+import { notify } from '@/shared/notifications';
 
 type DifficultyValue = 'facil' | 'medio' | 'dificil';
 type EducationTypeValue = 'Phishing' | 'Seguridad' | 'VPNs' | 'Privacidad';
@@ -365,7 +366,7 @@ export const EducationPanel: React.FC = () => {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      alert('La portada debe ser una imagen.');
+      notify.warning('La portada debe ser una imagen.');
       return;
     }
 
@@ -389,7 +390,7 @@ export const EducationPanel: React.FC = () => {
     ];
 
     if (!allowedTypes.includes(file.type)) {
-      alert('El archivo debe ser PDF, DOC o DOCX.');
+      notify.warning('El archivo debe ser PDF, DOC o DOCX.');
       return;
     }
 
@@ -445,13 +446,13 @@ export const EducationPanel: React.FC = () => {
     const onlyImages = files.filter((file) => file.type.startsWith('image/'));
 
     if (onlyImages.length !== files.length) {
-      alert('Solo puedes adjuntar imágenes.');
+      notify.warning('Solo puedes adjuntar imágenes.');
     }
 
     const availableSlots = MAX_MODULE_IMAGES - moduleImages.length;
 
     if (availableSlots <= 0) {
-      alert(`Solo puedes adjuntar un máximo de ${MAX_MODULE_IMAGES} imágenes.`);
+      notify.warning(`Solo puedes adjuntar un máximo de ${MAX_MODULE_IMAGES} imágenes.`);
 
       if (moduleImagesInputRef.current) {
         moduleImagesInputRef.current.value = '';
@@ -461,7 +462,7 @@ export const EducationPanel: React.FC = () => {
     }
 
     if (onlyImages.length > availableSlots) {
-      alert(`Solo puedes agregar ${availableSlots} imagen(es) más.`);
+      notify.warning(`Solo puedes agregar ${availableSlots} imagen(es) más.`);
     }
 
     const filesToAdd = onlyImages.slice(0, availableSlots);
@@ -530,12 +531,12 @@ export const EducationPanel: React.FC = () => {
     e.preventDefault();
 
     if (!title.trim() || !description.trim()) {
-      alert('Completa título y descripción.');
+      notify.warning('Completa título y descripción.');
       return;
     }
 
     if (!token) {
-      alert('Debes iniciar sesión como administrador.');
+      notify.warning('Debes iniciar sesión como administrador.');
       return;
     }
 
@@ -611,14 +612,19 @@ export const EducationPanel: React.FC = () => {
       await loadModules();
       window.dispatchEvent(new Event('education-updated'));
 
-      alert(
+      notify.success(
         editingModule
           ? 'Módulo actualizado correctamente.'
           : 'Módulo creado correctamente.'
       );
+      notify.add({
+        type: 'info',
+        title: editingModule ? 'Módulo educativo actualizado' : 'Nuevo módulo educativo',
+        message: title.trim()
+      });
     } catch (error: any) {
       console.error('Error al guardar módulo educativo:', error);
-      alert(error.message || 'Error al guardar módulo educativo.');
+      notify.error(error.message || 'Error al guardar módulo educativo.');
     }
   };
 
@@ -659,10 +665,17 @@ export const EducationPanel: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('¿Eliminar este módulo educativo?')) return;
+    const confirmed = await notify.confirm({
+      header: 'Eliminar módulo educativo',
+      message: '¿Eliminar este módulo educativo? Esta acción no se puede deshacer.',
+      confirmText: 'Eliminar',
+      destructive: true
+    });
+
+    if (!confirmed) return;
 
     if (!token) {
-      alert('Debes iniciar sesión como administrador.');
+      notify.warning('Debes iniciar sesión como administrador.');
       return;
     }
 
@@ -683,10 +696,10 @@ export const EducationPanel: React.FC = () => {
       await loadModules();
       window.dispatchEvent(new Event('education-updated'));
 
-      alert('Módulo eliminado correctamente.');
+      notify.success('Módulo eliminado correctamente.');
     } catch (error: any) {
       console.error('Error al eliminar módulo educativo:', error);
-      alert(error.message || 'Error al eliminar módulo educativo.');
+      notify.error(error.message || 'Error al eliminar módulo educativo.');
     }
   };
 

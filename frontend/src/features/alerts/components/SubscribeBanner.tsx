@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './SubscribeBanner.css';
 import { API_URL } from '@/shared/api/apiClient';
+import { notify } from '@/shared/notifications';
 
 export const SubscribeBanner: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -39,6 +40,7 @@ export const SubscribeBanner: React.FC = () => {
     if (!isValidEmail(normalizedEmail)) {
       setFeedbackType('error');
       setFeedbackMessage('Ingresa un correo válido.');
+      notify.warning('Ingresa un correo válido.');
       return;
     }
 
@@ -62,6 +64,12 @@ export const SubscribeBanner: React.FC = () => {
 
       setFeedbackType('success');
       setFeedbackMessage('Suscripción registrada correctamente.');
+      notify.success('Suscripción registrada correctamente.');
+      notify.add({
+        type: 'success',
+        title: 'Suscripción a alertas',
+        message: 'Recibirás avisos cuando se publiquen nuevas alertas.'
+      });
       setEmail('');
 
       setTimeout(() => {
@@ -76,6 +84,7 @@ export const SubscribeBanner: React.FC = () => {
 
       setFeedbackType('error');
       setFeedbackMessage(message);
+      notify.error(message);
     } finally {
       setIsSubmitting(false);
     }

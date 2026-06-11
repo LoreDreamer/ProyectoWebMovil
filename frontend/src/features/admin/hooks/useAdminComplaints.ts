@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { API_URL } from '@/shared/api/apiClient';
+import { notify } from '@/shared/notifications';
 
 interface ComplaintFileApi {
   id?: string;
@@ -218,6 +219,7 @@ export const useAdminComplaints = () => {
       console.error('Error al cargar denuncias:', error);
       setComplaints([]);
       setComplaintsError(error.message || 'Error al cargar denuncias.');
+      notify.error(error.message || 'Error al cargar denuncias.');
     } finally {
       setIsLoadingComplaints(false);
     }
@@ -254,10 +256,17 @@ export const useAdminComplaints = () => {
         );
 
         setComplaintsSuccess('Denuncia eliminada correctamente.');
+        notify.success('Denuncia eliminada correctamente.');
+        notify.add({
+          type: 'success',
+          title: 'Denuncia eliminada',
+          message: 'El registro fue eliminado del panel de administración.'
+        });
         window.dispatchEvent(new Event('complaints-updated'));
       } catch (error: any) {
         console.error('Error al eliminar denuncia:', error);
         setComplaintsError(error.message || 'Error al eliminar denuncia.');
+        notify.error(error.message || 'Error al eliminar denuncia.');
         throw error;
       } finally {
         setIsDeletingComplaint(false);

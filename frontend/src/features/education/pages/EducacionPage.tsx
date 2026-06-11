@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { IonContent, IonPage, IonToast } from '@ionic/react';
+import { IonContent, IonPage } from '@ionic/react';
 import { useHistory } from 'react-router-dom';
 import {
   Navbar,
@@ -13,6 +13,7 @@ import pishing from '@/assets/education/pishing.png';
 
 import './EducationPage.css';
 import { API_URL } from '@/shared/api/apiClient';
+import { notify } from '@/shared/notifications';
 
 type EducationStatus = 'Completado' | 'Pendiente';
 
@@ -119,7 +120,6 @@ export const EducationPage: React.FC = () => {
 
   const [modules, setModules] = useState<EducationModule[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [showLoginToast, setShowLoginToast] = useState(false);
 
   const obtenerCabeceras = (): Record<string, string> => {
     const cabeceras: Record<string, string> = {};
@@ -218,7 +218,7 @@ export const EducationPage: React.FC = () => {
 
   const handleCardClick = (module: EducationModule) => {
     if (!user) {
-      setShowLoginToast(true);
+      notify.warning('Debes iniciar sesión para acceder a los módulos');
     } else {
       history.push(`/educacion/modulo/${module.id}`, { module });
     }
@@ -335,14 +335,6 @@ export const EducationPage: React.FC = () => {
         </div>
         <Footer />
         
-        <IonToast
-          isOpen={showLoginToast}
-          onDidDismiss={() => setShowLoginToast(false)}
-          message="Debes iniciar sesión para acceder a los módulos"
-          duration={2500}
-          color="warning"
-          position="bottom"
-        />
       </IonContent>
     </IonPage>
   );

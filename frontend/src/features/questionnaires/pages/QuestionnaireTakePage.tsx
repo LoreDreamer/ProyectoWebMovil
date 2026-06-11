@@ -5,6 +5,7 @@ import { Navbar, Footer } from '@/components';
 import { useAuth } from '@/context/AuthContext';
 import './QuestionnaireTakePage.css';
 import { API_URL } from '@/shared/api/apiClient';
+import { notify } from '@/shared/notifications';
 
 interface RouteParams {
   id: string;
@@ -257,7 +258,7 @@ export const QuestionnaireTakePage: React.FC = () => {
 
   const loadQuestionnaire = async () => {
     if (!token) {
-      alert('Debes iniciar sesión para responder cuestionarios.');
+      notify.warning('Debes iniciar sesión para responder cuestionarios.');
       history.push('/login');
       return;
     }
@@ -317,7 +318,7 @@ export const QuestionnaireTakePage: React.FC = () => {
       }
     } catch (error: any) {
       console.error('Error al cargar cuestionario:', error);
-      alert(error.message || 'Error al cargar cuestionario.');
+      notify.error(error.message || 'Error al cargar cuestionario.');
       history.push('/cuestionarios');
     } finally {
       setIsLoading(false);
@@ -347,7 +348,7 @@ export const QuestionnaireTakePage: React.FC = () => {
 
   const submitAnswers = async () => {
     if (!token) {
-      alert('Debes iniciar sesión para guardar tu resultado.');
+      notify.warning('Debes iniciar sesión para guardar tu resultado.');
       return;
     }
 
@@ -356,7 +357,7 @@ export const QuestionnaireTakePage: React.FC = () => {
     );
 
     if (missingAnswers.length > 0) {
-      alert('Debes responder todas las preguntas antes de finalizar.');
+      notify.warning('Debes responder todas las preguntas antes de finalizar.');
       return;
     }
 
@@ -388,11 +389,17 @@ export const QuestionnaireTakePage: React.FC = () => {
       const nextResult = data?.resultado || data?.result || null;
 
       setResult(nextResult || null);
+      notify.success('Cuestionario enviado correctamente.');
+      notify.add({
+        type: 'success',
+        title: 'Cuestionario completado',
+        message: title
+      });
       window.dispatchEvent(new Event('questionnaires-updated'));
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (error: any) {
       console.error('Error al enviar cuestionario:', error);
-      alert(error.message || 'Error al enviar cuestionario.');
+      notify.error(error.message || 'Error al enviar cuestionario.');
     } finally {
       setIsSending(false);
     }

@@ -19,6 +19,7 @@ import {
 import { useAuth } from '@/context/AuthContext';
 import './ProtocolsPanel.css';
 import { API_URL } from '@/shared/api/apiClient';
+import { notify } from '@/shared/notifications';
 
 type ProtocolCategory = 'Teletrabajo' | 'Ciberseguridad' | 'Atencion Ciudadana';
 
@@ -313,7 +314,7 @@ export const ProtocolsPanel: React.FC = () => {
     const availableSlots = MAX_PROTOCOL_FILES - totalFiles;
 
     if (availableSlots <= 0) {
-      alert(`Solo puedes adjuntar un máximo de ${MAX_PROTOCOL_FILES} archivos.`);
+      notify.warning(`Solo puedes adjuntar un máximo de ${MAX_PROTOCOL_FILES} archivos.`);
       resetFileInput();
       return;
     }
@@ -322,14 +323,14 @@ export const ProtocolsPanel: React.FC = () => {
 
     selectedFiles.forEach((file) => {
       if (!isValidFile(file)) {
-        alert(
+        notify.warning(
           `Archivo no permitido: ${file.name}. Solo se permiten PDF, DOC, DOCX, PNG, JPG, JPEG o WEBP.`
         );
         return;
       }
 
       if (file.size > MAX_FILE_SIZE_BYTES) {
-        alert(
+        notify.warning(
           `El archivo ${file.name} supera el límite de ${MAX_FILE_SIZE_MB} MB.`
         );
         return;
@@ -344,7 +345,7 @@ export const ProtocolsPanel: React.FC = () => {
     }
 
     if (validFiles.length > availableSlots) {
-      alert(
+      notify.warning(
         `Solo puedes agregar ${availableSlots} archivo(s) más. El límite total es ${MAX_PROTOCOL_FILES}.`
       );
     }
@@ -409,17 +410,17 @@ export const ProtocolsPanel: React.FC = () => {
     e.preventDefault();
 
     if (!titulo.trim() || !descripcion.trim()) {
-      alert('Completa título y descripción.');
+      notify.warning('Completa título y descripción.');
       return;
     }
 
     if (!token) {
-      alert('Debes iniciar sesión como administrador.');
+      notify.warning('Debes iniciar sesión como administrador.');
       return;
     }
 
     if (totalFiles === 0) {
-      alert('Debes adjuntar al menos un archivo.');
+      notify.warning('Debes adjuntar al menos un archivo.');
       return;
     }
 
@@ -473,14 +474,19 @@ export const ProtocolsPanel: React.FC = () => {
       await loadProtocols();
       window.dispatchEvent(new Event('protocolos-updated'));
 
-      alert(
+      notify.success(
         editingProtocol
           ? 'Protocolo actualizado correctamente.'
           : 'Protocolo creado correctamente.'
       );
+      notify.add({
+        type: 'info',
+        title: editingProtocol ? 'Protocolo actualizado' : 'Nuevo protocolo disponible',
+        message: titulo.trim()
+      });
     } catch (error: any) {
       console.error('Error al guardar protocolo:', error);
-      alert(error.message || 'Error al guardar el protocolo.');
+      notify.error(error.message || 'Error al guardar el protocolo.');
     }
   };
 
@@ -499,10 +505,17 @@ export const ProtocolsPanel: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('¿Eliminar este protocolo?')) return;
+    const confirmed = await notify.confirm({
+      header: 'Eliminar protocolo',
+      message: '¿Eliminar este protocolo? Esta acción no se puede deshacer.',
+      confirmText: 'Eliminar',
+      destructive: true
+    });
+
+    if (!confirmed) return;
 
     if (!token) {
-      alert('Debes iniciar sesión como administrador.');
+      notify.warning('Debes iniciar sesión como administrador.');
       return;
     }
 
@@ -529,10 +542,10 @@ export const ProtocolsPanel: React.FC = () => {
         resetForm();
       }
 
-      alert('Protocolo eliminado correctamente.');
+      notify.success('Protocolo eliminado correctamente.');
     } catch (error: any) {
       console.error('Error al eliminar protocolo:', error);
-      alert(error.message || 'Error al eliminar protocolo.');
+      notify.error(error.message || 'Error al eliminar protocolo.');
     }
   };
 

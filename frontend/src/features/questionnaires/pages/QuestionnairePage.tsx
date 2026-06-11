@@ -17,6 +17,7 @@ import dispositivos from '@/assets/questions/dispositivos.png';
 import wifi from '@/assets/questions/wifi.png';
 import inge from '@/assets/questions/inge.png';
 import { API_URL } from '@/shared/api/apiClient';
+import { notify } from '@/shared/notifications';
 
 type QuestionnaireStatus = 'Completado' | 'Pendiente';
 
@@ -396,7 +397,7 @@ export const QuestionnairePage: React.FC = () => {
 
   const openQuestionnaire = (questionnaireId: string) => {
     if (!token) {
-      alert('Debes iniciar sesión para responder cuestionarios.');
+      notify.warning('Debes iniciar sesión para responder cuestionarios.');
       history.push('/login');
       return;
     }

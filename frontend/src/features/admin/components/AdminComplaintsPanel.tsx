@@ -3,6 +3,7 @@ import { refreshOutline, trashOutline } from 'ionicons/icons';
 import { IonIcon } from '@ionic/react';
 import { buildResourceUrl } from '@/shared/api/apiClient';
 import { useAdminComplaints } from '@/features/admin/hooks/useAdminComplaints';
+import { notify } from '@/shared/notifications';
 import './AdminComplaintsPanel.css';
 
 const truncateText = (value: string, maxLength = 170) => {
@@ -23,9 +24,12 @@ export const AdminComplaintsPanel: React.FC = () => {
   } = useAdminComplaints();
 
   const handleDeleteComplaint = async (id: string, nombreCompleto: string) => {
-    const confirmed = window.confirm(
-      `¿Seguro que quieres eliminar la denuncia de ${nombreCompleto}? Esta acción no se puede deshacer.`
-    );
+    const confirmed = await notify.confirm({
+      header: 'Eliminar denuncia',
+      message: `¿Seguro que quieres eliminar la denuncia de ${nombreCompleto}? Esta acción no se puede deshacer.`,
+      confirmText: 'Eliminar',
+      destructive: true
+    });
 
     if (!confirmed) return;
 

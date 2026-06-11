@@ -11,6 +11,7 @@ import type {
   UsuarioUpdatePayload,
 } from "@/features/admin/hooks/useAdminDashboard";
 import { chileRegions } from "@/assets/data/chileRegions";
+import { notify } from "@/shared/notifications";
 import "./UserRow.css";
 
 interface UserRowProps {
@@ -167,23 +168,39 @@ export const UserRow: React.FC<UserRowProps> = ({
     try {
       setModalError("");
       await onUpdateUser(editingUser.id, normalizedForm);
+      notify.success('Usuario actualizado correctamente.');
+      notify.add({
+        type: 'success',
+        title: 'Usuario actualizado',
+        message: `${normalizedForm.nombre} fue editado correctamente.`
+      });
       closeEditModal();
     } catch (updateError: any) {
       setModalError(updateError.message || "No se pudo editar el usuario.");
+      notify.error(updateError.message || "No se pudo editar el usuario.");
     }
   };
 
   const handleDeleteUser = async (user: UsuarioRow) => {
     if (!onDeleteUser) return;
 
-    const shouldDelete = window.confirm(
-      `¿Seguro que deseas eliminar la cuenta de ${user.nombre}? Esta acción no se puede deshacer.`,
-    );
+    const shouldDelete = await notify.confirm({
+      header: 'Eliminar usuario',
+      message: `¿Seguro que deseas eliminar la cuenta de ${user.nombre}? Esta acción no se puede deshacer.`,
+      confirmText: 'Eliminar',
+      destructive: true,
+    });
 
     if (!shouldDelete) return;
 
     try {
       await onDeleteUser(user.id);
+      notify.success('Usuario eliminado correctamente.');
+      notify.add({
+        type: 'success',
+        title: 'Usuario eliminado',
+        message: `${user.nombre} fue eliminado del sistema.`
+      });
     } catch {
       // El mensaje se muestra desde el hook mediante usersError.
     }

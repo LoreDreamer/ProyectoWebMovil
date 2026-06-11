@@ -17,6 +17,7 @@ import {
 import { useAuth } from '@/context/AuthContext';
 import './AlertsPanel.css';
 import { API_URL } from '@/shared/api/apiClient';
+import { notify } from '@/shared/notifications';
 
 interface AlertImage {
   id: string;
@@ -323,7 +324,7 @@ export const AlertsPanel: React.FC = () => {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      alert('Solo puedes adjuntar imágenes.');
+      notify.warning('Solo puedes adjuntar imágenes.');
       return;
     }
 
@@ -369,13 +370,13 @@ export const AlertsPanel: React.FC = () => {
     const onlyImages = files.filter((file) => file.type.startsWith('image/'));
 
     if (onlyImages.length !== files.length) {
-      alert('Solo puedes adjuntar imágenes.');
+      notify.warning('Solo puedes adjuntar imágenes.');
     }
 
     const availableSlots = MAX_ALERT_IMAGES - alertImages.length;
 
     if (availableSlots <= 0) {
-      alert(`Solo puedes adjuntar un máximo de ${MAX_ALERT_IMAGES} imágenes.`);
+      notify.warning(`Solo puedes adjuntar un máximo de ${MAX_ALERT_IMAGES} imágenes.`);
 
       if (alertImagesInputRef.current) {
         alertImagesInputRef.current.value = '';
@@ -385,7 +386,7 @@ export const AlertsPanel: React.FC = () => {
     }
 
     if (onlyImages.length > availableSlots) {
-      alert(
+      notify.warning(
         `Solo puedes agregar ${availableSlots} imagen(es) más. El límite total es ${MAX_ALERT_IMAGES}.`
       );
     }
@@ -465,12 +466,12 @@ export const AlertsPanel: React.FC = () => {
     e.preventDefault();
 
     if (!title.trim() || !description.trim()) {
-      alert('Completa título y descripción');
+      notify.warning('Completa título y descripción.');
       return;
     }
 
     if (!token) {
-      alert('Debes iniciar sesión como administrador.');
+      notify.warning('Debes iniciar sesión como administrador.');
       return;
     }
 
@@ -538,14 +539,19 @@ export const AlertsPanel: React.FC = () => {
       await loadAlerts();
       window.dispatchEvent(new Event('alerts-updated'));
 
-      alert(
+      notify.success(
         editingAlert
           ? 'Alerta actualizada con éxito'
           : 'Alerta creada con éxito'
       );
+      notify.add({
+        type: 'info',
+        title: editingAlert ? 'Alerta actualizada' : 'Nueva alerta publicada',
+        message: title.trim()
+      });
     } catch (error: any) {
       console.error('Error al guardar alerta:', error);
-      alert(error.message || 'Error al guardar la alerta');
+      notify.error(error.message || 'Error al guardar la alerta');
     }
   };
 
@@ -587,10 +593,17 @@ export const AlertsPanel: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('¿Eliminar esta alerta?')) return;
+    const confirmed = await notify.confirm({
+      header: 'Eliminar alerta',
+      message: '¿Eliminar esta alerta? Esta acción no se puede deshacer.',
+      confirmText: 'Eliminar',
+      destructive: true
+    });
+
+    if (!confirmed) return;
 
     if (!token) {
-      alert('Debes iniciar sesión como administrador.');
+      notify.warning('Debes iniciar sesión como administrador.');
       return;
     }
 
@@ -615,10 +628,10 @@ export const AlertsPanel: React.FC = () => {
         setViewItem(null);
       }
 
-      alert('Alerta eliminada');
+      notify.success('Alerta eliminada correctamente.');
     } catch (error: any) {
       console.error('Error al eliminar alerta:', error);
-      alert(error.message || 'Error al eliminar');
+      notify.error(error.message || 'Error al eliminar');
     }
   };
 

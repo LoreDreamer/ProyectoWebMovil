@@ -16,6 +16,7 @@ import { AdminPage } from '@/features/admin';
 import { useAuth } from '@/context/AuthContext';
 import { AppMenu } from './AppMenu';
 import { ProtectedRoute } from './ProtectedRoute';
+import { NotificationProvider } from '@/shared/notifications';
 
 export const AppRoutes: React.FC = () => {
   const { user, isLoading } = useAuth();
@@ -26,6 +27,7 @@ export const AppRoutes: React.FC = () => {
 
   return (
     <IonApp>
+      <NotificationProvider>
       <IonReactRouter>
         <AppMenu />
 
@@ -62,6 +64,7 @@ export const AppRoutes: React.FC = () => {
           />
         </IonRouterOutlet>
       </IonReactRouter>
+      </NotificationProvider>
     </IonApp>
   );
 };
