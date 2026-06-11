@@ -40,6 +40,9 @@ El proyecto está construido con **Ionic React + TypeScript** en el frontend y *
 20. [Diferenciación de acceso según roles](#diferenciación-de-acceso-según-roles)
 21. [Gestión administrativa](#gestión-administrativa)
 22. [Notas de seguridad](#notas-de-seguridad)
+23. [Cumplimiento de Entrega Final](#cumplimiento-de-entrega-final)
+24. [Ejecución con Docker](#ejecución-con-docker)
+25. [Servicio externo EF5](#servicio-externo-ef5)
 
 ---
 
@@ -133,6 +136,13 @@ Funcionario o encargado de la gestión de contenidos y usuarios dentro de la pla
 - Supabase
 - PostgreSQL
 - Supabase Storage
+- Google Safe Browsing API
+
+### DevOps / despliegue
+
+- Docker
+- Docker Compose
+- Nginx
 
 ---
 
@@ -448,7 +458,28 @@ cd backend
 npx tsc --noEmit
 ```
 
-### 11. Resumen de comandos principales
+### 11. Ejecutar con Docker
+
+La plataforma también puede ejecutarse mediante Docker Compose, levantando frontend y backend en contenedores separados:
+
+```bash
+docker compose up --build
+```
+
+Servicios dockerizados:
+
+| Servicio | Contenedor | Tecnología | URL |
+|---|---|---|---|
+| Frontend | `municipal-ciberseguridad-frontend` | Nginx + build de Vite | `http://localhost:5173` |
+| Backend | `municipal-ciberseguridad-backend` | Node.js 22 + Express | `http://localhost:3000` |
+
+Para detener los contenedores:
+
+```bash
+docker compose down
+```
+
+### 12. Resumen de comandos principales
 
 | Comando | Ubicación | Función |
 |---|---|---|
@@ -465,7 +496,7 @@ npx tsc --noEmit
 | `cd frontend && npm run preview` | Frontend | Previsualiza el build del frontend. |
 | `cd backend && npx tsc --noEmit` | Backend | Valida TypeScript del backend. |
 
-### 12. Flujo recomendado para ejecutar por primera vez
+### 13. Flujo recomendado para ejecutar por primera vez
 
 ```bash
 npm run setup
@@ -481,7 +512,7 @@ cp config/.env.example config/.env
 npm run dev
 ```
 
-### 13. Flujo recomendado para validar antes de entregar
+### 14. Flujo recomendado para validar antes de entregar
 
 ```bash
 npm run setup
@@ -522,6 +553,16 @@ SUPABASE_PROTOCOLOS_TABLE=protocolo
 SUPABASE_ACTIVIDADES_TABLE=actividad
 SUPABASE_EDUCATION_TABLE=educacion
 SUPABASE_QUESTIONNAIRES_TABLE=cuestionario
+
+ALLOWED_ORIGINS=http://localhost:5173,http://localhost:5174
+
+EMAIL_FROM="Municipalidad Ciberseguridad <no-reply@santodomingo.test>"
+ETHEREAL_USER=
+ETHEREAL_PASS=
+
+GOOGLE_SAFE_BROWSING_API_KEY=
+GOOGLE_SAFE_BROWSING_CLIENT_ID=municipal-ciberseguridad
+GOOGLE_SAFE_BROWSING_CLIENT_VERSION=1.0.0
 
 VITE_API_BASE_URL=http://localhost:3000
 ```
@@ -1104,6 +1145,77 @@ a, b, c o d
 ```
 
 ---
+
+
+---
+
+## Cumplimiento de Entrega Final
+
+La versión final del proyecto cumple con los puntos solicitados para la entrega final:
+
+| Entrega | Estado | Evidencia dentro del proyecto |
+|---|---|---|
+| EF1: Funcionalidades completas | Cumplida | CRUD/gestión de usuarios, actividades, alertas, educación, protocolos, cuestionarios y denuncias; notificaciones y almacenamiento local. |
+| EF2: UI/UX y rendimiento | Cumplida | Diseño responsive, lazy loading de rutas, optimización de imágenes WebP, estados de carga/error/vacío y mejoras visuales en vistas principales. |
+| EF3: Seguridad avanzada API | Cumplida | JWT, roles, bcrypt, Helmet, CORS restringido, rate limit, validaciones de archivos y sanitización de contenido HTML con DOMPurify. |
+| EF4: Optimización de consultas | Cumplida | Paginación opcional, selección de columnas específicas, metadata de paginación y endpoint `/api/dashboard/summary` para evitar cargas innecesarias. |
+| EF5: Servicio externo | Cumplida | Integración con Google Safe Browsing API mediante `/api/security/url-check` para analizar URLs sospechosas. |
+| EF6: Dockerización | Cumplida | Dockerfile para frontend, Dockerfile para backend, Nginx y `docker-compose.yml` para levantar la plataforma completa. |
+
+---
+
+## Ejecución con Docker
+
+Para ejecutar la plataforma final dockerizada se debe tener Docker Desktop abierto y el archivo real `config/.env` configurado.
+
+Desde la raíz del proyecto:
+
+```bash
+docker compose up --build
+```
+
+URLs de prueba:
+
+```txt
+Frontend: http://localhost:5173
+Backend:  http://localhost:3000/api/test-db
+```
+
+Para detener la ejecución:
+
+```bash
+docker compose down
+```
+
+El frontend se compila con Vite y se sirve mediante Nginx. El backend se ejecuta en un contenedor Node.js 22 para mantener compatibilidad con Supabase.
+
+---
+
+## Servicio externo EF5
+
+La plataforma integra **Google Safe Browsing API** como servicio externo de ciberseguridad. Esta herramienta permite analizar URLs sospechosas sin que el usuario tenga que abrir directamente el enlace.
+
+Ruta en frontend:
+
+```txt
+/herramientas
+```
+
+Endpoint backend:
+
+```txt
+POST /api/security/url-check
+```
+
+Variables requeridas en `config/.env`:
+
+```env
+GOOGLE_SAFE_BROWSING_API_KEY=tu_api_key
+GOOGLE_SAFE_BROWSING_CLIENT_ID=municipal-ciberseguridad
+GOOGLE_SAFE_BROWSING_CLIENT_VERSION=1.0.0
+```
+
+Si la API key no está configurada, el sistema mantiene una validación local preventiva, pero para defender EF5 como integración externa debe configurarse una clave real de Google Safe Browsing.
 
 ## Estado del proyecto
 
