@@ -1,24 +1,22 @@
 # Plataforma Municipal de Ciberseguridad
 
-Aplicación web municipal orientada a la **educación, prevención, diagnóstico y gestión de riesgos de ciberseguridad** para usuarios de la comunidad. La plataforma permite acceder a contenidos educativos, cuestionarios, protocolos, alertas, denuncias y herramientas preventivas de seguridad, además de un panel administrativo para gestionar usuarios y contenidos.
-
-El proyecto está desarrollado con **Ionic React + TypeScript** en el frontend y **Node.js + Express + TypeScript** en el backend. Utiliza **Supabase/PostgreSQL** como base de datos, **Supabase Storage** para archivos, **Google Safe Browsing API** como servicio externo y **Docker Compose** para levantar la plataforma completa en contenedores.
-
----
-
 ## Integrantes
 
 - Lucas Contreras
 - Eduardo Cordero
 - Constanza Suárez
 
----
+## Descripción
+
+Aplicación web municipal orientada a la **educación, prevención, diagnóstico y gestión de riesgos de ciberseguridad** para usuarios de la comunidad. La plataforma permite acceder a contenidos educativos, cuestionarios, protocolos, alertas, denuncias y herramientas preventivas de seguridad, además de un panel administrativo para gestionar usuarios y contenidos.
+
+El proyecto está desarrollado con **Ionic React + TypeScript** en el frontend y **Node.js + Express + TypeScript** en el backend. Utiliza **Supabase/PostgreSQL** como base de datos, **Supabase Storage** para archivos, **Google Safe Browsing API** como servicio externo y **Docker Compose** para levantar la plataforma completa en contenedores.
 
 ## Tabla de contenidos
 
 1. [Descripción general](#descripción-general)
 2. [Justificación del problema](#justificación-del-problema)
-3. [Usuario objetivo](#usuario-objetivo)
+3. [Tipos de usuario](#tipos-de-usuario)
 4. [Tecnologías utilizadas](#tecnologías-utilizadas)
 5. [Estructura del proyecto](#estructura-del-proyecto)
 6. [Instalación y ejecución local](#instalación-y-ejecución-local)
@@ -39,8 +37,6 @@ El proyecto está desarrollado con **Ionic React + TypeScript** en el frontend y
 21. [Comandos útiles](#comandos-útiles)
 22. [Notas de seguridad](#notas-de-seguridad)
 
----
-
 ## Descripción general
 
 La **Plataforma Municipal de Ciberseguridad** busca apoyar a la comunidad en la prevención de amenazas digitales mediante información educativa, protocolos de actuación, cuestionarios de diagnóstico, alertas y herramientas de análisis preventivo.
@@ -51,8 +47,6 @@ El sistema contempla dos perfiles principales:
 - **Administrador:** puede acceder al panel administrativo para gestionar usuarios, actividades, alertas, protocolos, educación, cuestionarios y denuncias.
 
 El objetivo principal es entregar una herramienta clara, accesible y organizada que permita mejorar la cultura de ciberseguridad dentro de un contexto municipal.
-
----
 
 ## Justificación del problema
 
@@ -68,13 +62,11 @@ La digitalización de trámites, servicios y comunicaciones municipales ha aumen
 
 En muchos casos, las personas no cuentan con conocimientos suficientes para identificar amenazas o reaccionar correctamente frente a un incidente. Por esto, la plataforma entrega una solución preventiva, educativa y de apoyo, permitiendo que el municipio centralice recursos de ciberseguridad y los usuarios accedan a ellos de forma simple.
 
----
+## Tipos de usuario
 
-## Usuario objetivo
+### Usuario ordinario
 
-### Usuario general
-
-Persona de la comunidad que necesita informarse, capacitarse o reportar situaciones relacionadas con ciberseguridad.
+Vecino de la comunidad que necesita informarse, capacitarse o reportar situaciones relacionadas con ciberseguridad.
 
 **Necesidades principales:**
 
@@ -104,8 +96,6 @@ Funcionario o encargado de la gestión de contenidos y usuarios dentro de la pla
 - Revisar denuncias enviadas por usuarios.
 - Identificar niveles de riesgo de los usuarios.
 - Mantener actualizada la información disponible.
-
----
 
 ## Tecnologías utilizadas
 
@@ -143,8 +133,6 @@ Funcionario o encargado de la gestión de contenidos y usuarios dentro de la pla
 - Docker
 - Docker Compose
 - Nginx
-
----
 
 ## Estructura del proyecto
 
@@ -238,8 +226,6 @@ ProyectoWebMovil/
 - `config/`: centraliza la configuración del entorno.
 - `app/`: contiene navegación, menú y rutas protegidas.
 
----
-
 ## Instalación y ejecución local
 
 ### 1. Clonar el repositorio
@@ -328,8 +314,6 @@ cd backend
 npx tsc --noEmit
 ```
 
----
-
 ## Variables de entorno
 
 El proyecto usa un único archivo de variables de entorno compartido:
@@ -388,9 +372,7 @@ GOOGLE_SAFE_BROWSING_CLIENT_ID=municipal-ciberseguridad
 GOOGLE_SAFE_BROWSING_CLIENT_VERSION=1.0.0
 ```
 
-> El archivo `config/.env` no debe subirse al repositorio. Solo debe versionarse `config/.env.example`.
-
----
+Para que el sistema funcione, favor crear archivo .env dentro de `config`.
 
 ## Ejecución con Docker
 
@@ -430,8 +412,6 @@ EF5:      http://localhost:5173/herramientas
 
 El frontend se compila con Vite y se sirve mediante Nginx. El backend se ejecuta en Node.js 22 para mantener compatibilidad con Supabase.
 
----
-
 ## Roles del sistema
 
 ### Usuario
@@ -459,8 +439,6 @@ Puede acceder al panel administrativo y gestionar información del sistema:
 - Gestión de actividades.
 - Gestión/revisión de denuncias.
 
----
-
 ## Credenciales de prueba
 
 Las siguientes cuentas son de prueba/desarrollo. Todas usan la contraseña:
@@ -482,8 +460,6 @@ Las siguientes cuentas son de prueba/desarrollo. Todas usan la contraseña:
 | `matias.perez@correo.com` | Usuario |
 
 > Estas credenciales son solo para pruebas locales o académicas. No deben utilizarse en producción.
-
----
 
 ## Requerimientos funcionales
 
@@ -527,8 +503,6 @@ Ejemplo con 9 cuestionarios:
 | 3, 4 o 5 | Medio |
 | 6, 7, 8 o 9 | Bajo |
 
----
-
 ## Requerimientos no funcionales
 
 | Código | Requerimiento |
@@ -544,8 +518,6 @@ Ejemplo con 9 cuestionarios:
 | RNF9 | Respuestas eficientes desde backend con selección de columnas específicas y metadata de paginación. |
 | RNF10 | Ejecución portable mediante Docker Compose. |
 
----
-
 ## Base de datos y modelo relacional
 
 El proyecto utiliza Supabase con PostgreSQL para almacenar usuarios, actividades, noticias/alertas, protocolos, denuncias, educación, cuestionarios, progreso y suscripciones.
@@ -557,8 +529,6 @@ El proyecto utiliza Supabase con PostgreSQL para almacenar usuarios, actividades
 ### Integridad
 
 Cada tabla posee claves primarias y, cuando corresponde, claves foráneas para mantener consistencia en las relaciones. El backend no ejecuta consultas SQL manuales, sino que usa el cliente de Supabase, reduciendo el riesgo de inyección SQL directa.
-
----
 
 ## Rutas principales del frontend
 
@@ -580,8 +550,6 @@ Cada tabla posee claves primarias y, cuando corresponde, claves foráneas para m
 | `/admin` | AdminPage | Administrador |
 | `/perfil` | PlaceholderPage | Usuario autenticado |
 | `/configuracion` | PlaceholderPage | Usuario autenticado |
-
----
 
 ## Rutas principales del backend
 
@@ -624,8 +592,6 @@ backend/src/routes/index.ts
 | GET | `/api/activities?page=1&limit=6` | Público/usuario | Lista actividades con paginación opcional. |
 | GET | `/api/denuncias?page=1&limit=10` | Administrador | Lista denuncias con paginación opcional. |
 
----
-
 ## Endpoints y pruebas funcionales
 
 La documentación detallada de endpoints se encuentra en:
@@ -640,7 +606,7 @@ Las pruebas funcionales pueden realizarse con Postman usando:
 baseUrl = http://localhost:3000
 ```
 
-Pruebas recomendadas antes de entregar:
+Pruebas recomendadas:
 
 ```txt
 GET  /api/test-db
@@ -661,8 +627,6 @@ Casos de prueba relevantes:
 - Creación de denuncia desde usuario.
 - Consulta a Google Safe Browsing desde `/herramientas`.
 - Ejecución con Docker usando `docker compose up --build`.
-
----
 
 ## Arquitectura de navegación
 
@@ -714,8 +678,6 @@ Administrador
         └── Panel administrativo
 ```
 
----
-
 ## Gestión administrativa
 
 El panel administrativo permite gestionar recursos principales del sistema.
@@ -758,8 +720,6 @@ frontend/src/assets/data/chileRegions.ts
 
 Esto evita errores de digitación y mantiene datos consistentes.
 
----
-
 ## Servicio externo EF5
 
 La plataforma integra **Google Safe Browsing API** como servicio externo de ciberseguridad. Esta herramienta permite analizar URLs sospechosas sin que el usuario tenga que abrir directamente el enlace.
@@ -786,8 +746,6 @@ GOOGLE_SAFE_BROWSING_CLIENT_VERSION=1.0.0
 
 Si la API key no está configurada, el sistema mantiene una validación local preventiva. Para defender EF5 como integración externa real, debe configurarse una clave válida de Google Safe Browsing.
 
----
-
 ## Cumplimiento de entrega final
 
 | Entrega | Estado | Evidencia dentro del proyecto |
@@ -798,8 +756,6 @@ Si la API key no está configurada, el sistema mantiene una validación local pr
 | EF4: Optimización de consultas | Cumplida | Paginación opcional, selección de columnas específicas, metadata de paginación y endpoint `/api/dashboard/summary`. |
 | EF5: Servicio externo | Cumplida | Integración con Google Safe Browsing API mediante `/api/security/url-check` para analizar URLs sospechosas. |
 | EF6: Dockerización | Cumplida | Dockerfile frontend, Dockerfile backend, Nginx y `docker-compose.yml` para levantar la plataforma completa. |
-
----
 
 ## Comandos útiles
 
@@ -827,13 +783,8 @@ Puertos por defecto:
 | Frontend | 5173 | `http://localhost:5173` |
 | Backend | 3000 | `http://localhost:3000` |
 
----
-
 ## Notas de seguridad
 
-- No subir `config/.env` al repositorio.
-- No exponer `SUPABASE_SERVICE_ROLE_KEY` en el frontend.
-- No pegar claves privadas o API keys en el README.
 - Cambiar `JWT_SECRET` antes de producción.
 - Rotar credenciales si fueron compartidas accidentalmente.
 - Mantener `ALLOWED_ORIGINS` restringido a dominios conocidos.
@@ -841,8 +792,6 @@ Puertos por defecto:
 - Usar contraseñas hasheadas con bcrypt.
 - Sanitizar contenido HTML antes de renderizarlo.
 - Usar `config/.env.example` solo como plantilla sin secretos reales.
-
----
 
 ## Formato CSV para cuestionarios
 
@@ -859,8 +808,6 @@ Reglas:
 - `respuesta_correcta` debe ser `a`, `b`, `c` o `d`.
 - El puntaje total recomendado por cuestionario es 100.
 - El archivo debe incluir encabezado y preguntas válidas.
-
----
 
 ## Estado final del proyecto
 
